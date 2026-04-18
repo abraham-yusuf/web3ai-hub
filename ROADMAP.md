@@ -20,7 +20,7 @@
 > **Goal:** Project siap development, semua alat dan struktur terpasang.
 
 ### Setup & Scaffolding
-- 📋 Init Next.js 14 project (App Router + TypeScript + Tailwind)
+- 📋 Init Next.js project (App Router + TypeScript + Tailwind)
 - 📋 Setup shadcn/ui component library
 - 📋 Konfigurasi ESLint, Prettier, Husky pre-commit hooks
 - 📋 Setup Prisma + Neon PostgreSQL (schema awal)
