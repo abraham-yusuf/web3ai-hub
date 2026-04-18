@@ -367,8 +367,8 @@ Scale:         12 / 14 / 16 / 18 / 20 / 24 / 30 / 36 / 48px
 ## 9. Open Questions
 
 1. Apakah user registration diperlukan di v1.0, atau cukup admin-only? Cukup Admin Only
-2. Apakah comment system (Giscus/Disqus) perlu di v1.0? ya, gunakan Disqus
-3. Bahasa default konten: Indonesia, Inggris, atau bilingual? gunakan Indonesia dan Inggris 
+2. Apakah comment system (Giscus/Disqus) perlu di v1.0? ya, gunakan Giscus
+3. Bahasa default konten: Indonesia, Inggris, atau bilingual? gunakan Indonesia dan Inggris saja
 4. Apakah perlu newsletter integration (Resend/Mailchimp) di v1.0? Gunakan Resend
 5. Submission airdrop oleh komunitas — perlu moderation queue? boleh oleh komunitas, buatkan halaman dan form khusus
 
