@@ -1,13 +1,150 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum AirdropStatus {
+  ACTIVE
+  UPCOMING
+  ENDED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum TrackType {
+  WEB3
+  AI
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  posts         Post[]
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String    @db.Text
+  excerpt       String?   @db.Text
+  coverImage    String?
+  category      String
+  tags          String[]
+  published     Boolean   @default(false)
+  featured      Boolean   @default(false)
+  authorId      String
+  author        User      @relation(fields: [authorId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([category])
+}
+
+model Airdrop {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  logo            String?
+  network         String
+  status          AirdropStatus @default(ACTIVE)
+  estimatedReward String?
+  difficulty      Difficulty    @default(MEDIUM)
+  deadline        DateTime?
+  content         String        @db.Text
+  steps           Json?         // Array of objects { title, description, isOptional }
+  requirements    String[]
+  links           Json?         // Object { twitter, discord, website }
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+}
+
+model AITool {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  tagline       String?
+  logo          String?
+  description   String    @db.Text
+  category      String
+  pricing       String    // Free, Freemium, Paid
+  rating        Float     @default(0)
+  affiliateLink String?
+  featured      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([category])
+}
+
+model LearnTrack {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String?        @db.Text
+  type        TrackType      @default(WEB3)
+  order       Int            @default(0)
+  sections    LearnSection[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([slug])
+}
+
+model LearnSection {
+  id        String      @id @default(cuid())
+  title     String
+  order     Int         @default(0)
+  trackId   String
+  track     LearnTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  pages     LearnPage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model LearnPage {
+  id        String       @id @default(cuid())
+  title     String
+  slug      String       @unique
+  content   String       @db.Text
+  order     Int          @default(0)
+  sectionId String
+  section   LearnSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([slug])
+}
+
+model SiteSettings {
+  id             String @id @default("default")
+  aiProviders    Json?  // Config for OpenAI, Claude, etc.
+  adSenseConfig  Json?  // Config for AdSense slots
+  updatedAt      DateTime @updatedAt
 }

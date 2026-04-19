@@ -1,0 +1,37 @@
+---
+title: "Pengenalan Blockchain"
+order: 1
+---
+
+# Pengenalan Blockchain
+
+Blockchain adalah teknologi dasar di balik cryptocurrency seperti Bitcoin dan Ethereum.
+
+## Apa itu Blockchain?
+
+Blockchain adalah buku besar digital (digital ledger) yang terdesentralisasi, aman, dan transparan.
+
+<Callout type="info">
+  Bayangkan blockchain sebagai Google Sheets yang bisa dilihat oleh semua orang, tapi tidak ada satu orang pun yang bisa menghapus atau mengubah data yang sudah ada tanpa persetujuan mayoritas.
+</Callout>
+
+### Karakteristik Utama
+
+1. **Desentralisasi**: Tidak ada otoritas pusat.
+2. **Immutability**: Data tidak bisa diubah setelah dicatat.
+3. **Transparansi**: Semua transaksi dapat dilacak.
+
+### Contoh Smart Contract Sederhana
+
+<CodeBlock language="solidity">
+{`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleStorage {
+    uint256 public data;
+
+    function set(uint256 _data) public {
+        data = _data;
+    }
+}`}
+</CodeBlock>
