@@ -16,7 +16,7 @@ export default function LearnIndexPage() {
       </div>
 
       <div className="grid gap-6">
-        {structure.map((track: any) => (
+        {structure.map((track) => (
           <Card key={track.slug}>
             <CardHeader className="flex flex-row items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -29,7 +29,7 @@ export default function LearnIndexPage() {
             </CardHeader>
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-2">
-                {track.pages.map((page: any) => (
+                {track.pages.map((page) => (
                   <Link 
                     key={page.slug} 
                     href={`/${page.slug}`}
