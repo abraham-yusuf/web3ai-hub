@@ -1,9 +1,9 @@
 import Link from "next/link"
-import { getAllFilesMetadata } from "@/lib/mdx"
+import { getPublishedBlogPosts } from "@/lib/blog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function BlogPage() {
-  const posts = getAllFilesMetadata("blog")
+  const posts = getPublishedBlogPosts()
 
   return (
     <div className="space-y-8">
