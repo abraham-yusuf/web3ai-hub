@@ -25,7 +25,6 @@ export default async function BlogPage() {
       </div>
 
       <AdSlot section="blog_list" className="rounded-xl border p-4" />
-
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
