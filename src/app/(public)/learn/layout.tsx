@@ -1,34 +1,16 @@
-import { getLearnStructure } from "@/lib/mdx"
-import Link from "next/link"
+import { LearnSidebar } from "@/components/learn/learn-sidebar"
+import { getLearnNavigation } from "@/lib/learn"
 
-export default function LearnLayout({
+export default async function LearnLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const structure = getLearnStructure()
+  const structure = await getLearnNavigation()
 
   return (
     <div className="flex min-h-[calc(100vh-10rem)] flex-col gap-8 md:flex-row">
-      <aside className="w-full shrink-0 space-y-8 border-r pr-6 md:w-64">
-        {structure.map((track) => (
-          <div key={track.slug} className="space-y-4">
-            <h3 className="px-2 text-sm font-bold tracking-wider text-muted-foreground uppercase">{track.title}</h3>
-            <div className="space-y-1">
-              {track.pages.map((page) => (
-                <Link
-                  key={page.slug}
-                  href={`/${page.slug}`}
-                  className="block rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted hover:text-primary"
-                >
-                  {page.title}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
-      </aside>
-
+      <LearnSidebar tracks={structure} />
       <main className="max-w-3xl flex-1">{children}</main>
     </div>
   )

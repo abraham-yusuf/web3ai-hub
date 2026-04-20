@@ -1,7 +1,7 @@
 import { AdSlot } from "@/components/ads/ad-slot"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getLearnStructure } from "@/lib/mdx"
+import { getLearnNavigation } from "@/lib/learn"
 import { ArrowRight, Book } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/learn" },
 }
 
-export default function LearnIndexPage() {
-  const structure = getLearnStructure()
+export default async function LearnIndexPage() {
+  const structure = await getLearnNavigation()
 
   return (
     <div className="space-y-8">
@@ -35,15 +35,15 @@ export default function LearnIndexPage() {
               </div>
               <div>
                 <CardTitle>{track.title}</CardTitle>
-                <CardDescription>{track.pages.length} Materi</CardDescription>
+                <CardDescription>{track.sections.reduce((count, section) => count + section.pages.length, 0)} Materi</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid gap-2 sm:grid-cols-2">
-                {track.pages.map((page) => (
+                {track.sections.flatMap((section) => section.pages).map((page) => (
                   <Link
                     key={page.slug}
-                    href={`/${page.slug}`}
+                    href={`/learn/${page.slug}`}
                     className="group flex items-center gap-2 rounded-md p-2 text-sm transition-colors hover:bg-muted"
                   >
                     <span className="text-muted-foreground group-hover:text-primary">{page.order}.</span>
