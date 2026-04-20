@@ -48,7 +48,6 @@ export default async function LearnPage({ params }: LearnPageProps) {
         {page.sectionTitle && <span> / {page.sectionTitle}</span>}
         <span> / {page.title}</span>
       </nav>
-
       <div className="prose prose-zinc max-w-none dark:prose-invert">
         <MDXRemote source={page.content} components={components} />
       </div>
@@ -72,7 +71,6 @@ export default async function LearnPage({ params }: LearnPageProps) {
           <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Ini lesson terakhir.</div>
         )}
       </div>
-
       <AdSlot section="learn_detail" className="rounded-xl border p-4" />
       <InternalLinksBlock />
     </article>
