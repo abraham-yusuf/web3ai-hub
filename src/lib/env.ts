@@ -14,6 +14,7 @@ const serverEnvSchema = z
     ANTHROPIC_API_KEY: z.string().optional(),
     GOOGLE_AI_API_KEY: z.string().optional(),
     GROQ_API_KEY: z.string().optional(),
+    AI_SETTINGS_ENCRYPTION_KEY: z.string().optional(),
     NEXT_PUBLIC_ADSENSE_CLIENT: z.string().optional(),
     R2_ACCOUNT_ID: z.string().optional(),
     R2_ACCESS_KEY_ID: z.string().optional(),

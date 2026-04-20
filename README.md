@@ -96,9 +96,7 @@ Platform ini juga dirancang untuk **menghasilkan pendapatan** melalui Google AdS
 ✅ OpenAI        — GPT-4o, GPT-4 Turbo, GPT-3.5
 ✅ Anthropic     — Claude 3.5 Sonnet, Claude 3 Opus
 ✅ Google        — Gemini 1.5 Pro, Gemini Flash
-✅ Groq          — Llama 3, Mixtral (gratis, cepat)
-✅ Ollama        — Model lokal (Llama, Mistral, dll)
-✅ OpenRouter    — Akses 100+ model dari satu API
+✅ Groq          — Llama 3, Mixtral (fallback cepat)
 ```
 
 ---
@@ -217,6 +215,8 @@ GOOGLE_AI_API_KEY=""
 GROQ_API_KEY=""
 
 # Google AdSense
+AI_SETTINGS_ENCRYPTION_KEY="<base64-32-byte-key>"
+
 NEXT_PUBLIC_ADSENSE_CLIENT="ca-pub-XXXXXXXXXX"
 
 # Storage (Cloudflare R2)

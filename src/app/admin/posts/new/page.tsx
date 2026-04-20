@@ -4,7 +4,14 @@ import { Label } from "@/components/ui/label"
 import { SlugField } from "@/components/admin/slug-field"
 import { createPostAction } from "../actions"
 
-export default function NewPostPage() {
+export default async function NewPostPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ title?: string; content?: string }>
+}) {
+  const params = await searchParams
+  const initialTitle = typeof params.title === "string" ? params.title : ""
+  const initialContent = typeof params.content === "string" ? params.content : ""
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -15,12 +22,12 @@ export default function NewPostPage() {
       <form action={createPostAction} className="space-y-4 rounded-lg border p-6">
         <div className="space-y-2">
           <Label htmlFor="title">Title</Label>
-          <Input id="title" name="title" required />
+          <Input id="title" name="title" required defaultValue={initialTitle} />
         </div>
 
         <div className="space-y-2">
           <Label>Slug</Label>
-          <SlugField />
+          <SlugField initialTitle={initialTitle} />
         </div>
 
         <div className="space-y-2">
@@ -47,7 +54,13 @@ export default function NewPostPage() {
 
         <div className="space-y-2">
           <Label htmlFor="content">MDX Content</Label>
-          <textarea id="content" name="content" required className="min-h-[320px] w-full rounded-md border bg-background p-3 font-mono text-sm" />
+          <textarea
+            id="content"
+            name="content"
+            required
+            defaultValue={initialContent}
+            className="min-h-[320px] w-full rounded-md border bg-background p-3 font-mono text-sm"
+          />
         </div>
 
         <label className="flex items-center gap-2 text-sm">

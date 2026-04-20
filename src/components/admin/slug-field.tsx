@@ -6,11 +6,21 @@ import { useState } from "react"
 
 interface SlugFieldProps {
   initialSlug?: string
+  initialTitle?: string
   postId?: string
 }
 
-export function SlugField({ initialSlug = "", postId }: SlugFieldProps) {
-  const [slug, setSlug] = useState(initialSlug)
+function toSlug(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+}
+
+export function SlugField({ initialSlug = "", initialTitle = "", postId }: SlugFieldProps) {
+  const [slug, setSlug] = useState(initialSlug || (initialTitle ? toSlug(initialTitle) : ""))
   const [status, setStatus] = useState<"idle" | "checking" | "available" | "taken">("idle")
 
   const checkSlug = async () => {
