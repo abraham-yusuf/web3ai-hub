@@ -1,11 +1,20 @@
-import { prisma } from "@/lib/prisma"
-import Link from "next/link"
+import { AdSlot } from "@/components/ads/ad-slot"
+import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { prisma } from "@/lib/prisma"
 import { Search, Star } from "lucide-react"
+import type { Metadata } from "next"
+import Link from "next/link"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "AI Tools Directory",
+  description: "Koleksi tools AI terbaik untuk produktivitas dan kreativitas.",
+  alternates: { canonical: "/ai-tools" },
+}
 
 export default async function AiToolsPage({
   searchParams,
@@ -17,12 +26,12 @@ export default async function AiToolsPage({
   const tools = await prisma.aITool.findMany({
     where: {
       AND: [
-        q ? { name: { contains: q, mode: 'insensitive' } } : {},
-        category ? { category: { contains: category, mode: 'insensitive' } } : {},
-        pricing ? { pricing: pricing } : {},
-      ]
+        q ? { name: { contains: q, mode: "insensitive" } } : {},
+        category ? { category: { contains: category, mode: "insensitive" } } : {},
+        pricing ? { pricing } : {},
+      ],
     },
-    orderBy: { rating: 'desc' }
+    orderBy: { rating: "desc" },
   })
 
   const categories = [
@@ -31,25 +40,24 @@ export default async function AiToolsPage({
     "Video Generation",
     "Coding & Development",
     "Audio & Music",
-    "Web3 & Crypto"
+    "Web3 & Crypto",
   ]
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold tracking-tight">AI Tools Directory</h1>
-        <p className="text-muted-foreground mt-2 text-lg">
+        <p className="mt-2 text-lg text-muted-foreground">
           Koleksi tools AI terbaik untuk membantu produktivitas dan kreativitas Anda.
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
+      <AdSlot section="tools_list" className="rounded-xl border p-4" />
+
+      <div className="flex flex-col gap-4 md:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Cari tools AI..." 
-            className="pl-10"
-          />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Cari tools AI..." className="pl-10" />
         </div>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
@@ -64,9 +72,9 @@ export default async function AiToolsPage({
         {tools.length > 0 ? (
           tools.map((tool) => (
             <Link key={tool.id} href={`/ai-tools/${tool.slug}`}>
-              <Card className="h-full hover:border-primary transition-colors flex flex-col">
+              <Card className="flex h-full flex-col transition-colors hover:border-primary">
                 <CardHeader>
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="mb-2 flex items-start justify-between">
                     <Badge variant="secondary">{tool.category}</Badge>
                     <div className="flex items-center gap-1 text-sm font-bold text-amber-500">
                       <Star className="h-4 w-4 fill-current" />
@@ -74,12 +82,10 @@ export default async function AiToolsPage({
                     </div>
                   </div>
                   <CardTitle>{tool.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {tool.tagline}
-                  </CardDescription>
+                  <CardDescription className="line-clamp-2">{tool.tagline}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col justify-end">
-                  <div className="flex justify-between items-center">
+                <CardContent className="flex flex-1 flex-col justify-end">
+                  <div className="flex items-center justify-between">
                     <Badge variant="outline">{tool.pricing}</Badge>
                     <span className="text-xs font-medium text-primary hover:underline">Detail →</span>
                   </div>
@@ -88,11 +94,13 @@ export default async function AiToolsPage({
             </Link>
           ))
         ) : (
-          <div className="col-span-full py-20 text-center border rounded-lg bg-muted/20">
+          <div className="col-span-full rounded-lg border bg-muted/20 py-20 text-center">
             <p className="text-muted-foreground">Belum ada tools AI yang ditemukan.</p>
           </div>
         )}
       </div>
+
+      <InternalLinksBlock />
     </div>
   )
 }
