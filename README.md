@@ -232,6 +232,27 @@ NEXT_PUBLIC_UMAMI_URL=""
 
 ---
 
+
+## 🧭 Environment Modes
+
+Aplikasi mendukung tiga mode runtime:
+
+| Mode | Tujuan | Catatan |
+|------|--------|---------|
+| `development` | Pengembangan lokal | Wajib set `DATABASE_URL` dan `NEXTAUTH_SECRET`. |
+| `staging` | Preview/UAT sebelum production | Gunakan service eksternal yang sama seperti production untuk validasi integrasi. |
+| `production` | Environment live pengguna akhir | Semua secret harus diisi melalui platform deploy (mis. Vercel env). |
+
+> Salin `.env.example` ke `.env.local` untuk development lokal.
+
+## 🔐 Role Matrix (Baseline)
+
+| Role | Akses Admin Route | Keterangan |
+|------|-------------------|------------|
+| `ADMIN` | ✅ Ya | Akses penuh dashboard admin. |
+| `EDITOR` | ✅ Ya | Akses operasional konten. |
+| `VIEWER` | ❌ Tidak | Tidak bisa masuk area admin. |
+
 ## 💰 Strategi Monetisasi
 
 | Sumber | Deskripsi | Estimasi |
@@ -250,7 +271,9 @@ npm run dev          # Development server
 npm run build        # Production build
 npm run start        # Production server
 npm run lint         # Linting
-npm run type-check   # TypeScript check
+npm run typecheck    # TypeScript check (quality gate)
+npm run test         # Node.js test runner
+npm run setup-hooks  # Aktifkan pre-commit hook lokal
 npm run db:push      # Push schema ke database
 npm run db:seed      # Seed data awal
 npm run db:studio    # Buka Prisma Studio

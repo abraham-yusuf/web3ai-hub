@@ -11,7 +11,8 @@ datasource db {
 
 enum Role {
   ADMIN
-  USER
+  EDITOR
+  VIEWER
 }
 
 enum AirdropStatus {
@@ -37,7 +38,7 @@ model User {
   email         String?   @unique
   password      String?
   image         String?
-  role          Role      @default(USER)
+  role          Role      @default(VIEWER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   posts         Post[]
