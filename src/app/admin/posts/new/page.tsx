@@ -12,7 +12,6 @@ export default async function NewPostPage({
   const params = await searchParams
   const initialTitle = typeof params.title === "string" ? params.title : ""
   const initialContent = typeof params.content === "string" ? params.content : ""
-
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
