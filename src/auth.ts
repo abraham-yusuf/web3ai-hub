@@ -1,10 +1,16 @@
+import type { Role } from "@prisma/client"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
+import { env } from "@/lib/env"
+import { prisma } from "@/lib/prisma"
 
-// Mock user for v1.0 admin - in production use DB and hashing
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@web3aihub.com"
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"
+const credentialsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+})
+
+const adminAreaRoles: Role[] = ["ADMIN", "EDITOR"]
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -15,24 +21,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
-          .safeParse(credentials)
+        const parsedCredentials = credentialsSchema.safeParse(credentials)
 
-        if (parsedCredentials.success) {
-          const { email, password } = parsedCredentials.data
-          
-          if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-            return {
-              id: "1",
-              name: "Admin",
-              email: ADMIN_EMAIL,
-              role: "ADMIN",
-            }
+        if (!parsedCredentials.success) {
+          return null
+        }
+
+        const { email, password } = parsedCredentials.data
+
+        if (email === env.ADMIN_EMAIL && password === env.ADMIN_PASSWORD) {
+          return {
+            id: "bootstrap-admin",
+            name: "Bootstrap Admin",
+            email: env.ADMIN_EMAIL,
+            role: "ADMIN" as Role,
           }
         }
 
-        return null
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, name: true, email: true, password: true, role: true },
+        })
+
+        if (!user?.password || user.password !== password || !user.email) {
+          return null
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }
       },
     }),
   ],
@@ -40,27 +60,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/admin/login",
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
+    authorized({ auth: activeSession, request: { nextUrl } }) {
       const isOnAdmin = nextUrl.pathname.startsWith("/admin")
       const isOnLogin = nextUrl.pathname === "/admin/login"
 
-      if (isOnAdmin) {
-        if (isLoggedIn) return true
-        if (isOnLogin) return true
-        return false // Redirect unauthenticated users to login page
+      if (!isOnAdmin || isOnLogin) {
+        return true
       }
-      return true
+
+      if (!activeSession?.user?.role) {
+        return false
+      }
+
+      return adminAreaRoles.includes(activeSession.user.role)
     },
     jwt({ token, user }) {
-      if (user) {
-        token.role = (user as any).role
+      if (user?.role) {
+        token.role = user.role
       }
       return token
     },
     session({ session, token }) {
-      if (session.user) {
-        (session.user as any).role = token.role
+      if (session.user && (token.role === "ADMIN" || token.role === "EDITOR" || token.role === "VIEWER")) {
+        session.user.role = token.role
       }
       return session
     },
