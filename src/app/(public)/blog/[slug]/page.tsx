@@ -1,56 +1,16 @@
+import { ShareButtons } from "@/components/blog/share-buttons"
 import { components } from "@/components/mdx"
 import { Badge } from "@/components/ui/badge"
-import { getPrevNextPosts, getReadingStats, getRelatedPosts, getPublishedBlogPosts, extractToc, slugifyHeading } from "@/lib/blog"
-import { getFileBySlug } from "@/lib/mdx"
+import { extractToc, getReadingStats, slugifyHeading } from "@/lib/blog"
+import { getPublicBlogPostBySlug, getPublicBlogPosts } from "@/lib/posts"
 import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { ReactNode } from "react"
-import { ShareButtons } from "@/components/blog/share-buttons"
 
 interface BlogPostPageProps {
-  params: Promise<{
-    slug: string
-  }>
-}
-
-export async function generateStaticParams() {
-  return getPublishedBlogPosts().map((post) => ({ slug: post.slug }))
-}
-
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const { slug } = await params
-  const post = getFileBySlug("blog", slug)
-
-  if (!post) {
-    return {
-      title: "Post Not Found",
-    }
-  }
-
-  const title = post.frontMatter.title
-  const description = post.frontMatter.excerpt ?? `Baca artikel ${title} di Web3AI Hub.`
-  const canonicalUrl = `/blog/${post.frontMatter.slug}`
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "article",
-      url: canonicalUrl,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  }
+  params: Promise<{ slug: string }>
 }
 
 function headingWithId(Tag: "h2" | "h3") {
@@ -61,28 +21,63 @@ function headingWithId(Tag: "h2" | "h3") {
   }
 }
 
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPublicBlogPostBySlug(slug)
+
+  if (!post) {
+    return { title: "Post Not Found" }
+  }
+
+  const canonicalUrl = `/blog/${post.slug}`
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: "article",
+      url: canonicalUrl,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+    },
+  }
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
-  const post = getFileBySlug("blog", slug)
+  const post = await getPublicBlogPostBySlug(slug)
 
   if (!post) {
     notFound()
   }
 
+  const allPosts = await getPublicBlogPosts()
+  const currentIndex = allPosts.findIndex((entry) => entry.slug === post.slug)
+  const prevPost = currentIndex >= 0 ? allPosts[currentIndex + 1] ?? null : null
+  const nextPost = currentIndex >= 0 ? allPosts[currentIndex - 1] ?? null : null
+  const relatedPosts = allPosts
+    .filter((entry) => entry.slug !== post.slug)
+    .filter((entry) => entry.category === post.category || entry.tags.some((tag) => post.tags.includes(tag)))
+    .slice(0, 3)
+
   const readingStats = getReadingStats(post.content)
   const toc = extractToc(post.content)
-  const relatedPosts = getRelatedPosts(post.frontMatter)
-  const { prevPost, nextPost } = getPrevNextPosts(post.frontMatter.slug)
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: post.frontMatter.title,
-    description: post.frontMatter.excerpt,
-    datePublished: post.frontMatter.date,
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.publishedAt ?? post.createdAt,
     author: {
       "@type": "Person",
-      name: post.frontMatter.author,
+      name: post.author ?? "Admin",
     },
   }
 
@@ -93,27 +88,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         <div className="mb-8 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            {post.frontMatter.category && <Badge variant="outline">{post.frontMatter.category}</Badge>}
-            {post.frontMatter.tags?.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                #{tag}
-              </Badge>
+            {post.category && (
+              <Link href={`/blog/category/${slugifyHeading(post.category)}`}>
+                <Badge variant="outline">{post.category}</Badge>
+              </Link>
+            )}
+            {post.tags.map((tag) => (
+              <Link key={tag} href={`/blog/tag/${slugifyHeading(tag)}`}>
+                <Badge variant="secondary">#{tag}</Badge>
+              </Link>
             ))}
           </div>
 
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">{post.frontMatter.title}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">{post.title}</h1>
 
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <span>{post.frontMatter.date ?? "No date"}</span>
+            <span>{post.publishedAt ?? post.createdAt ?? "No date"}</span>
             <span>•</span>
-            <span>By {post.frontMatter.author ?? "Unknown"}</span>
+            <span>By {post.author ?? "Unknown"}</span>
             <span>•</span>
             <span>{readingStats.words} words</span>
             <span>•</span>
             <span>{readingStats.minutes} min read</span>
           </div>
 
-          <ShareButtons title={post.frontMatter.title} />
+          <ShareButtons title={post.title} />
         </div>
 
         <div className="prose prose-zinc max-w-none dark:prose-invert">

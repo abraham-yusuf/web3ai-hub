@@ -55,6 +55,8 @@ model Post {
   tags          String[]
   published     Boolean   @default(false)
   featured      Boolean   @default(false)
+  publishedAt   DateTime?
+  scheduledFor  DateTime?
   authorId      String
   author        User      @relation(fields: [authorId], references: [id])
   createdAt     DateTime  @default(now())
