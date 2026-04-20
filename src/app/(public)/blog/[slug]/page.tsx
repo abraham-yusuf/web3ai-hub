@@ -1,4 +1,6 @@
+import { AdSlot } from "@/components/ads/ad-slot"
 import { ShareButtons } from "@/components/blog/share-buttons"
+import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"
 import { Badge } from "@/components/ui/badge"
 import { extractToc, getReadingStats, slugifyHeading } from "@/lib/blog"
@@ -119,6 +121,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <MDXRemote source={post.content} components={{ ...components, h2: headingWithId("h2"), h3: headingWithId("h3") }} />
         </div>
 
+        <AdSlot section="blog_detail_inline" label="Sponsored content" className="mt-8 rounded-xl border p-4" />
         <div className="mt-12 space-y-6 border-t pt-8">
           <h2 className="text-2xl font-bold">Lanjutkan membaca</h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -156,9 +159,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           </div>
         )}
+        <InternalLinksBlock title="Jelajahi Konten Lain" />
       </article>
 
-      <aside className="hidden lg:block">
+      <aside className="hidden lg:block space-y-4">
+        <AdSlot section="blog_detail_sidebar" className="rounded-xl border p-4" />
         <div className="sticky top-20 rounded-xl border p-4">
           <p className="mb-3 text-sm font-semibold">Table of contents</p>
           {toc.length > 0 ? (
