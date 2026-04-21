@@ -122,6 +122,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         <AdSlot section="blog_detail_inline" label="Sponsored content" className="mt-8 rounded-xl border p-4" />
+
         <div className="mt-12 space-y-6 border-t pt-8">
           <h2 className="text-2xl font-bold">Lanjutkan membaca</h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -159,6 +160,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           </div>
         )}
+
         <InternalLinksBlock title="Jelajahi Konten Lain" />
       </article>
 

@@ -28,8 +28,7 @@ function getStoredProgress(airdropSlug: string): number[] {
   try {
     const parsed = JSON.parse(saved)
     return Array.isArray(parsed) ? parsed.filter((value): value is number => typeof value === "number") : []
-  } catch (error) {
-    console.error("Failed to parse airdrop progress:", saved, error)
+  } catch {
     return []
   }
 }

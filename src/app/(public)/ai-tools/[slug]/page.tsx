@@ -54,6 +54,7 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{tool.category}</Badge>
             <Badge variant="outline">{tool.pricing}</Badge>
+            {tool.featured && <Badge>Featured</Badge>}
             <div className="ml-auto flex items-center gap-1 text-sm font-bold text-amber-500 md:ml-0">
               <Star className="h-4 w-4 fill-current" />
               {tool.rating}
@@ -63,7 +64,7 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
           <p className="text-xl text-muted-foreground">{tool.tagline}</p>
           {tool.affiliateLink && (
             <a
-              href={tool.affiliateLink}
+              href={`/api/tools/out?slug=${tool.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className={buttonVariants({ size: "lg", className: "h-12 px-8" })}
@@ -71,6 +72,7 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
               Coba {tool.name} <ExternalLink className="ml-2 h-5 w-5" />
             </a>
           )}
+          <a href={`/ai-tools?compare=${tool.slug}`} className="inline-flex h-9 items-center rounded-md border px-3 text-xs font-medium">Add to Compare</a>
         </div>
       </div>
 

@@ -52,6 +52,7 @@ export default async function AirdropDetailPage({
     orderBy: { updatedAt: "desc" },
     select: { name: true, slug: true, network: true, status: true },
   })
+
   const socialLinks = (airdrop.links ?? {}) as AirdropLinkMap
   const steps = ((airdrop.steps ?? []) as unknown) as AirdropStep[]
   const statusVariant = airdrop.status === "ACTIVE" ? "default" : "secondary"

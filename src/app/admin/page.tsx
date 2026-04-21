@@ -10,10 +10,11 @@ export default function AdminPage() {
         <p className="text-muted-foreground">Kelola konten blog dan workflow AI writer dari satu tempat.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-5">
         <Link href="/admin/posts" className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Post Manager</Link>
         <Link href="/admin/ai-writer" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium">AI Writer</Link>
         <Link href="/admin/airdrops" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium">Airdrops</Link>
+        <Link href="/admin/tools" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium">Tools</Link>
         <Link href="/admin/settings" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium">Settings</Link>
       </div>
     </div>

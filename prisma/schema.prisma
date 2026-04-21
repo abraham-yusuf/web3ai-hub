@@ -102,9 +102,23 @@ model AITool {
   featured      Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  clicks        AffiliateClick[]
 
   @@index([slug])
   @@index([category])
+}
+
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  toolId    String
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  tool AITool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, createdAt])
 }
 
 model LearnTrack {
