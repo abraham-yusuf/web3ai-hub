@@ -1,7 +1,11 @@
 import { AdSlot } from "@/components/ads/ad-slot"
+import { LearnChatSidebar } from "@/components/learn/learn-chat-sidebar"
+import { ProgressTracker } from "@/components/learn/progress-tracker"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"
 import { getLearnPageBySlug, getLearnPagination } from "@/lib/learn"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { MDXRemote } from "next-mdx-remote/rsc"
@@ -40,6 +44,19 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
   const { prev, next } = await getLearnPagination(slugPath)
 
+  const session = await auth()
+  const progress = session?.user?.id
+    ? await prisma.learnProgress.findUnique({
+        where: {
+          userId_pageSlug: {
+            userId: session.user.id,
+            pageSlug: slugPath,
+          },
+        },
+        select: { completed: true },
+      })
+    : null
+
   return (
     <article className="space-y-8 py-6">
       <nav className="text-sm text-muted-foreground">
@@ -48,6 +65,9 @@ export default async function LearnPage({ params }: LearnPageProps) {
         {page.sectionTitle && <span> / {page.sectionTitle}</span>}
         <span> / {page.title}</span>
       </nav>
+
+      <ProgressTracker pageSlug={slugPath} initialCompleted={progress?.completed ?? false} />
+
       <div className="prose prose-zinc max-w-none dark:prose-invert">
         <MDXRemote source={page.content} components={components} />
       </div>
@@ -71,8 +91,10 @@ export default async function LearnPage({ params }: LearnPageProps) {
           <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Ini lesson terakhir.</div>
         )}
       </div>
+
       <AdSlot section="learn_detail" className="rounded-xl border p-4" />
       <InternalLinksBlock />
+      <LearnChatSidebar title={page.title} context={page.content} />
     </article>
   )
 }
