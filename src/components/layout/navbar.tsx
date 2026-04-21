@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -12,7 +13,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Moon, Sun, Menu, X } from "lucide-react"
+import { Moon, Sun, Menu, X, Search } from "lucide-react"
 import { useTheme } from "next-themes"
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { title: "Learn", href: "/learn" },
   { title: "Airdrops", href: "/airdrop" },
   { title: "AI Tools", href: "/ai-tools" },
+  { title: "Search", href: "/search" },
 ]
 
 export function Navbar() {
@@ -29,12 +31,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Web3AI Hub
-            </span>
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-xl font-bold text-transparent">Web3AI Hub</span>
           </Link>
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
@@ -44,7 +44,7 @@ export function Navbar() {
                     <NavigationMenuLink
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        pathname === item.href && "text-primary"
+                        pathname === item.href && "text-primary",
                       )}
                     >
                       {item.title}
@@ -54,6 +54,13 @@ export function Navbar() {
               ))}
             </NavigationMenuList>
           </NavigationMenu>
+        </div>
+
+        <div className="hidden items-center gap-2 lg:flex">
+          <form action="/search" className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input name="q" placeholder="Search..." className="h-9 w-48 pl-8" />
+          </form>
         </div>
 
         <div className="flex items-center gap-2">
@@ -78,16 +85,19 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b bg-background p-4 space-y-4">
+        <div className="space-y-4 border-b bg-background p-4 md:hidden">
+          <form action="/search" className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input name="q" placeholder="Search..." className="h-9 pl-8" />
+          </form>
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
                 "block text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground"
+                pathname === item.href ? "text-primary" : "text-muted-foreground",
               )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
