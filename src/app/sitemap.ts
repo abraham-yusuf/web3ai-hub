@@ -42,7 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-
   const airdropRoutes: MetadataRoute.Sitemap = airdrops.map((airdrop) => ({
     url: `${baseUrl}/airdrop/${airdrop.slug}`,
     lastModified: airdrop.updatedAt,

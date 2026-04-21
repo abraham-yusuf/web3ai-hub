@@ -31,15 +31,15 @@ export default async function AirdropPage({
   const { q, status = "ALL", network, difficulty = "ALL", sort = "newest" } = await searchParams
 
   const airdrops = await prisma.airdrop.findMany({
-    where: {
-      AND: [
-        q ? { name: { contains: q, mode: "insensitive" } } : {},
-        status !== "ALL" ? { status } : {},
-        network ? { network: { contains: network, mode: "insensitive" } } : {},
-        difficulty !== "ALL" ? { difficulty } : {},
-      ],
-    },
-    orderBy: sort === "reward" ? { estimatedReward: "desc" } : { createdAt: "desc" },
+      where: {
+        AND: [
+          q ? { name: { contains: q, mode: "insensitive" } } : {},
+          status !== "ALL" ? { status } : {},
+          network ? { network: { contains: network, mode: "insensitive" } } : {},
+          difficulty !== "ALL" ? { difficulty } : {},
+        ],
+      },
+      orderBy: sort === "reward" ? { estimatedReward: "desc" } : { createdAt: "desc" },
   })
 
   return (
