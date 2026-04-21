@@ -5,7 +5,10 @@ import { Separator } from "@/components/ui/separator"
 import { Disc as Discord, Globe, X } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { StepTracker } from "./step-tracker"
+import { RequirementsChecklist } from "@/components/airdrop/requirements-checklist"
+import { ReportIssueForm } from "@/components/airdrop/report-issue-form"
 
 export const dynamic = "force-dynamic"
 
@@ -40,6 +43,15 @@ export default async function AirdropDetailPage({
     notFound()
   }
 
+  const related = await prisma.airdrop.findMany({
+    where: {
+      slug: { not: airdrop.slug },
+      OR: [{ network: airdrop.network }, { difficulty: airdrop.difficulty }],
+    },
+    take: 3,
+    orderBy: { updatedAt: "desc" },
+    select: { name: true, slug: true, network: true, status: true },
+  })
   const socialLinks = (airdrop.links ?? {}) as AirdropLinkMap
   const steps = ((airdrop.steps ?? []) as unknown) as AirdropStep[]
   const statusVariant = airdrop.status === "ACTIVE" ? "default" : "secondary"
@@ -92,20 +104,28 @@ export default async function AirdropDetailPage({
               <StepTracker airdropSlug={airdrop.slug} steps={steps} />
             </div>
           )}
+
+          {related.length > 0 && (
+            <div className="space-y-4 rounded-xl border p-6">
+              <h3 className="font-bold">Related Airdrops</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {related.map((item) => (
+                  <Link key={item.slug} href={`/airdrop/${item.slug}`} className="rounded-md border p-3 transition-colors hover:border-primary">
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.network} · {item.status}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
           <div className="space-y-4 rounded-xl border p-6">
-            <h3 className="font-bold">Requirements</h3>
-            <ul className="space-y-2">
-              {airdrop.requirements.map((requirement) => (
-                <li key={requirement} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  {requirement}
-                </li>
-              ))}
-            </ul>
+            <h3 className="font-bold">Requirements Checklist</h3>
+            <RequirementsChecklist slug={airdrop.slug} requirements={airdrop.requirements} />
           </div>
+          <ReportIssueForm slug={airdrop.slug} />
         </div>
       </div>
     </div>

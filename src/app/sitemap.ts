@@ -7,10 +7,11 @@ import { env } from "@/lib/env"
 const baseUrl = env.NEXTAUTH_URL ?? "http://localhost:3000"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, learnPages, tools] = await Promise.all([
+  const [blogPosts, learnPages, tools, airdrops] = await Promise.all([
     getPublicBlogPosts(),
     Promise.resolve(getAllFilesMetadata("learn")),
     prisma.aITool.findMany({ select: { slug: true, updatedAt: true } }),
+    prisma.airdrop.findMany({ select: { slug: true, updatedAt: true } }),
   ])
 
   const staticRoutes: MetadataRoute.Sitemap = ["", "/blog", "/learn", "/airdrop", "/ai-tools"].map((path) => ({
@@ -41,5 +42,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...blogRoutes, ...learnRoutes, ...toolRoutes]
+  const airdropRoutes: MetadataRoute.Sitemap = airdrops.map((airdrop) => ({
+    url: `${baseUrl}/airdrop/${airdrop.slug}`,
+    lastModified: airdrop.updatedAt,
+    changeFrequency: "daily",
+    priority: 0.75,
+  }))
+
+  return [...staticRoutes, ...blogRoutes, ...learnRoutes, ...toolRoutes, ...airdropRoutes]
 }
