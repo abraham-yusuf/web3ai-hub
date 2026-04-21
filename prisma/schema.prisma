@@ -11,7 +11,8 @@ datasource db {
 
 enum Role {
   ADMIN
-  USER
+  EDITOR
+  VIEWER
 }
 
 enum AirdropStatus {
@@ -37,10 +38,11 @@ model User {
   email         String?   @unique
   password      String?
   image         String?
-  role          Role      @default(USER)
+  role          Role      @default(VIEWER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   posts         Post[]
+  learnProgress LearnProgress[]
 }
 
 model Post {
@@ -54,6 +56,8 @@ model Post {
   tags          String[]
   published     Boolean   @default(false)
   featured      Boolean   @default(false)
+  publishedAt   DateTime?
+  scheduledFor  DateTime?
   authorId      String
   author        User      @relation(fields: [authorId], references: [id])
   createdAt     DateTime  @default(now())
@@ -98,9 +102,23 @@ model AITool {
   featured      Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  clicks        AffiliateClick[]
 
   @@index([slug])
   @@index([category])
+}
+
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  toolId    String
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  tool AITool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, createdAt])
 }
 
 model LearnTrack {
@@ -140,6 +158,21 @@ model LearnPage {
   updatedAt DateTime     @updatedAt
 
   @@index([slug])
+}
+
+
+model LearnProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  pageSlug  String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pageSlug])
+  @@index([pageSlug])
 }
 
 model SiteSettings {

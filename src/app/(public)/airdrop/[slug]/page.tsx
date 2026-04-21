@@ -1,13 +1,28 @@
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import { MDXRemote } from "next-mdx-remote/rsc"
-import { components } from "@/components/mdx"
 import { Badge } from "@/components/ui/badge"
-import { StepTracker } from "./step-tracker"
+import { components } from "@/components/mdx"
+import { prisma } from "@/lib/prisma"
 import { Separator } from "@/components/ui/separator"
-import { Globe, X, Disc as Discord } from "lucide-react"
+import { Disc as Discord, Globe, X } from "lucide-react"
+import { MDXRemote } from "next-mdx-remote/rsc"
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { StepTracker } from "./step-tracker"
+import { RequirementsChecklist } from "@/components/airdrop/requirements-checklist"
+import { ReportIssueForm } from "@/components/airdrop/report-issue-form"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
+
+interface AirdropLinkMap {
+  website?: string
+  twitter?: string
+  discord?: string
+}
+
+interface AirdropStep {
+  title: string
+  description?: string
+  isOptional?: boolean
+}
 
 export async function generateStaticParams() {
   return []
@@ -19,37 +34,43 @@ export default async function AirdropDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  
+
   const airdrop = await prisma.airdrop.findUnique({
-    where: { slug }
+    where: { slug },
   })
 
   if (!airdrop) {
     notFound()
   }
 
-  const socialLinks = airdrop.links as any || {}
-  const steps = airdrop.steps as any[] || []
+  const related = await prisma.airdrop.findMany({
+    where: {
+      slug: { not: airdrop.slug },
+      OR: [{ network: airdrop.network }, { difficulty: airdrop.difficulty }],
+    },
+    take: 3,
+    orderBy: { updatedAt: "desc" },
+    select: { name: true, slug: true, network: true, status: true },
+  })
+
+  const socialLinks = (airdrop.links ?? {}) as AirdropLinkMap
+  const steps = ((airdrop.steps ?? []) as unknown) as AirdropStep[]
+  const statusVariant = airdrop.status === "ACTIVE" ? "default" : "secondary"
 
   return (
-    <div className="max-w-4xl mx-auto py-8 space-y-10">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row gap-8 items-start">
-        <div className="w-24 h-24 rounded-2xl bg-muted flex items-center justify-center text-4xl font-bold shrink-0">
+    <div className="mx-auto max-w-4xl space-y-10 py-8">
+      <div className="flex flex-col items-start gap-8 md:flex-row">
+        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-muted text-4xl font-bold">
           {airdrop.name[0]}
         </div>
         <div className="flex-1 space-y-4">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{airdrop.network}</Badge>
-            <Badge variant={airdrop.status === 'ACTIVE' ? 'success' : 'secondary' as any}>
-              {airdrop.status}
-            </Badge>
+            <Badge variant={statusVariant}>{airdrop.status}</Badge>
             <Badge variant="outline">Difficulty: {airdrop.difficulty}</Badge>
           </div>
           <h1 className="text-4xl font-bold">{airdrop.name}</h1>
-          <p className="text-xl text-primary font-semibold">
-            Est. Reward: {airdrop.estimatedReward || 'TBA'}
-          </p>
+          <p className="text-xl font-semibold text-primary">Est. Reward: {airdrop.estimatedReward ?? "TBA"}</p>
           <div className="flex gap-4">
             {socialLinks.website && (
               <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
@@ -72,10 +93,9 @@ export default async function AirdropDetailPage({
 
       <Separator />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="prose prose-zinc dark:prose-invert max-w-none">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
+        <div className="space-y-8 lg:col-span-2">
+          <div className="prose prose-zinc max-w-none dark:prose-invert">
             <MDXRemote source={airdrop.content} components={components} />
           </div>
 
@@ -85,21 +105,28 @@ export default async function AirdropDetailPage({
               <StepTracker airdropSlug={airdrop.slug} steps={steps} />
             </div>
           )}
+
+          {related.length > 0 && (
+            <div className="space-y-4 rounded-xl border p-6">
+              <h3 className="font-bold">Related Airdrops</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {related.map((item) => (
+                  <Link key={item.slug} href={`/airdrop/${item.slug}`} className="rounded-md border p-3 transition-colors hover:border-primary">
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.network} · {item.status}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          <div className="rounded-xl border p-6 space-y-4">
-            <h3 className="font-bold">Requirements</h3>
-            <ul className="space-y-2">
-              {airdrop.requirements.map((req, i) => (
-                <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                  {req}
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-4 rounded-xl border p-6">
+            <h3 className="font-bold">Requirements Checklist</h3>
+            <RequirementsChecklist slug={airdrop.slug} requirements={airdrop.requirements} />
           </div>
+          <ReportIssueForm slug={airdrop.slug} />
         </div>
       </div>
     </div>

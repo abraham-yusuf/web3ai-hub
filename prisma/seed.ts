@@ -1,11 +1,80 @@
+import fs from "node:fs"
+import path from "node:path"
+import matter from "gray-matter"
 import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
+function toTitleFromSlug(slug: string) {
+  return slug
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
+}
+
+async function seedLearnFromMdx() {
+  const learnRoot = path.join(process.cwd(), "content", "learn")
+  if (!fs.existsSync(learnRoot)) return
+
+  const tracks = fs.readdirSync(learnRoot).filter((entry) => fs.statSync(path.join(learnRoot, entry)).isDirectory())
+
+  for (const [trackOrder, trackSlug] of tracks.entries()) {
+    const track = await prisma.learnTrack.upsert({
+      where: { slug: trackSlug },
+      update: { title: toTitleFromSlug(trackSlug), order: trackOrder },
+      create: {
+        slug: trackSlug,
+        title: toTitleFromSlug(trackSlug),
+        order: trackOrder,
+        description: `Track ${toTitleFromSlug(trackSlug)} yang dimigrasi dari MDX`,
+      },
+    })
+
+    const section = await prisma.learnSection.upsert({
+      where: { id: `${track.id}-core` },
+      update: { title: "Core Lessons", order: 0 },
+      create: {
+        id: `${track.id}-core`,
+        title: "Core Lessons",
+        order: 0,
+        trackId: track.id,
+      },
+    })
+
+    const pages = fs
+      .readdirSync(path.join(learnRoot, trackSlug))
+      .filter((file) => file.endsWith(".mdx"))
+      .sort()
+
+    for (const [fileOrder, file] of pages.entries()) {
+      const fullPath = path.join(learnRoot, trackSlug, file)
+      const source = fs.readFileSync(fullPath, "utf8")
+      const parsed = matter(source)
+      const pageSlug = `${trackSlug}/${file.replace(/\.mdx$/, "")}`
+
+      await prisma.learnPage.upsert({
+        where: { slug: pageSlug },
+        update: {
+          title: String(parsed.data.title ?? file),
+          content: parsed.content,
+          order: typeof parsed.data.order === "number" ? parsed.data.order : fileOrder + 1,
+          sectionId: section.id,
+        },
+        create: {
+          title: String(parsed.data.title ?? file),
+          slug: pageSlug,
+          content: parsed.content,
+          order: typeof parsed.data.order === "number" ? parsed.data.order : fileOrder + 1,
+          sectionId: section.id,
+        },
+      })
+    }
+  }
+}
+
 async function main() {
   console.log("Seeding data...")
 
-  // Seed AI Tools
   const tools = [
     {
       name: "ChatGPT",
@@ -50,7 +119,6 @@ async function main() {
     })
   }
 
-  // Seed Airdrops
   const airdrops = [
     {
       name: "zkSync",
@@ -89,6 +157,8 @@ async function main() {
       create: airdrop,
     })
   }
+
+  await seedLearnFromMdx()
 
   console.log("Seeding completed!")
 }

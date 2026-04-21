@@ -2,17 +2,25 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight, BookOpen, Cpu, Globe, Rocket } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
+import { ContinueLearningCard } from "@/components/learn/continue-learning-card"
+import { getLearnNavigation } from "@/lib/learn"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const learnNavigation = await getLearnNavigation()
+  const learnPages = learnNavigation.flatMap((track) =>
+    track.sections.flatMap((section) =>
+      section.pages.map((page) => ({ slug: page.slug, title: page.title })),
+    ),
+  )
+
   return (
     <div className="flex flex-col gap-16 py-8 md:py-12">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center text-center gap-6">
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-          Belajar <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Web3 & AI</span> dalam Satu Platform
+      <section className="flex flex-col items-center gap-6 text-center">
+        <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+          Belajar <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Web3 & AI</span> dalam Satu Platform
         </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-[800px]">
-          Web3AI Hub adalah platform konten all-in-one untuk komunitas Web3 & AI Indonesia. 
+        <p className="max-w-[800px] text-lg text-muted-foreground md:text-xl">
+          Web3AI Hub adalah platform konten all-in-one untuk komunitas Web3 & AI Indonesia.
           Temukan tutorial mendalam, info airdrop terbaru, dan direktori tools AI tercanggih.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
@@ -25,73 +33,73 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden group">
+      <ContinueLearningCard pages={learnPages} />
+
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="group relative overflow-hidden">
           <CardHeader>
-            <BookOpen className="h-10 w-10 text-primary mb-2" />
+            <BookOpen className="mb-2 h-10 w-10 text-primary" />
             <CardTitle>Blog Edukasi</CardTitle>
             <CardDescription>
               Artikel dan berita terbaru seputar perkembangan teknologi Web3 dan AI.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/blog" className="text-sm font-medium flex items-center text-primary hover:underline">
+            <Link href="/blog" className="flex items-center text-sm font-medium text-primary hover:underline">
               Baca Blog <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden group">
+        <Card className="group relative overflow-hidden">
           <CardHeader>
-            <Globe className="h-10 w-10 text-secondary mb-2" />
+            <Globe className="mb-2 h-10 w-10 text-secondary" />
             <CardTitle>Learn Track</CardTitle>
             <CardDescription>
               Kurikulum terstruktur untuk menguasai blockchain, solidity, dan prompt engineering.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/learn" className="text-sm font-medium flex items-center text-primary hover:underline">
+            <Link href="/learn" className="flex items-center text-sm font-medium text-primary hover:underline">
               Eksplor Materi <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden group">
+        <Card className="group relative overflow-hidden">
           <CardHeader>
-            <Rocket className="h-10 w-10 text-accent mb-2" />
+            <Rocket className="mb-2 h-10 w-10 text-accent" />
             <CardTitle>Airdrop Hub</CardTitle>
             <CardDescription>
               Panduan step-by-step untuk berburu airdrop potensial dan tugas testnet.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/airdrop" className="text-sm font-medium flex items-center text-primary hover:underline">
+            <Link href="/airdrop" className="flex items-center text-sm font-medium text-primary hover:underline">
               Cari Airdrop <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden group">
+        <Card className="group relative overflow-hidden">
           <CardHeader>
-            <Cpu className="h-10 w-10 text-success mb-2" />
+            <Cpu className="mb-2 h-10 w-10 text-success" />
             <CardTitle>AI Directory</CardTitle>
             <CardDescription>
               Katalog tools AI terbaik untuk produktivitas, coding, dan konten kreator.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/ai-tools" className="text-sm font-medium flex items-center text-primary hover:underline">
+            <Link href="/ai-tools" className="flex items-center text-sm font-medium text-primary hover:underline">
               Lihat Tools <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </CardContent>
         </Card>
       </section>
 
-      {/* CTA Section */}
-      <section className="rounded-3xl bg-muted p-8 md:p-12 text-center flex flex-col items-center gap-6">
+      <section className="flex flex-col items-center gap-6 rounded-3xl bg-muted p-8 text-center md:p-12">
         <h2 className="text-3xl font-bold">Siap Menjelajahi Masa Depan?</h2>
-        <p className="text-muted-foreground max-w-2xl">
+        <p className="max-w-2xl text-muted-foreground">
           Bergabunglah dengan ribuan orang lainnya yang belajar dan berkembang di ekosistem Web3 dan AI.
         </p>
         <Link href="/learn" className={buttonVariants({ size: "lg", variant: "default" })}>
