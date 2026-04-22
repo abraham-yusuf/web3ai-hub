@@ -1,0 +1,67 @@
+---
+title: "Smart Contracts 101"
+order: 4
+excerpt: "Memahami apa itu smart contract, cara kerjanya, dan mengapa penting di ekosistem Web3."
+---
+
+# Smart Contracts 101
+
+Smart contract adalah program yang berjalan di blockchain dan mengeksekusi secara otomatis ketika kondisi tertentu terpenuhi. Mereka adalah fondasi dari aplikasi terdesentralisasi (dApps).
+
+## Apa Itu Smart Contract?
+
+Smart contract adalah kode yang disimpan di blockchain yang secara otomatis mengeksekusi perjanjian antara pihak-pihak tanpa perantara. Konsep ini pertama kali diperkenalkan oleh Nick Szabo pada tahun 1994.
+
+### Analogi Sederhana
+
+Bayangkan mesin penjual otomatis:
+1. Kamu memasukkan uang (input)
+2. Memilih produk (kondisi)
+3. Produk keluar otomatis (eksekusi)
+
+Tidak perlu kasir atau perantara — prosesnya otomatis dan transparan.
+
+## Cara Kerja Smart Contract
+
+```
+Developer menulis kode -> Deploy ke blockchain -> Kode berjalan otomatis
+```
+
+1. **Penulisan**: Developer menulis logika dalam bahase seperti Solidity (Ethereum)
+2. **Deployment**: Kode di-deploy ke blockchain dan mendapat alamat unik
+3. **Interaksi**: Pengguna berinteraksi dengan mengirim transaksi
+4. **Eksekusi**: Blockchain mengeksekusi kode secara deterministik
+5. **Immutable**: Setelah deploy, kode tidak bisa diubah
+
+## Platform Smart Contract Populer
+
+| Platform | Bahasa | Gas Fee | Kecepatan |
+|----------|--------|---------|-----------|
+| Ethereum | Solidity | Tinggi | ~15 detik |
+| Solana | Rust | Sangat rendah | ~400ms |
+| BNB Chain | Solidity | Rendah | ~3 detik |
+| Polygon | Solidity | Sangat rendah | ~2 detik |
+| Avalanche | Solidity | Rendah | ~2 detik |
+
+## Use Case Smart Contract
+
+- **DeFi**: Lending, borrowing, DEX (Uniswap, Aave)
+- **NFT**: Pembuatan dan perdagangan aset digital
+- **DAO**: Organisasi terdesentralisasi dengan voting on-chain
+- **Gaming**: Item game yang dimiliki pemain (play-to-earn)
+- **Supply Chain**: Tracking produk dari pabrik ke konsumen
+
+## Risiko Smart Contract
+
+- **Bug dalam kode**: Tidak bisa diperbaiki setelah deploy
+- **Reentrancy attack**: Celah keamanan klasik
+- **Oracle manipulation**: Data eksternal yang tidak akurat
+- **Audit penting**: Selalu cek apakah smart contract sudah di-audit
+
+## Langkah Selanjutnya
+
+Untuk mulai belajar membuat smart contract:
+1. Pelajari dasar Solidity di Remix IDE
+2. Ikuti tutorial di CryptoZombies
+3. Baca dokumentasi resmi Ethereum
+4. Coba deploy di testnet (Sepolia/Goerli)
