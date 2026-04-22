@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test",
+    "db:seed": "prisma db seed",
     "type-check": "npm run typecheck",
     "prepare": "npm run setup-hooks",
     "setup-hooks": "git config core.hooksPath .githooks"
