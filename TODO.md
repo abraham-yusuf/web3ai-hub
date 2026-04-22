@@ -1,10 +1,10 @@
 # TODO — Implementation Sprint Plan Status
 
 ## Sprint 1 — Phase 0 (Foundation Hardening)
-- [ ] Environment & Config — .env.example & zod validation exist, but dev/staging/prod modes are not documented and required env coverage is incomplete.
-- [ ] Quality Gate — scripts/hook/CI are wired, yet typecheck currently fails (Prisma client types missing, implicit any usage) and build is blocked by Google Fonts fetch.
-- [ ] Auth Baseline — NextAuth with role matrix and admin guard is present, but credentials remain plaintext and there is no middleware-level protection/migration to DB-backed auth.
-- [ ] Security Baseline — Security headers are set; API error handling still varies across route handlers.
+- [x] Environment & Config — .env.example documented with dev/staging/prod modes, zod validation covers all providers including Resend and APP_URL, staging password check added.
+- [x] Quality Gate — CI generates Prisma client before typecheck, build unblocked.
+- [x] Auth Baseline — Passwords hashed with scrypt (timing-safe), auto-migration from plaintext on login, middleware-level admin protection added.
+- [x] Security Baseline — Standardized API error handler with AppError/NotFoundError/ForbiddenError classes, Prisma error mapping, consistent JSON shape across all routes.
 
 ## Sprint 2 — Phase 1 (Blog Core Reader Experience)
 - [x] Reading UX — TOC, reading time/word count, and share buttons rendered on blog detail.
