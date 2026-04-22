@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
 import { z } from "zod"
+import { apiErrorResponse, apiSuccessResponse } from "@/lib/api-response"
 
 const inputSchema = z.object({
   slug: z.string().min(2),
@@ -7,17 +7,17 @@ const inputSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const payload = await request.json().catch(() => null)
-  const parsed = inputSchema.safeParse(payload)
+  try {
+    const payload = await request.json().catch(() => null)
+    const parsed = inputSchema.parse(payload)
 
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+    console.warn("[airdrop-report]", {
+      slug: parsed.slug,
+      message: parsed.message,
+    })
+
+    return apiSuccessResponse({ ok: true })
+  } catch (error) {
+    return apiErrorResponse(error, "POST /api/airdrop/report")
   }
-
-  console.warn("[airdrop-report]", {
-    slug: parsed.data.slug,
-    message: parsed.data.message,
-  })
-
-  return NextResponse.json({ ok: true })
 }
