@@ -1,9 +1,19 @@
+import "dotenv/config"
 import fs from "node:fs"
 import path from "node:path"
 import matter from "gray-matter"
+import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient, type TrackType } from "@prisma/client"
 
-const prisma = new PrismaClient()
+const databaseUrl = process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required to run the seed script.")
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(databaseUrl),
+})
 
 function toTitleFromSlug(slug: string) {
   return slug
