@@ -27,6 +27,7 @@ async function getDefaultAuthorId(): Promise<string> {
     data: {
       email: "admin@web3aihub.com",
       name: "Bootstrap Admin",
+      username: "admin",
       role: "ADMIN",
       password: "admin12345",
     },

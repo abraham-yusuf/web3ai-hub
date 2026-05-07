@@ -10,6 +10,7 @@ export interface BlogPostData {
   category?: string
   tags: string[]
   author?: string
+  authors?: string[]
   published: boolean
   createdAt?: string
   updatedAt?: string
@@ -30,11 +31,13 @@ export function parseTagsInput(raw: string | null): string[] {
 }
 
 function normalizePost(post: BlogPostData): BlogPostData {
+  const authors = post.authors ?? (post.author ? [ensureSlug(post.author)] : [])
   return {
     ...post,
     tags: post.tags ?? [],
     excerpt: post.excerpt ?? "",
     category: post.category ?? "General",
+    authors,
   }
 }
 
@@ -49,6 +52,11 @@ export async function getDbPosts(options?: { publishedOnly?: boolean }) {
           }
         : undefined,
       orderBy: [{ createdAt: "desc" }],
+      include: {
+        author: {
+          select: { name: true, email: true, username: true },
+        },
+      },
     })
 
     return posts.map((post) =>
@@ -60,7 +68,12 @@ export async function getDbPosts(options?: { publishedOnly?: boolean }) {
         content: post.content,
         category: post.category,
         tags: post.tags,
-        author: "Admin",
+        author: post.author.name ?? (post.author.username ? `@${post.author.username}` : post.author.email) ?? "Admin",
+        authors: post.author.username
+          ? [post.author.username]
+          : post.author.email
+            ? [post.author.email.split("@")[0] ?? ""].filter(Boolean)
+            : [],
         published: post.published,
         createdAt: post.createdAt.toISOString(),
         updatedAt: post.updatedAt.toISOString(),
@@ -88,6 +101,7 @@ function getMdxPosts(): BlogPostData[] {
         category: post.category,
         tags: post.tags ?? [],
         author: post.author,
+        authors: post.authors ?? (post.author ? [ensureSlug(post.author)] : []),
         published: true,
         createdAt: post.date,
         source: "mdx",
@@ -129,6 +143,7 @@ export async function getPublicBlogPostBySlug(slug: string): Promise<BlogPostDat
     category: mdxPost.frontMatter.category,
     tags: mdxPost.frontMatter.tags ?? [],
     author: mdxPost.frontMatter.author,
+    authors: mdxPost.frontMatter.authors ?? (mdxPost.frontMatter.author ? [ensureSlug(mdxPost.frontMatter.author)] : []),
     published: true,
     createdAt: mdxPost.frontMatter.date,
     source: "mdx",

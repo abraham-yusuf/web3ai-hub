@@ -35,6 +35,7 @@ Platform ini juga dirancang untuk **menghasilkan pendapatan** melalui Google AdS
 - Google AdSense terintegrasi dan dapat dikonfigurasi
 - Syntax highlighting untuk kode dengan dukungan 100+ bahasa
 - Estimated reading time, related posts, dan social sharing
+- Profil penulis via metadata `authors` (username) + social links di `/authors/[username]`
 
 ### 📚 Learn / Tutorial (GitBook-style + AI Chat)
 - Dokumentasi bertingkat dengan navigasi sidebar yang intuitif

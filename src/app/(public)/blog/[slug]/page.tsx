@@ -4,12 +4,13 @@ import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"
 import { Badge } from "@/components/ui/badge"
 import { extractToc, getReadingStats, slugifyHeading } from "@/lib/blog"
+import { getAuthorProfilesByUsernames } from "@/lib/authors"
 import { getPublicBlogPostBySlug, getPublicBlogPosts } from "@/lib/posts"
 import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -59,6 +60,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound()
   }
 
+  const authorUsernames = post.authors ?? []
+  const authorProfiles = await getAuthorProfilesByUsernames(authorUsernames)
+
   const allPosts = await getPublicBlogPosts()
   const currentIndex = allPosts.findIndex((entry) => entry.slug === post.slug)
   const prevPost = currentIndex >= 0 ? allPosts[currentIndex + 1] ?? null : null
@@ -77,10 +81,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.publishedAt ?? post.createdAt,
-    author: {
-      "@type": "Person",
-      name: post.author ?? "Admin",
-    },
+    author:
+      authorUsernames.length > 0
+        ? authorUsernames.map((username) => ({
+            "@type": "Person",
+            name: authorProfiles[username]?.name ?? `@${username}`,
+            url: `/authors/${username}`,
+          }))
+        : {
+            "@type": "Person",
+            name: post.author ?? "Admin",
+          },
   }
 
   return (
@@ -107,7 +118,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span>{post.publishedAt ?? post.createdAt ?? "No date"}</span>
             <span>•</span>
-            <span>By {post.author ?? "Unknown"}</span>
+            <span>
+              By{" "}
+              {authorUsernames.length > 0 ? (
+                authorUsernames.map((username, index) => (
+                  <Fragment key={username}>
+                    {index > 0 ? ", " : null}
+                    <Link href={`/authors/${username}`} className="underline-offset-4 hover:underline">
+                      {authorProfiles[username]?.name ?? `@${username}`}
+                    </Link>
+                  </Fragment>
+                ))
+              ) : (
+                <span>{post.author ?? "Unknown"}</span>
+              )}
+            </span>
             <span>•</span>
             <span>{readingStats.words} words</span>
             <span>•</span>
