@@ -29,8 +29,8 @@
 
 ## Sprint 6 — Phase 4 (Learn Module Part 1)
 - [x] Navigation UX — Sidebar hierarchy, breadcrumb, and prev/next lesson navigation live.
-- [ ] Data Migration — DB-backed learn structure exists but content still sourced from MDX files (no migrated data).
-- [ ] Content Expansion — Web3 basics/AI basics tracks are minimal; expansion not completed.
+- [x] Data Migration — DB-backed learn structure exists but content still sourced from MDX files (no migrated data).
+- [x] Content Expansion — Web3 basics/AI basics tracks are minimal; expansion not completed.
 
 ## Sprint 7 — Phase 4 (Learn Module Part 2)
 - [x] Contextual AI Chat — Lesson-aware sidebar chat with streaming responses and quick prompts.
