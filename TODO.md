@@ -45,7 +45,7 @@
 ## Sprint 9 — Phase 6 (AI Tools Directory Full)
 - [x] Compare Feature — Compare up to 3 tools with shareable query string.
 - [x] Monetization Hooks — Affiliate click redirect with tracking plus featured badges.
-- [x] Admin + Data Seeding — Admin CRUD exists; large-scale data seeding (100 tools) not done.
+- [x] Admin + Data Seeding — Admin CRUD exists; large-scale data seeding (100 tools) done.
 
 ## Sprint 10 — Phase 7 (Polish, QA, Launch)
 - [x] Global Search — Cross-module search page covering blog/learn/airdrop/tools.
