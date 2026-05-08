@@ -196,7 +196,7 @@ async function seedAITools() {
     },
     {
       name: "GrammarlyGO",
-      slug: "grammarlygo",
+      slug: "grammarly-go",
       tagline: "Asisten writing dengan grammar checking.",
       category: "Writing & Content",
       pricing: "Freemium",
