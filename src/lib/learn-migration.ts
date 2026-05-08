@@ -84,7 +84,12 @@ function toTitleFromSlug(slug: string) {
 }
 
 function slugifySection(title: string) {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+  return title
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
 }
 
 function getFrontMatterTitle(data: FrontMatter, fallback: string) {
