@@ -42,9 +42,14 @@ async function ensureLearnSeeded() {
     const pageCount = await prisma.learnPage.count()
     if (pageCount > 0) return
     await migrateLearnFromMdx(prisma)
-  })().finally(() => {
-    learnSeedingPromise = null
-  })
+  })()
+    .catch((error: unknown) => {
+      console.error("[learn] Failed to seed learn content from MDX.", error)
+      throw error
+    })
+    .finally(() => {
+      learnSeedingPromise = null
+    })
 
   await learnSeedingPromise
 }

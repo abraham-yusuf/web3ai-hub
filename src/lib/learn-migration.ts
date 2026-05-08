@@ -83,7 +83,7 @@ function toTitleFromSlug(slug: string) {
     .join(" ")
 }
 
-function createSectionSlug(title: string) {
+function createAsciiSlug(title: string) {
   return title
     .normalize("NFKD")
     .replace(/\p{Diacritic}/gu, "")
@@ -92,15 +92,15 @@ function createSectionSlug(title: string) {
     .replace(/(^-|-$)/g, "")
 }
 
-function getFrontMatterTitle(data: FrontMatter, fallback: string) {
+function extractTitle(data: FrontMatter, fallback: string) {
   return typeof data.title === "string" && data.title.trim().length > 0 ? data.title : fallback
 }
 
-function getFrontMatterOrder(data: FrontMatter, fallback: number) {
-  if (typeof data.order === "number") return data.order
+function extractOrder(data: FrontMatter, fallback: number) {
+  if (typeof data.order === "number" && data.order >= 0) return data.order
   if (typeof data.order === "string") {
     const parsed = Number(data.order)
-    if (Number.isFinite(parsed)) return parsed
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed
   }
   return fallback
 }
@@ -137,7 +137,7 @@ export async function migrateLearnFromMdx(prisma: PrismaClient): Promise<Migrati
     const sectionMap: Record<string, string> = {}
 
     for (const sectionDef of sectionDefs) {
-      const sectionId = `${track.id}-${createSectionSlug(sectionDef.title)}`
+      const sectionId = `${track.id}-${createAsciiSlug(sectionDef.title)}`
       const section = await prisma.learnSection.upsert({
         where: { id: sectionId },
         update: { title: sectionDef.title, order: sectionDef.order },
@@ -165,16 +165,16 @@ export async function migrateLearnFromMdx(prisma: PrismaClient): Promise<Migrati
       await prisma.learnPage.upsert({
         where: { slug: pageSlug },
         update: {
-          title: getFrontMatterTitle(frontMatter, toTitleFromSlug(fileBase)),
+          title: extractTitle(frontMatter, toTitleFromSlug(fileBase)),
           content: parsed.content,
-          order: getFrontMatterOrder(frontMatter, fileOrder + 1),
+          order: extractOrder(frontMatter, fileOrder + 1),
           sectionId,
         },
         create: {
-          title: getFrontMatterTitle(frontMatter, toTitleFromSlug(fileBase)),
+          title: extractTitle(frontMatter, toTitleFromSlug(fileBase)),
           slug: pageSlug,
           content: parsed.content,
-          order: getFrontMatterOrder(frontMatter, fileOrder + 1),
+          order: extractOrder(frontMatter, fileOrder + 1),
           sectionId,
         },
       })
