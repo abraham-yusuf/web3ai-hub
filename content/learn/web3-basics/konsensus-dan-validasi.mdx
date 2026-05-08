@@ -1,0 +1,42 @@
+---
+title: "Konsensus & Validasi"
+order: 7
+authors: ["admin"]
+excerpt: "Memahami bagaimana node mencapai kesepakatan lewat PoW, PoS, dan konsep finality."
+---
+
+# Konsensus & Validasi
+
+Setiap blockchain harus memastikan semua node sepakat soal urutan transaksi. Mekanisme untuk mencapai kesepakatan ini disebut **konsensus**.
+
+## Kenapa Konsensus Penting?
+
+- Mencegah transaksi ganda
+- Menjaga integritas ledger saat ada ribuan node
+- Menentukan siapa yang berhak menambahkan blok berikutnya
+
+## Proof of Work (PoW)
+
+- Node penambang memecahkan puzzle kriptografi.
+- Keamanan tinggi, tetapi boros energi.
+- Contoh: Bitcoin.
+
+## Proof of Stake (PoS)
+
+- Validator dipilih berdasarkan jumlah token yang di-stake.
+- Lebih hemat energi dan cepat finality.
+- Contoh: Ethereum pasca-merge.
+
+<Callout type="info">
+  PoS tetap membutuhkan keamanan ekonomi: validator bisa kehilangan stake jika berperilaku curang (slashing).
+</Callout>
+
+## Finality & Security
+
+Finality berarti transaksi sulit dibatalkan setelah beberapa blok. Semakin tinggi finality, semakin kecil risiko reorg.
+
+## Ringkasan Cepat
+
+1. Konsensus = cara jaringan sepakat.
+2. PoW aman tapi mahal energi.
+3. PoS lebih efisien dengan insentif staking.

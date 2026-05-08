@@ -1,9 +1,7 @@
 import "dotenv/config"
-import fs from "node:fs"
-import path from "node:path"
-import matter from "gray-matter"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient, type TrackType } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
+import { migrateLearnFromMdx } from "../src/lib/learn-migration"
 
 const databaseUrl = process.env.DATABASE_URL
 
@@ -14,56 +12,6 @@ if (!databaseUrl) {
 const prisma = new PrismaClient({
   adapter: new PrismaPg(databaseUrl),
 })
-
-function toTitleFromSlug(slug: string) {
-  return slug
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-const TRACK_META: Record<string, { title: string; description: string; type: TrackType; order: number }> = {
-  "web3-basics": {
-    title: "Web3 Fundamentals",
-    description: "Pelajari dasar-dasar blockchain, cryptocurrency, wallet, smart contract, DeFi, dan NFT dari nol.",
-    type: "WEB3",
-    order: 0,
-  },
-  "ai-basics": {
-    title: "AI Fundamentals",
-    description: "Memahami Artificial Intelligence, LLM, prompt engineering, machine learning, dan AI agents.",
-    type: "AI",
-    order: 1,
-  },
-}
-
-const SECTION_META: Record<string, { title: string; order: number }[]> = {
-  "web3-basics": [
-    { title: "Pengenalan Blockchain", order: 0 },
-    { title: "DeFi & Smart Contracts", order: 1 },
-    { title: "NFT & Ownership", order: 2 },
-  ],
-  "ai-basics": [
-    { title: "Pengenalan AI", order: 0 },
-    { title: "LLM & Prompt Engineering", order: 1 },
-    { title: "AI Tools & Agents", order: 2 },
-  ],
-}
-
-const PAGE_SECTIONS: Record<string, string> = {
-  "blockchain-intro": "Pengenalan Blockchain",
-  "what-is-ethereum": "Pengenalan Blockchain",
-  "wallet-security-101": "Pengenalan Blockchain",
-  "smart-contracts-101": "DeFi & Smart Contracts",
-  "defi-fundamentals": "DeFi & Smart Contracts",
-  "nft-dan-digital-ownership": "NFT & Ownership",
-  "ai-intro": "Pengenalan AI",
-  "machine-learning-overview": "Pengenalan AI",
-  "llm-api-primer": "LLM & Prompt Engineering",
-  "prompt-engineering-fundamentals": "LLM & Prompt Engineering",
-  "ai-tools-untuk-produktivitas": "AI Tools & Agents",
-  "ai-agents-dan-autonomous-systems": "AI Tools & Agents",
-}
 
 type AIToolSeed = {
   name: string
@@ -78,75 +26,9 @@ type AIToolSeed = {
 }
 
 async function seedLearnFromMdx() {
-  const learnRoot = path.join(process.cwd(), "content", "learn")
-  if (!fs.existsSync(learnRoot)) {
-    console.log("  [learn] content/learn not found, skipping MDX migration")
-    return
-  }
-
-  const tracks = fs.readdirSync(learnRoot).filter((entry) => fs.statSync(path.join(learnRoot, entry)).isDirectory())
-
-  for (const trackSlug of tracks) {
-    const meta = TRACK_META[trackSlug] ?? {
-      title: toTitleFromSlug(trackSlug),
-      description: `Track ${toTitleFromSlug(trackSlug)}`,
-      type: "WEB3" as TrackType,
-      order: 99,
-    }
-
-    console.log(`  [learn] Seeding track: ${meta.title}`)
-
-    const track = await prisma.learnTrack.upsert({
-      where: { slug: trackSlug },
-      update: { title: meta.title, description: meta.description, type: meta.type, order: meta.order },
-      create: { slug: trackSlug, title: meta.title, description: meta.description, type: meta.type, order: meta.order },
-    })
-
-    const sectionDefs = SECTION_META[trackSlug] ?? [{ title: "Core Lessons", order: 0 }]
-    const sectionMap: Record<string, string> = {}
-
-    for (const sectionDef of sectionDefs) {
-      const sectionId = `${track.id}-${sectionDef.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
-      const section = await prisma.learnSection.upsert({
-        where: { id: sectionId },
-        update: { title: sectionDef.title, order: sectionDef.order },
-        create: { id: sectionId, title: sectionDef.title, order: sectionDef.order, trackId: track.id },
-      })
-      sectionMap[sectionDef.title] = section.id
-    }
-
-    const pages = fs.readdirSync(path.join(learnRoot, trackSlug)).filter((file) => file.endsWith(".mdx")).sort()
-
-    for (const [fileOrder, file] of pages.entries()) {
-      const fullPath = path.join(learnRoot, trackSlug, file)
-      const source = fs.readFileSync(fullPath, "utf8")
-      const parsed = matter(source)
-      const pageSlug = `${trackSlug}/${file.replace(/\.mdx$/, "")}`
-      const fileBase = file.replace(/\.mdx$/, "")
-      const sectionTitle = PAGE_SECTIONS[fileBase] ?? sectionDefs[0]?.title ?? "Core Lessons"
-      const sectionId = sectionMap[sectionTitle] ?? Object.values(sectionMap)[0]
-
-      if (!sectionId) continue
-
-      await prisma.learnPage.upsert({
-        where: { slug: pageSlug },
-        update: {
-          title: String(parsed.data.title ?? toTitleFromSlug(fileBase)),
-          content: parsed.content,
-          order: typeof parsed.data.order === "number" ? parsed.data.order : fileOrder + 1,
-          sectionId,
-        },
-        create: {
-          title: String(parsed.data.title ?? toTitleFromSlug(fileBase)),
-          slug: pageSlug,
-          content: parsed.content,
-          order: typeof parsed.data.order === "number" ? parsed.data.order : fileOrder + 1,
-          sectionId,
-        },
-      })
-      console.log(`    [page] ${pageSlug}`)
-    }
-  }
+  console.log("  [learn] Seeding learn content from MDX...")
+  const result = await migrateLearnFromMdx(prisma)
+  console.log(`  [learn] Seeded ${result.pages} pages across ${result.tracks} tracks`)
 }
 
 async function seedAITools() {
