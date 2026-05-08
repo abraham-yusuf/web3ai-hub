@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma"
+import { migrateLearnFromMdx } from "@/lib/learn-migration"
 import { getFileBySlug, getLearnStructure } from "@/lib/mdx"
+import { prisma } from "@/lib/prisma"
 
 export type LearnNavPage = {
   title: string
@@ -29,6 +30,25 @@ export type LearnPageResult = {
   sectionTitle?: string
 }
 
+let learnMigrationPromise: Promise<void> | null = null
+
+async function ensureLearnSeeded() {
+  if (learnMigrationPromise) {
+    await learnMigrationPromise
+    return
+  }
+
+  learnMigrationPromise = (async () => {
+    const pageCount = await prisma.learnPage.count()
+    if (pageCount > 0) return
+    await migrateLearnFromMdx(prisma)
+  })().finally(() => {
+    learnMigrationPromise = null
+  })
+
+  await learnMigrationPromise
+}
+
 function titleFromSlug(slug: string) {
   return slug
     .split("-")
@@ -37,6 +57,7 @@ function titleFromSlug(slug: string) {
 }
 
 export async function getLearnNavigation(): Promise<LearnNavTrack[]> {
+  await ensureLearnSeeded()
   const dbTracks = await prisma.learnTrack.findMany({
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     include: {
@@ -92,6 +113,7 @@ export async function getLearnNavigation(): Promise<LearnNavTrack[]> {
 }
 
 export async function getLearnPageBySlug(slugPath: string): Promise<LearnPageResult | null> {
+  await ensureLearnSeeded()
   const dbPage = await prisma.learnPage.findUnique({
     where: { slug: slugPath },
     include: {

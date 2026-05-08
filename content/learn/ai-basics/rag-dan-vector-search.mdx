@@ -1,0 +1,29 @@
+---
+title: "RAG & Vector Search"
+order: 8
+authors: ["admin"]
+excerpt: "Menggabungkan LLM dengan retrieval supaya jawaban lebih akurat dan ter-update."
+---
+
+# RAG & Vector Search
+
+Retrieval-Augmented Generation (RAG) menambahkan konteks dari dokumen sebelum LLM menjawab.
+
+## Kenapa RAG Penting?
+
+- LLM tidak selalu punya data terbaru.
+- Mengurangi hallucination.
+- Memungkinkan jawaban berbasis sumber internal.
+
+## Cara Kerja Singkat
+
+1. Ubah dokumen menjadi embedding.
+2. Simpan embedding di vector database.
+3. Ambil top-k konteks berdasarkan query.
+4. LLM menjawab dengan konteks tersebut.
+
+## Kapan Dipakai?
+
+- FAQ perusahaan
+- Riset dokumen panjang
+- Chatbot support pelanggan

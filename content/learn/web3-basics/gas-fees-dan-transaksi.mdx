@@ -1,0 +1,36 @@
+---
+title: "Gas Fees & Transaksi"
+order: 8
+authors: ["admin"]
+excerpt: "Cara kerja gas fee di jaringan EVM dan tips menghemat biaya transaksi."
+---
+
+# Gas Fees & Transaksi
+
+Di jaringan seperti Ethereum, setiap transaksi membutuhkan **gas** sebagai biaya komputasi.
+
+## Apa itu Gas?
+
+Gas adalah satuan biaya untuk menjalankan operasi di blockchain. Semakin kompleks smart contract, semakin tinggi gas yang dibutuhkan.
+
+## Komponen Biaya (EVM)
+
+1. **Gas Limit**: batas maksimal gas yang disediakan.
+2. **Base Fee**: biaya minimum jaringan (EIP-1559).
+3. **Priority Fee**: tip untuk validator agar transaksi diproses cepat.
+
+## Kenapa Gas Fee Bisa Mahal?
+
+- Jaringan sedang padat.
+- Banyak transaksi bersaing di waktu yang sama.
+- Aksi yang dilakukan terlalu kompleks.
+
+## Tips Menghemat Gas
+
+- Transaksi di jam sepi (off-peak).
+- Gunakan Layer 2 (Arbitrum, Base, zkSync).
+- Hindari transaksi gagal (cek allowance dan saldo).
+
+<Callout type="warning">
+  Transaksi yang gagal tetap membakar gas karena eksekusi sudah terjadi di chain.
+</Callout>
