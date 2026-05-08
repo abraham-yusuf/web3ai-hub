@@ -30,23 +30,23 @@ export type LearnPageResult = {
   sectionTitle?: string
 }
 
-let learnMigrationPromise: Promise<void> | null = null
+let learnSeedingPromise: Promise<void> | null = null
 
 async function ensureLearnSeeded() {
-  if (learnMigrationPromise) {
-    await learnMigrationPromise
+  if (learnSeedingPromise) {
+    await learnSeedingPromise
     return
   }
 
-  learnMigrationPromise = (async () => {
+  learnSeedingPromise = (async () => {
     const pageCount = await prisma.learnPage.count()
     if (pageCount > 0) return
     await migrateLearnFromMdx(prisma)
   })().finally(() => {
-    learnMigrationPromise = null
+    learnSeedingPromise = null
   })
 
-  await learnMigrationPromise
+  await learnSeedingPromise
 }
 
 function titleFromSlug(slug: string) {

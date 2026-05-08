@@ -26,7 +26,7 @@ type FrontMatter = Record<string, unknown>
 export const TRACK_META: Record<string, TrackMeta> = {
   "web3-basics": {
     title: "Web3 Fundamentals",
-    description: "Pelajari dasar blockchain, Ethereum, DeFi, NFT, dan governance untuk ekosistem Web3.",
+    description: "Pelajari dasar blockchain, Ethereum, DeFi, NFT, dan governance dalam ekosistem Web3.",
     type: "WEB3",
     order: 0,
   },
@@ -83,7 +83,7 @@ function toTitleFromSlug(slug: string) {
     .join(" ")
 }
 
-function slugifySection(title: string) {
+function createSectionSlug(title: string) {
   return title
     .normalize("NFKD")
     .replace(/\p{Diacritic}/gu, "")
@@ -137,7 +137,7 @@ export async function migrateLearnFromMdx(prisma: PrismaClient): Promise<Migrati
     const sectionMap: Record<string, string> = {}
 
     for (const sectionDef of sectionDefs) {
-      const sectionId = `${track.id}-${slugifySection(sectionDef.title)}`
+      const sectionId = `${track.id}-${createSectionSlug(sectionDef.title)}`
       const section = await prisma.learnSection.upsert({
         where: { id: sectionId },
         update: { title: sectionDef.title, order: sectionDef.order },
