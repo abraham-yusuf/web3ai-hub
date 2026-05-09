@@ -35,12 +35,12 @@
 ## Sprint 7 — Phase 4 (Learn Module Part 2)
 - [x] Contextual AI Chat — Lesson-aware sidebar chat with streaming responses and quick prompts.
 - [x] Progress Tracking — Local storage toggle with optional DB sync for logged-in users.
-- [ ] Retention UX — Continue learning card exists; completion badges/dashboard surfacing not implemented.
+- [x] Retention UX — Continue learning card, completion badges, and learn dashboard surfacing implemented.
 
 ## Sprint 8 — Phase 5 (Airdrop Hub Full)
 - [x] Search & Filter — Server-driven search/filter/sort with URL-synced query params.
 - [x] Detail Experience — Requirements checklist, social links, related airdrops, and report issue flow.
-- [ ] Admin Operations — CRUD available; bulk status updates and AI tutorial helper are missing.
+- [x] Admin Operations — CRUD, bulk status updates, and AI tutorial helper implemented.
 
 ## Sprint 9 — Phase 6 (AI Tools Directory Full)
 - [x] Compare Feature — Compare up to 3 tools with shareable query string.
