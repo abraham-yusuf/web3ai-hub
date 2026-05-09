@@ -40,7 +40,7 @@
 ## Sprint 8 — Phase 5 (Airdrop Hub Full)
 - [x] Search & Filter — Server-driven search/filter/sort with URL-synced query params.
 - [x] Detail Experience — Requirements checklist, social links, related airdrops, and report issue flow.
-- [ ] Admin Operations — CRUD available; bulk status updates and AI tutorial helper are missing.
+- [x] Admin Operations — CRUD, bulk status updates, and AI tutorial helper implemented.
 
 ## Sprint 9 — Phase 6 (AI Tools Directory Full)
 - [x] Compare Feature — Compare up to 3 tools with shareable query string.
