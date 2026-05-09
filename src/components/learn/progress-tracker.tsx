@@ -25,6 +25,7 @@ export function ProgressTracker({ pageSlug, initialCompleted = false }: Progress
     const next = !completed
     setCompleted(next)
     window.localStorage.setItem(storageKey, next ? "1" : "0")
+    window.dispatchEvent(new Event("learn-progress-updated"))
 
     try {
       await fetch("/api/learn/progress", {

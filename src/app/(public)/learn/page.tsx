@@ -1,7 +1,10 @@
+import { auth } from "@/auth"
 import { AdSlot } from "@/components/ads/ad-slot"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
+import { LearnRetentionDashboard } from "@/components/learn/learn-retention-dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getLearnNavigation } from "@/lib/learn"
+import { prisma } from "@/lib/prisma"
 import { ArrowRight, Book } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -14,6 +17,16 @@ export const metadata: Metadata = {
 
 export default async function LearnIndexPage() {
   const structure = await getLearnNavigation()
+  const session = await auth()
+  const completedProgress = session?.user?.id
+    ? await prisma.learnProgress.findMany({
+        where: {
+          userId: session.user.id,
+          completed: true,
+        },
+        select: { pageSlug: true },
+      })
+    : []
 
   return (
     <div className="space-y-8">
@@ -25,6 +38,8 @@ export default async function LearnIndexPage() {
       </div>
 
       <AdSlot section="learn_list" className="rounded-xl border p-4" />
+
+      <LearnRetentionDashboard tracks={structure} initialCompletedSlugs={completedProgress.map((item: { pageSlug: string }) => item.pageSlug)} />
 
       <div className="grid gap-6">
         {structure.map((track) => (
