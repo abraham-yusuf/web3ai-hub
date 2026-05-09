@@ -6,13 +6,28 @@ interface CodeBlockProps {
   language?: string
 }
 
-function toCodeString(children: ReactNode): string {
-  if (typeof children === 'string') return children
-  if (Array.isArray(children)) {
-    return children.map((child) => (typeof child === 'string' ? child : '')).join('')
+function toCodeString(children: ReactNode): { code: string; hadNonString: boolean } {
+  if (typeof children === 'string') return { code: children, hadNonString: false }
+  if (typeof children === 'number' || typeof children === 'boolean') {
+    return { code: String(children), hadNonString: true }
   }
-  if (children == null) return ''
-  return String(children)
+  if (Array.isArray(children)) {
+    let hadNonString = false
+    const code = children
+      .map((child) => {
+        if (typeof child === 'string') return child
+        if (typeof child === 'number' || typeof child === 'boolean') {
+          hadNonString = true
+          return String(child)
+        }
+        if (child != null) hadNonString = true
+        return ''
+      })
+      .join('')
+    return { code, hadNonString }
+  }
+  if (children == null) return { code: '', hadNonString: false }
+  return { code: '', hadNonString: true }
 }
 
 function normalizeLanguage(language?: string): string {
@@ -31,8 +46,12 @@ function renderHighlighted(html: string) {
 }
 
 export async function CodeBlock({ children, language }: CodeBlockProps) {
-  const code = toCodeString(children)
+  const { code, hadNonString } = toCodeString(children)
   const lang = normalizeLanguage(language)
+
+  if (hadNonString) {
+    console.warn('[CodeBlock] Non-string children were ignored while rendering code.')
+  }
 
   try {
     const html = await codeToHtml(code, {
@@ -41,7 +60,7 @@ export async function CodeBlock({ children, language }: CodeBlockProps) {
     })
     return renderHighlighted(html)
   } catch (error) {
-    console.error(`[CodeBlock] Failed to highlight language "${lang}".`, error)
+    console.error(`[CodeBlock] Failed to highlight ${code.length} chars of "${lang}" code.`, error)
   }
 
   try {
@@ -51,7 +70,7 @@ export async function CodeBlock({ children, language }: CodeBlockProps) {
     })
     return renderHighlighted(html)
   } catch (error) {
-    console.error('[CodeBlock] Failed to highlight with fallback.', error)
+    console.error(`[CodeBlock] Failed to highlight ${code.length} chars with fallback.`, error)
   }
 
   return (
