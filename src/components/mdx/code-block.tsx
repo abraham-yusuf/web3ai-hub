@@ -60,7 +60,10 @@ export async function CodeBlock({ children, language }: CodeBlockProps) {
     })
     return renderHighlighted(html)
   } catch (error) {
-    console.error(`[CodeBlock] Failed to highlight ${code.length} chars of "${lang}" code.`, error)
+    console.error(
+      `[CodeBlock] Failed to highlight ${code.length} chars with language "${lang}". Language may not be supported by Shiki.`,
+      error
+    )
   }
 
   try {
@@ -70,7 +73,10 @@ export async function CodeBlock({ children, language }: CodeBlockProps) {
     })
     return renderHighlighted(html)
   } catch (error) {
-    console.error(`[CodeBlock] Failed to highlight ${code.length} chars with fallback.`, error)
+    console.error(
+      `[CodeBlock] Critical: primary and fallback highlighting failed for ${code.length} chars. Rendering as plain text.`,
+      error
+    )
   }
 
   return (
