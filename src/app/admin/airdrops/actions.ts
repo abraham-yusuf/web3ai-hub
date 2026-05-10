@@ -2,7 +2,16 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+
+async function requireAirdropAdmin() {
+  const session = await auth()
+
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    throw new Error("Unauthorized")
+  }
+}
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -34,6 +43,8 @@ function parseSteps(input: string) {
 }
 
 export async function createAirdropAction(formData: FormData) {
+  await requireAirdropAdmin()
+
   const name = getString(formData, "name")
   const slug = toSlug(getString(formData, "slug") || name)
 
@@ -62,6 +73,8 @@ export async function createAirdropAction(formData: FormData) {
 }
 
 export async function updateAirdropAction(formData: FormData) {
+  await requireAirdropAdmin()
+
   const id = getString(formData, "id")
   const name = getString(formData, "name")
   const slug = toSlug(getString(formData, "slug") || name)
@@ -93,9 +106,40 @@ export async function updateAirdropAction(formData: FormData) {
 }
 
 export async function deleteAirdropAction(formData: FormData) {
+  await requireAirdropAdmin()
+
   const id = getString(formData, "id")
   await prisma.airdrop.delete({ where: { id } })
 
   revalidatePath("/airdrop")
   revalidatePath("/admin/airdrops")
+}
+
+
+export async function bulkUpdateAirdropStatusAction(formData: FormData) {
+  await requireAirdropAdmin()
+
+  const ids = formData
+    .getAll("ids")
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+  const status = getString(formData, "status") as "ACTIVE" | "UPCOMING" | "ENDED"
+
+  if (!ids.length || !["ACTIVE", "UPCOMING", "ENDED"].includes(status)) {
+    revalidatePath("/admin/airdrops")
+    return
+  }
+
+  const affectedAirdrops = await prisma.airdrop.findMany({
+    where: { id: { in: ids } },
+    select: { slug: true },
+  })
+
+  await prisma.airdrop.updateMany({
+    where: { id: { in: ids } },
+    data: { status },
+  })
+
+  revalidatePath("/airdrop")
+  revalidatePath("/admin/airdrops")
+  affectedAirdrops.forEach((airdrop) => revalidatePath(`/airdrop/${airdrop.slug}`))
 }

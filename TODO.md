@@ -35,12 +35,12 @@
 ## Sprint 7 — Phase 4 (Learn Module Part 2)
 - [x] Contextual AI Chat — Lesson-aware sidebar chat with streaming responses and quick prompts.
 - [x] Progress Tracking — Local storage toggle with optional DB sync for logged-in users.
-- [ ] Retention UX — Continue learning card exists; completion badges/dashboard surfacing not implemented.
+- [x] Retention UX — Continue learning card, completion badges, and learn dashboard surfacing implemented.
 
 ## Sprint 8 — Phase 5 (Airdrop Hub Full)
 - [x] Search & Filter — Server-driven search/filter/sort with URL-synced query params.
 - [x] Detail Experience — Requirements checklist, social links, related airdrops, and report issue flow.
-- [ ] Admin Operations — CRUD available; bulk status updates and AI tutorial helper are missing.
+- [x] Admin Operations — CRUD, bulk status updates, and AI tutorial helper implemented.
 
 ## Sprint 9 — Phase 6 (AI Tools Directory Full)
 - [x] Compare Feature — Compare up to 3 tools with shareable query string.
@@ -49,6 +49,6 @@
 
 ## Sprint 10 — Phase 7 (Polish, QA, Launch)
 - [x] Global Search — Cross-module search page covering blog/learn/airdrop/tools.
-- [ ] Reliability — Error boundaries/loading states are basic; no dedicated 404/500 polish beyond defaults.
+- [x] Reliability — Polished route/global error boundaries, dedicated 404 recovery page, and richer loading skeletons implemented.
 - [ ] Testing — No unit/integration/E2E tests implemented.
 - [ ] Analytics & Launch Ops — GA4/GSC events and launch checklist are absent.

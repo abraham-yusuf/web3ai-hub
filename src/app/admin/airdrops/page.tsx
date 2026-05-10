@@ -2,7 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { deleteAirdropAction } from "./actions"
+import { bulkUpdateAirdropStatusAction, deleteAirdropAction } from "./actions"
 
 export const dynamic = "force-dynamic"
 
@@ -19,10 +19,26 @@ export default async function AdminAirdropsPage() {
         <Link href="/admin/airdrops/new" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Tambah Airdrop</Link>
       </div>
 
+      <form id="bulk-airdrop-status-form" action={bulkUpdateAirdropStatusAction} className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium">Bulk status update</p>
+          <p className="text-xs text-muted-foreground">Centang beberapa project di tabel, pilih status baru, lalu update sekaligus.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <select name="status" className="h-9 rounded-md border bg-background px-3 text-sm">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="UPCOMING">UPCOMING</option>
+            <option value="ENDED">ENDED</option>
+          </select>
+          <Button type="submit" size="lg">Update Selected</Button>
+        </div>
+      </form>
+
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
+              <th className="w-12 px-4 py-3 text-left">Pilih</th>
               <th className="px-4 py-3 text-left">Project</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Network</th>
@@ -33,6 +49,9 @@ export default async function AdminAirdropsPage() {
           <tbody>
             {airdrops.map((airdrop) => (
               <tr key={airdrop.id} className="border-t">
+                <td className="px-4 py-3">
+                  <input form="bulk-airdrop-status-form" type="checkbox" name="ids" value={airdrop.id} aria-label={`Pilih ${airdrop.name}`} className="h-4 w-4 rounded border-input" />
+                </td>
                 <td className="px-4 py-3">
                   <p className="font-medium">{airdrop.name}</p>
                   <p className="text-xs text-muted-foreground">/{airdrop.slug}</p>
