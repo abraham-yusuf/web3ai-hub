@@ -37,13 +37,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: "Bootstrap Admin",
             email: env.ADMIN_EMAIL,
             role: "ADMIN" as Role,
+            username: "bootstrap-admin",
           }
         }
 
         // DB-backed user authentication with hashed password
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, email: true, password: true, role: true },
+          select: { id: true, username: true, name: true, email: true, password: true, role: true },
         })
 
         if (!user?.password || !user.email) {
@@ -75,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          username: user.username,
         }
       },
     }),
@@ -101,11 +103,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.role) {
         token.role = user.role
       }
+      if (user?.id) {
+        token.id = user.id
+      }
+      if (user?.username !== undefined) {
+        token.username = user.username
+      }
       return token
     },
     session({ session, token }) {
       if (session.user && (token.role === "ADMIN" || token.role === "EDITOR" || token.role === "VIEWER")) {
         session.user.role = token.role
+      }
+      if (session.user && typeof token.id === "string") {
+        session.user.id = token.id
+      }
+      if (session.user && (typeof token.username === "string" || token.username === null)) {
+        session.user.username = token.username
       }
       return session
     },

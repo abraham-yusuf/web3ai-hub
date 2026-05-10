@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { AirdropAITutorialHelper } from "@/components/airdrop/ai-tutorial-helper"
 import { prisma } from "@/lib/prisma"
 import { updateAirdropAction } from "../../actions"
 
@@ -30,6 +31,7 @@ export default async function EditAirdropPage({ params }: EditAirdropPageProps) 
         </div>
         <textarea name="requirements" defaultValue={airdrop.requirements.join("\n")} className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
         <textarea name="steps" defaultValue={steps} className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
+        <AirdropAITutorialHelper />
         <textarea name="content" defaultValue={airdrop.content} className="min-h-[240px] w-full rounded-md border bg-background p-3 font-mono text-sm" />
         <div className="grid gap-3 md:grid-cols-3">
           <input name="website" defaultValue={links.website ?? ""} className="rounded-md border bg-background px-3 py-2" />

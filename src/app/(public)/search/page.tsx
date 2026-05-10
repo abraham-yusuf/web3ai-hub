@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { TrackEventOnMount } from "@/components/analytics/track-event-on-mount"
 import { Input } from "@/components/ui/input"
 import { getSearchTypeLabel, searchContent, type SearchType } from "@/lib/search"
 import type { Metadata } from "next"
@@ -46,6 +47,8 @@ export default async function SearchPage({
           Search
         </button>
       </form>
+
+      <TrackEventOnMount name="search" enabled={q.trim().length > 0} params={{ search_term: q, content_type: type, results_count: results.length }} />
 
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline">Query: {q || "-"}</Badge>

@@ -1,3 +1,4 @@
+import { AirdropAITutorialHelper } from "@/components/airdrop/ai-tutorial-helper"
 import { createAirdropAction } from "../actions"
 
 export default function NewAirdropPage() {
@@ -15,6 +16,7 @@ export default function NewAirdropPage() {
         </div>
         <textarea name="requirements" placeholder="Satu requirement per baris" className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
         <textarea name="steps" placeholder="Satu langkah per baris" className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
+        <AirdropAITutorialHelper />
         <textarea name="content" placeholder="# Airdrop Guide" className="min-h-[240px] w-full rounded-md border bg-background p-3 font-mono text-sm" />
         <div className="grid gap-3 md:grid-cols-3">
           <input name="website" placeholder="https://..." className="rounded-md border bg-background px-3 py-2" />
