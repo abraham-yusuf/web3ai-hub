@@ -42,6 +42,10 @@ const serverEnvSchema = z
     NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
     NEXT_PUBLIC_UMAMI_URL: z.string().url().optional(),
 
+    // Google Analytics / Search Console
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
+    NEXT_PUBLIC_GSC_VERIFICATION: z.string().optional(),
+
     // Resend (email)
     RESEND_API_KEY: z.string().optional(),
 
