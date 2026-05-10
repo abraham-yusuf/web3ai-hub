@@ -49,6 +49,6 @@
 
 ## Sprint 10 — Phase 7 (Polish, QA, Launch)
 - [x] Global Search — Cross-module search page covering blog/learn/airdrop/tools.
-- [ ] Reliability — Error boundaries/loading states are basic; no dedicated 404/500 polish beyond defaults.
+- [x] Reliability — Polished route/global error boundaries, dedicated 404 recovery page, and richer loading skeletons implemented.
 - [ ] Testing — No unit/integration/E2E tests implemented.
 - [ ] Analytics & Launch Ops — GA4/GSC events and launch checklist are absent.
