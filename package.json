@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "db:seed": "prisma generate && prisma db seed",
+    "db:create-admin": "tsx scripts/create-admin.ts",
     "type-check": "npm run typecheck",
     "prepare": "npm run setup-hooks",
     "setup-hooks": "git config core.hooksPath .githooks"
