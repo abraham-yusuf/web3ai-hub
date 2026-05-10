@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 const geistSans = Geist({
@@ -42,11 +40,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Navbar />
-          <main className="flex-1 container py-8 px-4 md:px-6">
-            {children}
-          </main>
-          <Footer />
           <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         </ThemeProvider>
       </body>

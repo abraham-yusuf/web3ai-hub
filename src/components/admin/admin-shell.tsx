@@ -35,12 +35,12 @@ export function AdminShell({ children, user, signOutAction }: AdminShellProps) {
 
   return (
     <div className="flex min-h-screen bg-muted/30">
-      <aside className="hidden w-72 shrink-0 border-r bg-background lg:flex lg:flex-col">
-        <div className="border-b p-6">
+      {/* Desktop Sidebar */}
+      <aside className="hidden w-64 shrink-0 border-r bg-background lg:flex lg:flex-col">
+        <div className="flex h-16 items-center border-b px-6">
           <Link href="/admin" className="text-xl font-bold tracking-tight">
-            Web3AI Admin
+            Web3AI <span className="text-primary">Admin</span>
           </Link>
-          <p className="mt-1 text-xs text-muted-foreground">Content operations center</p>
         </div>
         <nav className="flex-1 space-y-1 p-4">
           {adminNavItems.map((item) => {
@@ -71,35 +71,27 @@ export function AdminShell({ children, user, signOutAction }: AdminShellProps) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
         <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="flex min-h-16 flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Admin Panel</p>
-              <p className="text-lg font-semibold">Kelola Web3AI Hub</p>
+          <div className="flex h-16 items-center justify-between px-4 lg:px-8">
+            <div className="flex items-center gap-4">
+              <Link href="/admin" className="text-lg font-bold lg:hidden">
+                W3AI <span className="text-primary">Admin</span>
+              </Link>
+              <div className="hidden lg:block">
+                <p className="text-sm font-medium text-muted-foreground">Dashboard Hub</p>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <nav className="flex gap-2 overflow-x-auto lg:hidden">
-                {adminNavItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium",
-                      isActivePath(pathname, item.href) ? "border-primary bg-primary text-primary-foreground" : "bg-background text-muted-foreground",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="flex items-center gap-3 rounded-full border bg-muted/40 px-3 py-1.5">
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-full border bg-muted/40 px-3 py-1">
                 <div className="hidden text-right sm:block">
                   <p className="text-xs font-medium leading-none">{user.name || user.email || "Admin"}</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">{user.role || "ADMIN"}</p>
+                  <p className="mt-1 text-[10px] uppercase text-muted-foreground">{user.role || "ADMIN"}</p>
                 </div>
-                <Link href="/admin/profile" className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <UserCircle className="h-5 w-5" />
-                </Link>
+                </div>
               </div>
               <form action={signOutAction}>
                 <button type="submit" className="inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted">
@@ -108,7 +100,27 @@ export function AdminShell({ children, user, signOutAction }: AdminShellProps) {
               </form>
             </div>
           </div>
+
+          {/* Mobile Secondary Nav */}
+          <nav className="flex gap-1 overflow-x-auto border-t bg-background/50 px-2 py-2 lg:hidden">
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                  isActivePath(pathname, item.href) 
+                    ? "bg-primary text-primary-foreground" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </header>
+
+        {/* Main Content */}
         <main className="flex-1 px-4 py-6 lg:px-8">
           {children}
         </main>
