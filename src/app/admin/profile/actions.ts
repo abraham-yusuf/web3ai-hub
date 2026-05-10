@@ -45,67 +45,95 @@ function emptyToNull(value?: string | null) {
 }
 
 export async function updateAdminProfileAction(formData: FormData) {
-  const userId = await requireDatabaseUser()
-  const parsed = profileSchema.parse({
-    name: formData.get("name"),
-    username: formData.get("username"),
-    email: formData.get("email"),
-    image: formData.get("image"),
-    bio: formData.get("bio"),
-    twitter: formData.get("twitter"),
-    github: formData.get("github"),
-    linkedin: formData.get("linkedin"),
-    telegram: formData.get("telegram"),
-  })
+  try {
+    const userId = await requireDatabaseUser()
+    const parsed = profileSchema.parse({
+      name: formData.get("name"),
+      username: formData.get("username"),
+      email: formData.get("email"),
+      image: formData.get("image"),
+      bio: formData.get("bio"),
+      twitter: formData.get("twitter"),
+      github: formData.get("github"),
+      linkedin: formData.get("linkedin"),
+      telegram: formData.get("telegram"),
+    })
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      name: emptyToNull(parsed.name),
-      username: emptyToNull(parsed.username),
-      email: parsed.email,
-      image: emptyToNull(parsed.image),
-      bio: emptyToNull(parsed.bio),
-      twitter: emptyToNull(parsed.twitter),
-      github: emptyToNull(parsed.github),
-      linkedin: emptyToNull(parsed.linkedin),
-      telegram: emptyToNull(parsed.telegram),
-    },
-  })
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: emptyToNull(parsed.name),
+        username: emptyToNull(parsed.username),
+        email: parsed.email,
+        image: emptyToNull(parsed.image),
+        bio: emptyToNull(parsed.bio),
+        twitter: emptyToNull(parsed.twitter),
+        github: emptyToNull(parsed.github),
+        linkedin: emptyToNull(parsed.linkedin),
+        telegram: emptyToNull(parsed.telegram),
+      },
+    })
 
-  revalidatePath("/admin/profile")
-  revalidatePath("/admin")
+    revalidatePath("/admin/profile")
+    revalidatePath("/admin")
+    return { success: true, message: "Profil berhasil diperbarui." }
+  } catch (error: unknown) {
+    console.error("Profile update error:", error)
+    if (error instanceof z.ZodError) {
+      const fieldErrors = error.flatten().fieldErrors
+      const firstError = Object.values(fieldErrors).flat()[0]
+      return { success: false, message: "Validasi gagal: " + (firstError || "Input tidak valid") }
+    }
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : "Gagal memperbarui profil." 
+    }
+  }
 }
 
 export async function changeAdminPasswordAction(formData: FormData) {
-  const userId = await requireDatabaseUser()
-  const parsed = passwordSchema.parse({
-    currentPassword: formData.get("currentPassword"),
-    newPassword: formData.get("newPassword"),
-    confirmPassword: formData.get("confirmPassword"),
-  })
+  try {
+    const userId = await requireDatabaseUser()
+    const parsed = passwordSchema.parse({
+      currentPassword: formData.get("currentPassword"),
+      newPassword: formData.get("newPassword"),
+      confirmPassword: formData.get("confirmPassword"),
+    })
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { password: true },
-  })
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true },
+    })
 
-  if (!user?.password) {
-    throw new Error("Password user belum tersedia.")
+    if (!user?.password) {
+      throw new Error("Password user belum tersedia.")
+    }
+
+    const currentPasswordMatches = user.password.startsWith("$2")
+      ? await verifyPassword(parsed.currentPassword, user.password)
+      : parsed.currentPassword === user.password
+
+    if (!currentPasswordMatches) {
+      throw new Error("Password saat ini tidak valid.")
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: await hashPassword(parsed.newPassword) },
+    })
+
+    revalidatePath("/admin/profile")
+    return { success: true, message: "Password berhasil diganti." }
+  } catch (error: unknown) {
+    console.error("Password change error:", error)
+    if (error instanceof z.ZodError) {
+      const fieldErrors = error.flatten().fieldErrors
+      const firstError = Object.values(fieldErrors).flat()[0]
+      return { success: false, message: "Validasi gagal: " + (firstError || "Input tidak valid") }
+    }
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : "Gagal mengganti password." 
+    }
   }
-
-  const currentPasswordMatches = user.password.startsWith("$2")
-    ? await verifyPassword(parsed.currentPassword, user.password)
-    : parsed.currentPassword === user.password
-
-  if (!currentPasswordMatches) {
-    throw new Error("Password saat ini tidak valid.")
-  }
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: { password: await hashPassword(parsed.newPassword) },
-  })
-
-  revalidatePath("/admin/profile")
 }
