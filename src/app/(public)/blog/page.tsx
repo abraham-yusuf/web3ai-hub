@@ -50,7 +50,7 @@ export default async function BlogPage() {
               <CardHeader>
                 <div className="mb-2 text-xs font-medium text-primary">{post.category}</div>
                 <CardTitle>{post.title}</CardTitle>
-                <CardDescription>{post.createdAt}</CardDescription>
+                <CardDescription>{(post.publishedAt ?? post.createdAt ?? "").split("T")[0]}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="line-clamp-3 text-sm text-muted-foreground">{post.excerpt}</p>

@@ -177,6 +177,12 @@ export default function AdminAIWriterPage() {
               >
                 Insert to Editor
               </a>
+              <a
+                href={`/admin/learn/new?title=${encodeURIComponent(topic)}&content=${encodeURIComponent(content)}`}
+                className="inline-flex h-8 items-center rounded-md border border-primary text-primary px-3 text-xs font-medium hover:bg-primary/10"
+              >
+                Insert to Learn
+              </a>
             </div>
           </div>
           <textarea

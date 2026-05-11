@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { ensureSlug, parseTagsInput } from "@/lib/posts"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -14,29 +15,19 @@ function getOptionalDate(formData: FormData, key: string): Date | null {
   const value = getString(formData, key)
   if (!value) return null
 
-  const parsed = new Date(value)
+  // Treat input as Asia/Jakarta (WIB)
+  // Input from datetime-local is YYYY-MM-DDTHH:mm
+  const wibValue = value.includes("T") ? `${value}:00.000+07:00` : value
+  const parsed = new Date(wibValue)
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-
-async function getDefaultAuthorId(): Promise<string> {
-  const firstUser = await prisma.user.findFirst({ select: { id: true }, orderBy: { createdAt: "asc" } })
-  if (firstUser) return firstUser.id
-
-  const bootstrapUser = await prisma.user.create({
-    data: {
-      email: "admin@web3aihub.com",
-      name: "Bootstrap Admin",
-      username: "admin",
-      role: "ADMIN",
-      password: "admin12345",
-    },
-    select: { id: true },
-  })
-
-  return bootstrapUser.id
-}
 export async function createPostAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
   const title = getString(formData, "title")
   const slugInput = getString(formData, "slug")
   const content = getString(formData, "content")
@@ -53,7 +44,7 @@ export async function createPostAction(formData: FormData) {
     throw new Error("Slug sudah digunakan. Gunakan slug lain.")
   }
 
-  const authorId = await getDefaultAuthorId()
+  const authorId = session.user.id
 
   await prisma.post.create({
     data: {
@@ -76,6 +67,11 @@ export async function createPostAction(formData: FormData) {
 }
 
 export async function updatePostAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
   const id = getString(formData, "id")
   const title = getString(formData, "title")
   const slug = ensureSlug(getString(formData, "slug") || title)
