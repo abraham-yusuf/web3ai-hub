@@ -17,6 +17,7 @@ const defaultModels: Record<AIProvider, string> = {
   anthropic: "claude-3-5-haiku-latest",
   google: "gemini-1.5-flash",
   groq: "llama-3.3-70b-versatile",
+  nvidia: "nvidia/llama-3.1-405b-instruct",
 }
 
 const envProviderKeys: Record<AIProvider, string | undefined> = {
@@ -24,6 +25,7 @@ const envProviderKeys: Record<AIProvider, string | undefined> = {
   anthropic: env.ANTHROPIC_API_KEY,
   google: env.GOOGLE_AI_API_KEY,
   groq: env.GROQ_API_KEY,
+  nvidia: process.env.NVIDIA_API_KEY,
 }
 
 export async function getAISettings(): Promise<AISettings> {

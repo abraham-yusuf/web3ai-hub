@@ -1,4 +1,4 @@
-export const AI_PROVIDERS = ["openai", "anthropic", "google", "groq"] as const
+export const AI_PROVIDERS = ["openai", "anthropic", "google", "groq", "nvidia"] as const
 
 export type AIProvider = (typeof AI_PROVIDERS)[number]
 

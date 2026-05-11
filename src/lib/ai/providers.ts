@@ -101,6 +101,31 @@ async function streamGroq(
   }
 }
 
+async function streamNvidia(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  temperature: number,
+  onChunk: StreamChunkHandler,
+) {
+  const client = new OpenAI({
+    apiKey,
+    baseURL: "https://integrate.api.nvidia.com/v1",
+  })
+
+  const stream = await client.chat.completions.create({
+    model,
+    stream: true,
+    temperature,
+    messages: [{ role: "user", content: prompt }],
+  })
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content
+    if (content) onChunk(content)
+  }
+}
+
 async function streamFromProvider(
   provider: AIProvider,
   request: AIWriterRequest,
@@ -132,7 +157,12 @@ async function streamFromProvider(
     return
   }
 
-  await streamGroq(apiKey, model, prompt, temperature, onChunk)
+  if (provider === "groq") {
+    await streamGroq(apiKey, model, prompt, temperature, onChunk)
+    return
+  }
+
+  await streamNvidia(apiKey, model, prompt, temperature, onChunk)
 }
 
 export async function streamWithProviderFallback(
