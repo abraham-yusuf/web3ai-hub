@@ -32,6 +32,14 @@ const serverEnvSchema = z
     // AdSense
     NEXT_PUBLIC_ADSENSE_CLIENT: z.string().optional(),
 
+    // Amazon Aurora (AWS RDS)
+    AURORA_HOST: z.string().optional(),
+    AURORA_PORT: z.string().default("5432"),
+    AURORA_USER: z.string().optional(),
+    AURORA_PASSWORD: z.string().optional(),
+    AURORA_DATABASE: z.string().optional(),
+    AWS_REGION: z.string().optional(),
+
     // Cloudflare R2 Storage
     R2_ACCOUNT_ID: z.string().optional(),
     R2_ACCESS_KEY_ID: z.string().optional(),
@@ -54,12 +62,14 @@ const serverEnvSchema = z
   })
   .superRefine((values, context) => {
     const isProduction = values.NODE_ENV === "production" || values.NODE_ENV === "staging"
+    const hasAurora = values.AURORA_HOST && values.AURORA_USER && values.AURORA_DATABASE
+    const hasDbUrl = !!values.DATABASE_URL
 
-    if (values.NODE_ENV !== "test" && !values.DATABASE_URL) {
+    if (values.NODE_ENV !== "test" && !hasDbUrl && !hasAurora) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["DATABASE_URL"],
-        message: "DATABASE_URL wajib diisi untuk development, staging, dan production.",
+        message: "DATABASE_URL atau AURORA_* variables wajib diisi untuk development, staging, dan production.",
       })
     }
 

@@ -1,17 +1,49 @@
 import "dotenv/config"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
+import { Pool } from "pg"
+import { Signer } from "@aws-sdk/rds-signer"
 import { migrateLearnFromMdx } from "../src/lib/learn-migration"
 
-const databaseUrl = process.env.DATABASE_URL
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required to run the seed script.")
+async function getAuthToken(): Promise<string> {
+  if (process.env.AURORA_HOST && process.env.AWS_REGION && process.env.AURORA_USER) {
+    const signer = new Signer({
+      hostname: process.env.AURORA_HOST,
+      port: parseInt(process.env.AURORA_PORT || "5432"),
+      region: process.env.AWS_REGION,
+      username: process.env.AURORA_USER,
+    })
+    return await signer.getAuthToken()
+  }
+  if (!process.env.AURORA_PASSWORD) {
+    throw new Error("AURORA_PASSWORD atau IAM konfigurasi wajib diisi.")
+  }
+  return process.env.AURORA_PASSWORD
 }
 
-const prisma = new PrismaClient({
-  adapter: new PrismaPg(databaseUrl),
-})
+async function createPrismaClient() {
+  let pool: Pool
+
+  if (process.env.AURORA_HOST && process.env.AURORA_USER && process.env.AURORA_DATABASE) {
+    pool = new Pool({
+      host: process.env.AURORA_HOST,
+      port: parseInt(process.env.AURORA_PORT || "5432"),
+      user: process.env.AURORA_USER,
+      database: process.env.AURORA_DATABASE,
+      password: () => getAuthToken(),
+      ssl: { rejectUnauthorized: false },
+    })
+  } else if (process.env.DATABASE_URL) {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  } else {
+    throw new Error("DATABASE_URL atau AURORA_* variables wajib diisi.")
+  }
+
+  const adapter = new PrismaPg(pool)
+  return new PrismaClient({ adapter })
+}
+
+let prisma: PrismaClient
 
 type AIToolSeed = {
   name: string
@@ -1078,6 +1110,7 @@ async function seedAirdrops() {
 
 async function main() {
   console.log("=== Web3AI Hub Seed ===")
+  prisma = await createPrismaClient()
   await seedAITools()
   await seedAirdrops()
   await seedLearnFromMdx()

@@ -202,8 +202,16 @@ Buka [http://localhost:3000](http://localhost:3000) di browser.
 ### Environment Variables
 
 ```env
-# Database
+# Database (Neon or Standard PostgreSQL)
 DATABASE_URL="postgresql://..."
+
+# Database (Amazon Aurora PostgreSQL / AWS RDS)
+AURORA_HOST="your-aurora-endpoint"
+AURORA_USER="your-username"
+AURORA_DATABASE="your-dbname"
+AURORA_PASSWORD="your-password" # Opsional jika menggunakan IAM
+AWS_REGION="your-aws-region"     # Wajib jika menggunakan IAM Auth
+```
 
 # Auth
 NEXTAUTH_SECRET="your-secret"
