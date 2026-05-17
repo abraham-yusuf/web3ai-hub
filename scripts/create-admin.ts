@@ -1,32 +1,23 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import { hashPassword } from "../src/lib/auth-utils";
+
+const prisma = new PrismaClient();
 
 async function main() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
-  const databaseUrl = process.env.DATABASE_URL;
 
   if (!email || !password) {
     console.error("❌ ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
     process.exit(1);
   }
 
-  if (!databaseUrl) {
-    console.error("❌ DATABASE_URL must be set in .env");
-    process.exit(1);
-  }
-
-  const pool = new Pool({ connectionString: databaseUrl });
-  const adapter = new PrismaPg(pool);
-  const prisma = new PrismaClient({ adapter });
-
   try {
     console.log(`⏳ Creating/updating admin user: ${email}...`);
+
     const hashedPassword = await hashPassword(password);
-    
+
     const user = await prisma.user.upsert({
       where: { email },
       update: {
@@ -48,7 +39,6 @@ async function main() {
     process.exit(1);
   } finally {
     await prisma.$disconnect();
-    await pool.end();
   }
 }
 

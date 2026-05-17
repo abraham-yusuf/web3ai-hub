@@ -1,5 +1,4 @@
 import "dotenv/config"
-import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
 import { migrateLearnFromMdx } from "../src/lib/learn-migration"
 
@@ -9,9 +8,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required to run the seed script.")
 }
 
-const prisma = new PrismaClient({
-  adapter: new PrismaPg(databaseUrl),
-})
+const prisma = new PrismaClient()
 
 type AIToolSeed = {
   name: string
