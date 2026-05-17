@@ -77,16 +77,16 @@
 
 ## Typography & UI
 
-- [ ] Replace serif UI font with modern font
-- [ ] Use Geist / Inter / Plus Jakarta Sans
-- [ ] Improve spacing consistency
-- [ ] Improve visual hierarchy
-- [ ] Improve button styling
-- [ ] Improve card components
-- [ ] Add subtle animations
-- [ ] Add glassmorphism effects
-- [ ] Improve dark mode
-- [ ] Add skeleton loading states
+- [x] Replace serif UI font with modern font
+- [x] Use Geist / Inter / Plus Jakarta Sans
+- [x] Improve spacing consistency
+- [x] Improve visual hierarchy
+- [x] Improve button styling
+- [x] Improve card components
+- [x] Add subtle animations
+- [x] Add glassmorphism effects
+- [x] Improve dark mode
+- [x] Add skeleton loading states
 
 ## Mobile UX
 
