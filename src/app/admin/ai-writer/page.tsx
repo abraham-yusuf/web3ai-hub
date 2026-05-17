@@ -8,7 +8,7 @@ const providerModels: Record<AIProvider, string[]> = {
   anthropic: ["claude-3-5-haiku-latest", "claude-3-7-sonnet-latest"],
   google: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-3-flash-preview"],
   groq: ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"],
-  nvidia: ["nvidia/llama-3.1-405b-instruct", "meta/llama-3.1-70b-instruct"],
+  nvidia: ["nvidia/llama-3.1-405b-instruct", "meta/llama-3.1-70b-instruct", "deepseek-ai/deepseek-v4-pro"],
 }
 
 export default function AdminAIWriterPage() {
