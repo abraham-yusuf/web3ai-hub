@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { ContinueLearningCard } from "@/components/learn/continue-learning-card"
+import { cn } from "@/lib/utils"
 import { getLearnNavigation } from "@/lib/learn"
 import { publicIcons } from "@/components/icons/public-icons"
 
@@ -82,7 +83,7 @@ export default async function HomePage() {
             delay: "animation-delay-400",
           },
         ].map((item) => (
-          <Card key={item.href} className={`animate-fade-in-up ${item.delay}`}>
+          <Card key={item.href} className={cn("animate-fade-in-up", item.delay)}>
             <CardHeader>
               {item.icon}
               <CardTitle className="font-heading text-lg">{item.title}</CardTitle>
