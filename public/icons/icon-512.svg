@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ai3-icon-512-gradient" x1="64" y1="448" x2="448" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D3CF1" />
+      <stop offset="1" stop-color="#2FA8FF" />
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="140" fill="url(#ai3-icon-512-gradient)" />
+  <path d="M256 122L341 268H171L256 122Z" stroke="white" stroke-width="28" stroke-linejoin="round" />
+  <path d="M193 332H319" stroke="white" stroke-width="28" stroke-linecap="round" />
+</svg>

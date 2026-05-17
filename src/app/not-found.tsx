@@ -1,10 +1,14 @@
 import Link from "next/link"
-import { ArrowRight, BookOpen, Home, Search, Sparkles } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { publicIcons } from "@/components/icons/public-icons"
+import { BRAND } from "@/lib/brand"
+
+const { learn: LearnIcon, airdrop: AirdropIcon, search: SearchIcon, home: HomeIcon } = publicIcons
 
 const recoveryLinks = [
-  { href: "/learn", label: "Learn Track", description: "Lanjutkan materi Web3 & AI", icon: BookOpen },
-  { href: "/airdrop", label: "Airdrop Hub", description: "Cari peluang airdrop aktif", icon: Sparkles },
-  { href: "/search", label: "Global Search", description: "Temukan blog, lesson, tools", icon: Search },
+  { href: "/learn", label: "Learn Track", description: "Lanjutkan materi Web3 & AI", icon: LearnIcon },
+  { href: "/airdrop", label: "Airdrop Hub", description: "Cari peluang airdrop aktif", icon: AirdropIcon },
+  { href: "/search", label: "Global Search", description: "Temukan blog, lesson, tools", icon: SearchIcon },
 ]
 
 export default function NotFound() {
@@ -20,7 +24,7 @@ export default function NotFound() {
             </p>
           </div>
           <Link href="/" className="mt-8 inline-flex h-10 w-fit items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            <Home className="mr-2 h-4 w-4" />
+            <HomeIcon className="mr-2 h-4 w-4" />
             Kembali ke Home
           </Link>
         </div>
@@ -28,7 +32,7 @@ export default function NotFound() {
         <div className="space-y-4 p-8">
           <div>
             <h2 className="text-xl font-semibold">Coba jalur berikut</h2>
-            <p className="text-sm text-muted-foreground">Pilih salah satu pintasan untuk kembali menjelajah konten Web3AI Hub.</p>
+            <p className="text-sm text-muted-foreground">Pilih salah satu pintasan untuk kembali menjelajah konten {BRAND.descriptor}.</p>
           </div>
           <div className="grid gap-3">
             {recoveryLinks.map((item) => {

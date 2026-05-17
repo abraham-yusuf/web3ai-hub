@@ -1,0 +1,11 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ai3-apple-gradient" x1="22" y1="158" x2="158" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D3CF1" />
+      <stop offset="1" stop-color="#2FA8FF" />
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="160" height="160" rx="50" fill="url(#ai3-apple-gradient)" />
+  <path d="M90 44L121 96H59L90 44Z" stroke="white" stroke-width="9" stroke-linejoin="round" />
+  <path d="M67 120H113" stroke="white" stroke-width="9" stroke-linecap="round" />
+</svg>

@@ -2,6 +2,7 @@
 
 import "./globals.css"
 import { AlertTriangle, RefreshCcw } from "lucide-react"
+import { BRAND } from "@/lib/brand"
 
 export default function GlobalError({
   error,
@@ -13,7 +14,7 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-        <title>500 — Web3AI Hub</title>
+        <title>500 — {BRAND.name}</title>
         <main className="w-full max-w-2xl overflow-hidden rounded-3xl border bg-card shadow-sm">
           <div className="border-b bg-destructive/10 px-6 py-5">
             <div className="flex items-center gap-3">
@@ -22,7 +23,7 @@ export default function GlobalError({
               </span>
               <div>
                 <p className="text-sm font-medium text-destructive">500 — Fatal error</p>
-                <h1 className="text-2xl font-bold tracking-tight">Web3AI Hub tidak bisa dimuat</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{BRAND.name} tidak bisa dimuat</h1>
               </div>
             </div>
           </div>

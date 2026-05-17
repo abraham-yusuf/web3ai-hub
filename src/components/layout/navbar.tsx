@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AI3Logo } from "@/components/branding/ai3-logo"
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -34,7 +35,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-xl font-bold text-transparent">Web3AI Hub</span>
+            <AI3Logo />
           </Link>
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>

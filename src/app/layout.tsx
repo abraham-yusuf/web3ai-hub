@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { BRAND } from "@/lib/brand";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -16,8 +17,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Web3AI Hub — Platform Blog & Learning Web3 + AI",
-  description: "Belajar Web3 & AI, Satu Platform. Blog, Dokumentasi, Airdrop Hub, dan AI Tools Directory.",
+  title: `${BRAND.name} — Platform Blog & Learning Web3 + AI`,
+  description: "Belajar Web3 & AI dalam satu platform. Blog, dokumentasi, airdrop hub, dan AI tools directory.",
+  applicationName: BRAND.descriptor,
+  icons: {
+    icon: [
+      { url: "/icons/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.svg", type: "image/svg+xml" }],
+  },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
   },
