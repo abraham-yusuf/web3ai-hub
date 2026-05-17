@@ -16,7 +16,7 @@ const templateGuide: Record<AIWriterRequest["template"], string> = {
 
 export function createWriterPrompt(input: AIWriterRequest): string {
   return [
-    "Kamu adalah editor senior Web3AI Hub.",
+    "Kamu adalah editor senior AI3.",
     `Tulis artikel dalam bahasa: ${input.language}.`,
     `Tone: ${input.tone}.`,
     `Panjang target: ${lengthGuide[input.length]}.`,
