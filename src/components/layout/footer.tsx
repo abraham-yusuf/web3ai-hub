@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { AI3Logo } from "@/components/branding/ai3-logo"
 
 export function Footer() {
   return (
@@ -6,8 +7,8 @@ export function Footer() {
       <div className="container py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2">
-            <Link href="/" className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Web3AI Hub
+            <Link href="/" className="inline-flex">
+              <AI3Logo />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
               Platform all-in-one untuk belajar Web3 dan AI. Temukan tutorial, airdrop, dan tools AI terbaru.
@@ -32,7 +33,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Web3AI Hub. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AI3. All rights reserved.</p>
         </div>
       </div>
     </footer>
