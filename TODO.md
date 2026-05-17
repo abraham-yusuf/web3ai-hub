@@ -90,12 +90,12 @@
 
 ## Mobile UX
 
-- [ ] Redesign mobile navigation
-- [ ] Add slide drawer sidebar
-- [ ] Improve touch targets
-- [ ] Improve mobile spacing
-- [ ] Add bottom mobile navigation
-- [ ] Optimize dashboard for small screens
+- [x] Redesign mobile navigation
+- [x] Add slide drawer sidebar
+- [x] Improve touch targets
+- [x] Improve mobile spacing
+- [x] Add bottom mobile navigation
+- [x] Optimize dashboard for small screens
 
 ---
 

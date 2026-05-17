@@ -31,8 +31,8 @@ export default async function LearnIndexPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold tracking-tight">Materi Pembelajaran</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Materi Pembelajaran</h1>
+        <p className="mt-2 text-base text-muted-foreground sm:text-lg">
           Pilih jalur pembelajaran untuk mulai menguasai teknologi Web3 dan AI.
         </p>
       </div>
@@ -44,13 +44,15 @@ export default async function LearnIndexPage() {
       <div className="grid gap-6">
         {structure.map((track) => (
           <Card key={track.slug}>
-            <CardHeader className="flex flex-row items-center gap-4">
+            <CardHeader className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Book className="h-6 w-6" />
               </div>
               <div>
                 <CardTitle>{track.title}</CardTitle>
-                <CardDescription>{track.sections.reduce((count, section) => count + section.pages.length, 0)} Materi</CardDescription>
+                <CardDescription className="text-sm">
+                  {track.sections.reduce((count, section) => count + section.pages.length, 0)} Materi
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -59,7 +61,7 @@ export default async function LearnIndexPage() {
                   <Link
                     key={page.slug}
                     href={`/learn/${page.slug}`}
-                    className="group flex items-center gap-2 rounded-md p-2 text-sm transition-colors hover:bg-muted"
+                    className="group flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted"
                   >
                     <span className="text-muted-foreground group-hover:text-primary">{page.order}.</span>
                     <span className="flex-1">{page.title}</span>

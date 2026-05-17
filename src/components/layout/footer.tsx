@@ -4,7 +4,7 @@ import { AI3Logo } from "@/components/branding/ai3-logo"
 export function Footer() {
   return (
     <footer className="border-t bg-background">
-      <div className="container py-12 md:py-16">
+      <div className="container pb-24 pt-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2">
             <Link href="/" className="inline-flex">
