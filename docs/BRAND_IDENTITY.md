@@ -44,3 +44,5 @@ Semua typography menggunakan font utama Geist melalui `--font-sans`.
 - Apple icon: `/icons/apple-touch-icon.svg`
 - PWA icons: `/icons/icon-192.svg`, `/icons/icon-512.svg`, `/icons/icon-maskable.svg`
 - Manifest: `src/app/manifest.ts`
+- Catatan kompatibilitas: manifest saat ini memakai SVG; fallback tab icon tetap tersedia via file existing `src/app/favicon.ico` dan metadata icon.
+- Ikon maskable menggunakan radial gradient agar tetap kontras saat clipping bentuk launcher di Android.

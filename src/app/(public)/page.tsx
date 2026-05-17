@@ -28,7 +28,7 @@ export default async function HomePage() {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link href="/learn" className={buttonVariants({ size: "lg", className: "h-12 px-8" })}>
-            Mulai Belajar <AirdropIcon className="ml-2 h-5 w-5" />
+            Mulai Belajar <LearnIcon className="ml-2 h-5 w-5" />
           </Link>
           <Link href="/airdrop" className={buttonVariants({ variant: "outline", size: "lg", className: "h-12 px-8" })}>
             Cek Airdrop
