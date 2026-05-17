@@ -91,7 +91,8 @@ export function Navbar() {
       <div
         className={cn(
           "fixed inset-0 z-50 transition md:hidden",
-          isMobileMenuOpen ? "visible" : "invisible pointer-events-none",
+          isMobileMenuOpen ? "visible" : "invisible",
+          !isMobileMenuOpen && "pointer-events-none",
         )}
         aria-hidden={!isMobileMenuOpen}
       >
@@ -112,7 +113,12 @@ export function Navbar() {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-muted-foreground">Menu</span>
-            <Button variant="ghost" size="icon-lg" onClick={() => setIsMobileMenuOpen(false)}>
+            <Button
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Close menu"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <X />
             </Button>
           </div>

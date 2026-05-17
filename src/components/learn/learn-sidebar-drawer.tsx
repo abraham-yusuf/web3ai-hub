@@ -39,7 +39,8 @@ export function LearnSidebarDrawer({ tracks }: LearnSidebarDrawerProps) {
       <div
         className={cn(
           "fixed inset-0 z-50 transition",
-          isOpen ? "visible" : "invisible pointer-events-none",
+          isOpen ? "visible" : "invisible",
+          !isOpen && "pointer-events-none",
         )}
         aria-hidden={!isOpen}
       >
@@ -60,7 +61,12 @@ export function LearnSidebarDrawer({ tracks }: LearnSidebarDrawerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-muted-foreground">Navigasi Belajar</span>
-            <Button variant="ghost" size="icon-lg" onClick={() => setIsOpen(false)}>
+            <Button
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Close sidebar"
+              onClick={() => setIsOpen(false)}
+            >
               <X />
             </Button>
           </div>
