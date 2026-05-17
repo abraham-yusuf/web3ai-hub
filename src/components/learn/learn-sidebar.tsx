@@ -6,13 +6,14 @@ import type { LearnNavTrack } from "@/lib/learn"
 
 type LearnSidebarProps = {
   tracks: LearnNavTrack[]
+  onNavigate?: () => void
 }
 
-export function LearnSidebar({ tracks }: LearnSidebarProps) {
+export function LearnSidebar({ tracks, onNavigate }: LearnSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-full shrink-0 space-y-4 border-r pr-6 md:w-72">
+    <aside className="w-full shrink-0 space-y-4 md:w-72 md:border-r md:pr-6">
       {tracks.map((track) => (
         <details key={track.slug} open className="rounded-lg border p-3">
           <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -30,7 +31,8 @@ export function LearnSidebar({ tracks }: LearnSidebarProps) {
                     <Link
                       key={page.slug}
                       href={href}
-                      className={`block rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted hover:text-primary ${active ? "bg-muted text-primary" : ""}`}
+                      className={`block rounded-md px-3 py-2.5 text-base transition-colors hover:bg-muted hover:text-primary md:px-2 md:py-1.5 md:text-sm ${active ? "bg-muted text-primary" : ""}`}
+                      onClick={onNavigate}
                     >
                       {page.title}
                     </Link>

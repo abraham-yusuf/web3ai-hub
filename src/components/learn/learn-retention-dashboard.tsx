@@ -124,32 +124,32 @@ export function LearnRetentionDashboard({ tracks, initialCompletedSlugs = [] }: 
 
   return (
     <Card className="overflow-hidden border-primary/20 bg-primary/[0.03]">
-      <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
+      <CardHeader className="gap-4 grid-cols-1 sm:grid-cols-[1fr_auto] sm:items-center">
         <div>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <BookOpenCheck className="h-6 w-6 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <BookOpenCheck className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
             Dashboard Progress Belajar
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm sm:text-base">
             Pantau progres, lanjutkan lesson berikutnya, dan kumpulkan badge penyelesaian.
           </CardDescription>
         </div>
         {nextLesson ? (
           <Link
             href={`/learn/${nextLesson.slug}`}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:w-auto sm:justify-self-end"
           >
             {completedCount === totalLessons ? "Ulangi Materi" : "Lanjutkan"}
           </Link>
         ) : null}
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-5 sm:space-y-6">
         <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
           <div className="rounded-xl border bg-background p-4">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Completion</p>
-                <p className="text-3xl font-bold">{completionRate}%</p>
+                <p className="text-2xl font-bold sm:text-3xl">{completionRate}%</p>
               </div>
               <p className="text-sm text-muted-foreground">
                 {completedCount}/{totalLessons} lesson selesai
@@ -162,7 +162,9 @@ export function LearnRetentionDashboard({ tracks, initialCompletedSlugs = [] }: 
 
           <div className="rounded-xl border bg-background p-4">
             <p className="text-sm font-medium text-muted-foreground">Badge Unlocked</p>
-            <p className="text-3xl font-bold">{unlockedBadges.filter((badge) => badge.unlocked).length}/{unlockedBadges.length}</p>
+            <p className="text-2xl font-bold sm:text-3xl">
+              {unlockedBadges.filter((badge) => badge.unlocked).length}/{unlockedBadges.length}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">Badge tampil otomatis saat lesson ditandai completed.</p>
           </div>
         </div>

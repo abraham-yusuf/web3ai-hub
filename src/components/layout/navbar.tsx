@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AI3Logo } from "@/components/branding/ai3-logo"
+import { navItems } from "@/components/layout/nav-items"
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -17,18 +18,17 @@ import {
 import { Moon, Sun, Menu, X, Search } from "lucide-react"
 import { useTheme } from "next-themes"
 
-const navItems = [
-  { title: "Blog", href: "/blog" },
-  { title: "Learn", href: "/learn" },
-  { title: "Airdrops", href: "/airdrop" },
-  { title: "AI Tools", href: "/ai-tools" },
-  { title: "Search", href: "/search" },
-]
-
 export function Navbar() {
   const pathname = usePathname()
   const { setTheme, theme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : ""
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [isMobileMenuOpen])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
@@ -67,7 +67,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-lg"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -77,36 +77,67 @@ export function Navbar() {
 
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-lg"
             className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
-            {isMobileMenuOpen ? <X /> : <Menu />}
+            <Menu />
           </Button>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="space-y-4 border-b bg-background p-4 md:hidden">
-          <form action="/search" className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input name="q" placeholder="Search..." className="h-9 pl-8" />
+      <div
+        className={cn(
+          "fixed inset-0 z-50 transition md:hidden",
+          isMobileMenuOpen ? "visible" : "invisible pointer-events-none",
+        )}
+        aria-hidden={!isMobileMenuOpen}
+      >
+        <button
+          type="button"
+          className="absolute inset-0 bg-black/40"
+          aria-label="Close navigation"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        <div
+          id="mobile-navigation"
+          role="dialog"
+          aria-modal="true"
+          className={cn(
+            "absolute right-0 top-0 h-full w-[min(85vw,22rem)] bg-background p-6 shadow-xl transition-transform",
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full",
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-muted-foreground">Menu</span>
+            <Button variant="ghost" size="icon-lg" onClick={() => setIsMobileMenuOpen(false)}>
+              <X />
+            </Button>
+          </div>
+          <form action="/search" className="relative mt-6">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Input name="q" placeholder="Search..." className="h-11 pl-10" />
           </form>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "block text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground",
-              )}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {item.title}
-            </Link>
-          ))}
+          <nav className="mt-6 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex min-h-11 items-center justify-between rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted",
+                  pathname === item.href ? "text-primary" : "text-foreground",
+                )}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span>{item.title}</span>
+                <span className="text-muted-foreground">→</span>
+              </Link>
+            ))}
+          </nav>
         </div>
-      )}
+      </div>
     </header>
   )
 }
