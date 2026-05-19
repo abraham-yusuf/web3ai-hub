@@ -192,7 +192,7 @@ function parseTags(raw: string): string[] {
 }
 
 function formatYamlString(value: string): string {
-  const escaped = value.replace(/"/g, '\\"')
+  const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
   return `"${escaped}"`
 }
 
