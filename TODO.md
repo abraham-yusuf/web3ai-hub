@@ -103,20 +103,20 @@
 
 ## AI Writer Upgrade
 
-- [ ] Add markdown live preview
-- [ ] Add streaming response
-- [ ] Add regenerate section feature
-- [ ] Add SEO optimizer
-- [ ] Add AI summarize feature
-- [ ] Add AI title generator
-- [ ] Add AI tags generator
-- [ ] Add AI excerpt generator
-- [ ] Add inline editing
-- [ ] Add slash commands
-- [ ] Add prompt history
-- [ ] Add prompt templates library
-- [ ] Add autosave drafts
-- [ ] Add collaborative editing
+- [x] Add markdown live preview
+- [x] Add streaming response
+- [x] Add regenerate section feature
+- [x] Add SEO optimizer
+- [x] Add AI summarize feature
+- [x] Add AI title generator
+- [x] Add AI tags generator
+- [x] Add AI excerpt generator
+- [x] Add inline editing
+- [x] Add slash commands
+- [x] Add prompt history
+- [x] Add prompt templates library
+- [x] Add autosave drafts
+- [x] Add collaborative editing
 
 ## AI Learn System
 

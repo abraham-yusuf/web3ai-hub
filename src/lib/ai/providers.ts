@@ -1,9 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import OpenAI from "openai"
-import { createWriterPrompt } from "@/lib/ai/prompts"
 import { getDefaultModel, resolveProviderApiKey } from "@/lib/ai/settings"
-import { AI_PROVIDERS, type AIProvider, type AISettings, type AIWriterRequest } from "@/lib/ai/types"
+import { AI_PROVIDERS, type AIProvider, type AISettings, type AIStreamRequest } from "@/lib/ai/types"
 
 type StreamChunkHandler = (text: string) => void
 
@@ -128,7 +127,7 @@ async function streamNvidia(
 
 async function streamFromProvider(
   provider: AIProvider,
-  request: AIWriterRequest,
+  request: AIStreamRequest,
   settings: AISettings,
   onChunk: StreamChunkHandler,
 ) {
@@ -139,8 +138,8 @@ async function streamFromProvider(
   }
 
   const model = request.model || settings[provider].model || getDefaultModel(provider)
-  const prompt = createWriterPrompt(request)
-  const temperature = settings[provider].temperature
+  const prompt = request.prompt
+  const temperature = request.temperature ?? settings[provider].temperature
 
   if (provider === "openai") {
     await streamOpenAI(apiKey, model, prompt, temperature, onChunk)
@@ -166,7 +165,7 @@ async function streamFromProvider(
 }
 
 export async function streamWithProviderFallback(
-  request: AIWriterRequest,
+  request: AIStreamRequest,
   settings: AISettings,
   onChunk: StreamChunkHandler,
 ): Promise<{ providerUsed: AIProvider; fallbackUsed: boolean }> {
