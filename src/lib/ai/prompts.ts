@@ -31,3 +31,81 @@ export function createWriterPrompt(input: AIWriterRequest): string {
     "5) Hindari klaim pasti soal profit.",
   ].join("\n")
 }
+
+function buildContentContext(content: string): string {
+  return [
+    "Berikut adalah konten sumber dalam format Markdown.",
+    "Gunakan konten ini sebagai konteks utama.",
+    "----",
+    content,
+    "----",
+  ].join("\n")
+}
+
+export function createSummaryPrompt(content: string, language?: string): string {
+  return [
+    "Kamu adalah editor AI3 yang merangkum konten.",
+    language ? `Tulis ringkasan dalam bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    "Buat ringkasan 3-5 kalimat, fokus pada poin utama.",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createSeoOptimizerPrompt(content: string, language?: string): string {
+  return [
+    "Kamu adalah SEO editor AI3.",
+    language ? `Gunakan bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    "Berikan saran SEO dalam format bullet list Markdown.",
+    "Sertakan: 1) keyword utama, 2) keyword pendukung, 3) saran heading, 4) internal linking.",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createTitlePrompt(content: string, language?: string): string {
+  return [
+    "Kamu adalah editor AI3 untuk judul artikel.",
+    language ? `Gunakan bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    "Berikan 5 opsi judul yang ringkas dan menarik.",
+    "Jawab dengan daftar bernomor.",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createTagsPrompt(content: string, language?: string): string {
+  return [
+    "Kamu adalah editor AI3 untuk tag artikel.",
+    language ? `Gunakan bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    "Berikan 6-10 tag yang relevan.",
+    "Jawab dengan format: tag1, tag2, tag3.",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createExcerptPrompt(content: string, language?: string): string {
+  return [
+    "Kamu adalah editor AI3 untuk excerpt artikel.",
+    language ? `Gunakan bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    "Tulis 1-2 kalimat ringkas sebagai meta description.",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createSectionRewritePrompt(
+  selection: string,
+  content: string,
+  instruction?: string,
+  language?: string,
+): string {
+  return [
+    "Kamu adalah editor AI3 yang memperbaiki section artikel.",
+    language ? `Gunakan bahasa: ${language}.` : "Gunakan bahasa yang sama dengan konten.",
+    instruction ? `Instruksi tambahan: ${instruction}` : "Perbaiki agar lebih jelas, padat, dan mudah dipahami.",
+    "Section yang perlu diperbaiki:",
+    selection,
+    "",
+    "Konteks penuh artikel:",
+    buildContentContext(content),
+    "",
+    "Keluarkan hanya section hasil perbaikan, tanpa tambahan judul.",
+  ].join("\n")
+}
