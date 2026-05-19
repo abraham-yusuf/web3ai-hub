@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AI3Logo } from "@/components/branding/ai3-logo"
 import { navItems } from "@/components/layout/nav-items"
+import { useMobileNav } from "@/components/layout/mobile-nav-context"
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -21,7 +22,7 @@ import { useTheme } from "next-themes"
 export function Navbar() {
   const pathname = usePathname()
   const { setTheme, theme } = useTheme()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileNav()
 
   React.useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : ""
@@ -90,28 +91,20 @@ export function Navbar() {
 
       <div
         className={cn(
-          "fixed inset-0 z-50 transition md:hidden",
-          isMobileMenuOpen ? "visible" : "invisible",
+          "fixed inset-0 z-[9999] transform-gpu transition-transform duration-300 ease-out md:hidden",
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full",
           !isMobileMenuOpen && "pointer-events-none",
         )}
         aria-hidden={!isMobileMenuOpen}
       >
-        <button
-          type="button"
-          className="absolute inset-0 bg-black/40"
-          aria-label="Close navigation"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
         <div
           id="mobile-navigation"
           role="dialog"
           aria-modal="true"
-          className={cn(
-            "absolute right-0 top-0 h-full w-[min(85vw,22rem)] bg-background p-6 shadow-xl transition-transform",
-            isMobileMenuOpen ? "translate-x-0" : "translate-x-full",
-          )}
+          className="relative flex h-full flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5"
         >
-          <div className="flex items-center justify-between">
+          <div className="absolute inset-0 z-0 bg-background/95 backdrop-blur-xl" />
+          <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-muted-foreground">Menu</span>
             <Button
               variant="ghost"
@@ -122,26 +115,28 @@ export function Navbar() {
               <X />
             </Button>
           </div>
-          <form action="/search" className="relative mt-6">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <Input name="q" placeholder="Search..." className="h-11 pl-10" />
-          </form>
-          <nav className="mt-6 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex min-h-11 items-center justify-between rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted",
-                  pathname === item.href ? "text-primary" : "text-foreground",
-                )}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span>{item.title}</span>
-                <span className="text-muted-foreground">→</span>
-              </Link>
-            ))}
-          </nav>
+          <div className="relative z-10 flex-1 overflow-y-auto pb-6 pt-6">
+            <form action="/search" className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Input name="q" placeholder="Search..." className="h-11 pl-10" />
+            </form>
+            <nav className="mt-8 flex flex-col gap-3">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex min-h-12 items-center justify-between rounded-xl px-4 text-base font-semibold transition-colors hover:bg-muted/80",
+                    pathname === item.href ? "text-primary" : "text-foreground",
+                  )}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span>{item.title}</span>
+                  <span className="text-muted-foreground">→</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
     </header>

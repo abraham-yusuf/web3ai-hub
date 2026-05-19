@@ -4,13 +4,18 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { mobileNavItems } from "@/components/layout/nav-items"
+import { useMobileNav } from "@/components/layout/mobile-nav-context"
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const { isMobileMenuOpen } = useMobileNav()
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur md:hidden"
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-40 transform-gpu border-t border-border/60 bg-background/95 backdrop-blur transition-transform duration-300 ease-out md:hidden",
+        isMobileMenuOpen ? "translate-y-full pointer-events-none opacity-0" : "translate-y-0 opacity-100",
+      )}
       aria-label="Primary"
     >
       <div className="grid auto-cols-fr grid-flow-col gap-1 px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
