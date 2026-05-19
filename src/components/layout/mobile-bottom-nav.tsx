@@ -14,7 +14,7 @@ export function MobileBottomNav() {
     <nav
       className={cn(
         "fixed bottom-0 left-0 right-0 z-40 transform-gpu border-t border-border/60 bg-background/95 backdrop-blur transition-transform duration-300 ease-out md:hidden",
-        isMobileMenuOpen ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100",
+        isMobileMenuOpen ? "translate-y-full pointer-events-none opacity-0" : "translate-y-0 opacity-100",
       )}
       aria-label="Primary"
     >

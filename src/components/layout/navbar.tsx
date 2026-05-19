@@ -103,7 +103,7 @@ export function Navbar() {
           aria-modal="true"
           className="relative flex h-full flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5"
         >
-          <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur-xl dark:bg-slate-950/95" />
+          <div className="absolute inset-0 z-0 bg-background/95 backdrop-blur-xl" />
           <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-muted-foreground">Menu</span>
             <Button
