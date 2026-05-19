@@ -103,8 +103,8 @@ export function Navbar() {
           aria-modal="true"
           className="relative flex h-full flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5"
         >
-          <div className="absolute inset-0 bg-white/95 backdrop-blur-xl dark:bg-slate-950/95" />
-          <div className="flex items-center justify-between">
+          <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur-xl dark:bg-slate-950/95" />
+          <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-muted-foreground">Menu</span>
             <Button
               variant="ghost"
@@ -115,7 +115,7 @@ export function Navbar() {
               <X />
             </Button>
           </div>
-          <div className="relative flex-1 overflow-y-auto pb-6 pt-6">
+          <div className="relative z-10 flex-1 overflow-y-auto pb-6 pt-6">
             <form action="/search" className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input name="q" placeholder="Search..." className="h-11 pl-10" />
