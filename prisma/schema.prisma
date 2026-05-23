@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,190 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  username      String?         @unique
+  name          String?
+  email         String?         @unique
+  password      String?
+  image         String?
+  bio           String?
+  twitter       String?
+  github        String?
+  linkedin      String?
+  telegram      String?
+  role          Role            @default(VIEWER)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  learnProgress LearnProgress[]
+  posts         Post[]
+  roadmaps      UserRoadmap[]
+}
+
+model UserRoadmap {
+  id        String        @id @default(cuid())
+  userId    String
+  title     String
+  goal      String
+  level     String
+  status    String        @default("active")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  steps     RoadmapStep[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RoadmapStep {
+  id          String      @id @default(cuid())
+  roadmapId   String
+  title       String
+  description String
+  order       Int         @default(0)
+  isCompleted Boolean     @default(false)
+  type        String      @default("content")
+  pageSlug    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  roadmap     UserRoadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@index([roadmapId])
+}
+
+model Post {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  content      String
+  excerpt      String?
+  coverImage   String?
+  category     String
+  tags         String[]
+  published    Boolean   @default(false)
+  featured     Boolean   @default(false)
+  publishedAt  DateTime?
+  scheduledFor DateTime?
+  authorId     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  author       User      @relation(fields: [authorId], references: [id])
+
+  @@index([slug])
+  @@index([category])
+}
+
+model Airdrop {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  logo            String?
+  network         String
+  status          AirdropStatus @default(ACTIVE)
+  estimatedReward String?
+  difficulty      Difficulty    @default(MEDIUM)
+  deadline        DateTime?
+  content         String
+  steps           Json?
+  requirements    String[]
+  links           Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+}
+
+model AITool {
+  id            String           @id @default(cuid())
+  name          String
+  slug          String           @unique
+  tagline       String?
+  logo          String?
+  description   String
+  category      String
+  pricing       String
+  rating        Float            @default(0)
+  affiliateLink String?
+  featured      Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  clicks        AffiliateClick[]
+
+  @@index([slug])
+  @@index([category])
+}
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  toolId    String
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, createdAt])
+}
+
+model LearnTrack {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String?
+  type        TrackType      @default(WEB3)
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  sections    LearnSection[]
+
+  @@index([slug])
+}
+
+model LearnSection {
+  id        String      @id @default(cuid())
+  title     String
+  order     Int         @default(0)
+  trackId   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  pages     LearnPage[]
+  track     LearnTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+}
+
+model LearnPage {
+  id        String       @id @default(cuid())
+  title     String
+  slug      String       @unique
+  content   String
+  order     Int          @default(0)
+  sectionId String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  section   LearnSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+}
+
+model LearnProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  pageSlug  String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pageSlug])
+  @@index([pageSlug])
+}
+
+model SiteSettings {
+  id            String   @id @default("default")
+  aiProviders   Json?
+  adSenseConfig Json?
+  updatedAt     DateTime @updatedAt
 }
 
 enum Role {
@@ -31,160 +212,4 @@ enum Difficulty {
 enum TrackType {
   WEB3
   AI
-}
-
-model User {
-  id            String    @id @default(cuid())
-  username      String?   @unique
-  name          String?
-  email         String?   @unique
-  password      String?
-  image         String?
-  bio           String?   @db.Text
-  twitter       String?
-  github        String?
-  linkedin      String?
-  telegram      String?
-  role          Role      @default(VIEWER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  posts         Post[]
-  learnProgress LearnProgress[]
-}
-
-model Post {
-  id            String    @id @default(cuid())
-  title         String
-  slug          String    @unique
-  content       String    @db.Text
-  excerpt       String?   @db.Text
-  coverImage    String?
-  category      String
-  tags          String[]
-  published     Boolean   @default(false)
-  featured      Boolean   @default(false)
-  publishedAt   DateTime?
-  scheduledFor  DateTime?
-  authorId      String
-  author        User      @relation(fields: [authorId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([slug])
-  @@index([category])
-}
-
-model Airdrop {
-  id              String        @id @default(cuid())
-  name            String
-  slug            String        @unique
-  logo            String?
-  network         String
-  status          AirdropStatus @default(ACTIVE)
-  estimatedReward String?
-  difficulty      Difficulty    @default(MEDIUM)
-  deadline        DateTime?
-  content         String        @db.Text
-  steps           Json?         // Array of objects { title, description, isOptional }
-  requirements    String[]
-  links           Json?         // Object { twitter, discord, website }
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  @@index([slug])
-  @@index([status])
-}
-
-model AITool {
-  id            String    @id @default(cuid())
-  name          String
-  slug          String    @unique
-  tagline       String?
-  logo          String?
-  description   String    @db.Text
-  category      String
-  pricing       String    // Free, Freemium, Paid
-  rating        Float     @default(0)
-  affiliateLink String?
-  featured      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  clicks        AffiliateClick[]
-
-  @@index([slug])
-  @@index([category])
-}
-
-
-model AffiliateClick {
-  id        String   @id @default(cuid())
-  toolId    String
-  referrer  String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  tool AITool @relation(fields: [toolId], references: [id], onDelete: Cascade)
-
-  @@index([toolId, createdAt])
-}
-
-model LearnTrack {
-  id          String         @id @default(cuid())
-  title       String
-  slug        String         @unique
-  description String?        @db.Text
-  type        TrackType      @default(WEB3)
-  order       Int            @default(0)
-  sections    LearnSection[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  @@index([slug])
-}
-
-model LearnSection {
-  id        String      @id @default(cuid())
-  title     String
-  order     Int         @default(0)
-  trackId   String
-  track     LearnTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  pages     LearnPage[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-}
-
-model LearnPage {
-  id        String       @id @default(cuid())
-  title     String
-  slug      String       @unique
-  content   String       @db.Text
-  order     Int          @default(0)
-  sectionId String
-  section   LearnSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-
-  @@index([slug])
-}
-
-
-model LearnProgress {
-  id        String   @id @default(cuid())
-  userId    String
-  pageSlug  String
-  completed Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, pageSlug])
-  @@index([pageSlug])
-}
-
-model SiteSettings {
-  id             String @id @default("default")
-  aiProviders    Json?  // Config for OpenAI, Claude, etc.
-  adSenseConfig  Json?  // Config for AdSense slots
-  updatedAt      DateTime @updatedAt
 }
