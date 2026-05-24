@@ -11,6 +11,8 @@ import Link from "next/link"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 interface LearnPageProps {
   params: Promise<{
     slug: string[]

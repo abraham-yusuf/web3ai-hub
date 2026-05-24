@@ -9,6 +9,8 @@ import { ArrowRight, Book } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Learn",
   description: "Pilih jalur pembelajaran Web3 dan AI yang terstruktur.",

@@ -39,17 +39,16 @@ async function ensureLearnSeeded() {
   }
 
   learnSeedingPromise = (async () => {
-    const pageCount = await prisma.learnPage.count()
-    if (pageCount > 0) return
-    await migrateLearnFromMdx(prisma)
-  })()
-    .catch((error: unknown) => {
+    try {
+      const pageCount = await prisma.learnPage.count()
+      if (pageCount > 0) return
+      await migrateLearnFromMdx(prisma)
+    } catch (error) {
       console.error("[learn] Failed to seed learn content from MDX.", error)
-      throw error
-    })
-    .finally(() => {
-      learnSeedingPromise = null
-    })
+    }
+  })().finally(() => {
+    learnSeedingPromise = null
+  })
 
   await learnSeedingPromise
 }
@@ -62,39 +61,43 @@ function titleFromSlug(slug: string) {
 }
 
 export async function getLearnNavigation(): Promise<LearnNavTrack[]> {
-  await ensureLearnSeeded()
-  const dbTracks = await prisma.learnTrack.findMany({
-    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-    include: {
-      sections: {
-        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-        include: {
-          pages: {
-            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-            select: { title: true, slug: true, order: true },
+  try {
+    await ensureLearnSeeded()
+    const dbTracks = await prisma.learnTrack.findMany({
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      include: {
+        sections: {
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          include: {
+            pages: {
+              orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+              select: { title: true, slug: true, order: true },
+            },
           },
         },
       },
-    },
-  })
+    })
 
-  const hasDbContent = dbTracks.some((track) => track.sections.some((section) => section.pages.length > 0))
+    const hasDbContent = dbTracks.some((track) => track.sections.some((section) => section.pages.length > 0))
 
-  if (hasDbContent) {
-    return dbTracks.map((track) => ({
-      title: track.title,
-      slug: track.slug,
-      order: track.order,
-      sections: track.sections.map((section) => ({
-        title: section.title,
-        order: section.order,
-        pages: section.pages.map((page) => ({
-          title: page.title,
-          slug: page.slug,
-          order: page.order,
+    if (hasDbContent) {
+      return dbTracks.map((track) => ({
+        title: track.title,
+        slug: track.slug,
+        order: track.order,
+        sections: track.sections.map((section) => ({
+          title: section.title,
+          order: section.order,
+          pages: section.pages.map((page) => ({
+            title: page.title,
+            slug: page.slug,
+            order: page.order,
+          })),
         })),
-      })),
-    }))
+      }))
+    }
+  } catch (error) {
+    console.error("[learn] Failed to load learn navigation from database.", error)
   }
 
   const fileTracks = getLearnStructure()
@@ -118,26 +121,30 @@ export async function getLearnNavigation(): Promise<LearnNavTrack[]> {
 }
 
 export async function getLearnPageBySlug(slugPath: string): Promise<LearnPageResult | null> {
-  await ensureLearnSeeded()
-  const dbPage = await prisma.learnPage.findUnique({
-    where: { slug: slugPath },
-    include: {
-      section: {
-        include: {
-          track: true,
+  try {
+    await ensureLearnSeeded()
+    const dbPage = await prisma.learnPage.findUnique({
+      where: { slug: slugPath },
+      include: {
+        section: {
+          include: {
+            track: true,
+          },
         },
       },
-    },
-  })
+    })
 
-  if (dbPage) {
-    return {
-      title: dbPage.title,
-      slug: dbPage.slug,
-      content: dbPage.content,
-      trackTitle: dbPage.section.track.title,
-      sectionTitle: dbPage.section.title,
+    if (dbPage) {
+      return {
+        title: dbPage.title,
+        slug: dbPage.slug,
+        content: dbPage.content,
+        trackTitle: dbPage.section.track.title,
+        sectionTitle: dbPage.section.title,
+      }
     }
+  } catch (error) {
+    console.error("[learn] Failed to load learn page from database.", error)
   }
 
   const filePage = getFileBySlug("learn", slugPath)

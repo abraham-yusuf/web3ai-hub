@@ -7,12 +7,24 @@ import { env } from "@/lib/env"
 const baseUrl = env.NEXTAUTH_URL ?? "http://localhost:3000"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, learnPages, tools, airdrops] = await Promise.all([
-    getPublicBlogPosts(),
-    Promise.resolve(getAllFilesMetadata("learn")),
+  const blogPosts = await getPublicBlogPosts()
+  const learnPages = getAllFilesMetadata("learn")
+
+  const [toolsResult, airdropsResult] = await Promise.allSettled([
     prisma.aITool.findMany({ select: { slug: true, updatedAt: true } }),
     prisma.airdrop.findMany({ select: { slug: true, updatedAt: true } }),
   ])
+
+  if (toolsResult.status === "rejected") {
+    console.error("[sitemap] Failed to load AI tools from database.", toolsResult.reason)
+  }
+
+  if (airdropsResult.status === "rejected") {
+    console.error("[sitemap] Failed to load airdrops from database.", airdropsResult.reason)
+  }
+
+  const tools = toolsResult.status === "fulfilled" ? toolsResult.value : []
+  const airdrops = airdropsResult.status === "fulfilled" ? airdropsResult.value : []
 
   const staticRoutes: MetadataRoute.Sitemap = ["", "/blog", "/learn", "/airdrop", "/ai-tools"].map((path) => ({
     url: `${baseUrl}${path}`,
