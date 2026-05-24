@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { streamWithProviderFallback } from "@/lib/ai/providers";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { getAISettings } from "@/lib/ai/settings";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/app/api/auth/[...nextauth]/route";
+import { streamWithProviderFallback } from "@/lib/ai/providers";
+import { AI_PROVIDERS, type AIProvider, type AISettings } from "@/lib/ai/types";
 
 // --- Schemas ---
 
@@ -30,29 +30,29 @@ const generationRequestSchema = z.object({
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   targetAudience: z.string().optional(),
   sectionId: z.string().min(1, "Section ID wajib diisi untuk penempatan lesson"),
-  provider: z.string().optional(),
+  provider: z.enum(AI_PROVIDERS).optional(),
 });
 
 // --- Helper: Get AI Response without streaming (for structured JSON) ---
 async function generateStructuredJSON<T>(
-  request: { prompt: string; provider?: string },
-  settings: any,
-  schema: z.ZodSchema<T>
+  request: { prompt: string; provider?: AIProvider },
+  settings: AISettings,
+  schema: z.ZodSchema<T>,
 ): Promise<T> {
   let accumulatedText = "";
   await streamWithProviderFallback(
     {
-      provider: request.provider || "openai",
+      provider: request.provider ?? "openai",
       prompt: request.prompt,
       temperature: 0.5, // Lower temperature for more structured JSON
     },
     settings,
     (chunk) => {
       accumulatedText += chunk;
-    }
+    },
   );
 
-  const jsonString = accumulatedText.replace(/\\`\\`\\`json|\\`\\`\\`/g, "").trim();
+  const jsonString = accumulatedText.replace(/```json|```/g, "").trim();
   const parsed = JSON.parse(jsonString);
   return schema.parse(parsed);
 }
@@ -60,7 +60,7 @@ async function generateStructuredJSON<T>(
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth Check
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 403 });
     }
@@ -96,7 +96,7 @@ Ensure the slugs are unique and descriptive.`;
     const outline = await generateStructuredJSON({ prompt: outlinePrompt, provider }, settings, outlineSchema);
 
     // PHASE 2: GENERATE DETAILED CONTENT FOR EACH LESSON
-    const generatedPages = [];
+    const generatedPages: Array<{ id: string; slug: string; title: string }> = [];
 
     for (const lesson of outline.lessons) {
       const contentPrompt = `You are writing a professional educational lesson for AI3. 
@@ -151,7 +151,7 @@ Ensure the slugs are unique and descriptive.`;
   } catch (error) {
     console.error("[AI_LESSON_GENERATE_ERROR]", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input or AI output", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid input or AI output", details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal server error during lesson generation" }, { status: 500 });
   }

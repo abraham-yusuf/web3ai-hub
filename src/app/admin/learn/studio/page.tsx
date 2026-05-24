@@ -2,20 +2,47 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Sparkles, BookOpen, CheckCircle2, Save, Eye, FileText } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
+type GeneratedLesson = {
+  title: string;
+  slug: string;
+  objective: string;
+  estimatedMinutes: number;
+};
+
+type GeneratedCurriculum = {
+  title: string;
+  description: string;
+  lessons: GeneratedLesson[];
+};
+
+type GeneratedPage = {
+  id: string;
+  slug: string;
+  title: string;
+};
+
+type GenerationResult = {
+  success: boolean;
+  curriculum: GeneratedCurriculum;
+  createdPages: GeneratedPage[];
+};
+
+type SelectedLesson = {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+};
+
 export default function LessonStudio() {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [generatingPhase, setGeneratingPhase] = useState(""); 
   const [formData, setFormData] = useState({
@@ -25,9 +52,9 @@ export default function LessonStudio() {
     sectionId: "",
   });
   const [sections, setSections] = useState<{ id: string; title: string }[]>([]);
-  const [result, setResult] = useState<any>(null);
-  
-  const [selectedLesson, setSelectedLesson] = useState<{ id: string; slug: string; title: string; content: string } | null>(null);
+  const [result, setResult] = useState<GenerationResult | null>(null);
+
+  const [selectedLesson, setSelectedLesson] = useState<SelectedLesson | null>(null);
   const [editContent, setEditContent] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -48,10 +75,8 @@ export default function LessonStudio() {
 
   async function handleGenerate() {
     if (!formData.topic || !formData.sectionId) {
-      toast({
-        variant: "destructive",
-        title: "Missing information",
-        description: "Please provide both a topic and a target section.",
+      toast.error("Please provide both a topic and a target section.", {
+        description: "Missing information",
       });
       return;
     }
@@ -66,20 +91,14 @@ export default function LessonStudio() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Generation failed");
+      const data: GenerationResult = await response.json();
+      if (!response.ok) throw new Error("Generation failed");
 
       setResult(data);
-      toast({
-        title: "Success!",
-        description: "Curriculum and lessons have been generated and saved.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Generation Error",
-        description: error.message,
-      });
+      toast.success("Curriculum and lessons have been generated and saved.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Generation failed";
+      toast.error(message);
     } finally {
       setLoading(false);
       setGeneratingPhase("");
@@ -87,12 +106,12 @@ export default function LessonStudio() {
   }
 
   async function loadLessonForEdit(lessonSlug: string) {
-    const page = result.createdPages.find((p: any) => p.slug === lessonSlug);
+    const page = result?.createdPages.find((p) => p.slug === lessonSlug);
     if (!page) return;
 
     setLoading(true);
     try {
-      const res = await fetch(\`/api/admin/learn/page/\${page.id}\`);
+      const res = await fetch(`/api/admin/learn/page/${page.id}`);
       const data = await res.json();
       
       setSelectedLesson({
@@ -102,8 +121,9 @@ export default function LessonStudio() {
         content: data.content
       });
       setEditContent(data.content);
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to load lesson content." });
+    } catch (error) {
+      console.error("[LEARN_STUDIO_LOAD_ERROR]", error);
+      toast.error("Failed to load lesson content.");
     } finally {
       setLoading(false);
     }
@@ -114,7 +134,7 @@ export default function LessonStudio() {
 
     setSaving(true);
     try {
-      const response = await fetch(\`/api/admin/learn/page/\${selectedLesson.id}\`, {
+      const response = await fetch(`/api/admin/learn/page/${selectedLesson.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editContent }),
@@ -122,16 +142,10 @@ export default function LessonStudio() {
 
       if (!response.ok) throw new Error("Failed to save changes");
 
-      toast({
-        title: "Saved!",
-        description: "Lesson content has been updated.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Save Error",
-        description: error.message,
-      });
+      toast.success("Lesson content has been updated.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save changes";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -169,36 +183,33 @@ export default function LessonStudio() {
 
               <div className="space-y-2">
                 <Label htmlFor="level">Complexity Level</Label>
-                <Select 
-                  value={formData.level} 
-                  onValueChange={(v) => setFormData({...formData, level: v})}
+                <select
+                  id="level"
+                  value={formData.level}
+                  onChange={(event) => setFormData({ ...formData, level: event.target.value })}
+                  className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <SelectTrigger id="level">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">Beginner</SelectItem>
-                    <SelectItem value="Intermediate">Intermediate</SelectItem>
-                    <SelectItem value="Advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="sectionId">Target Section</Label>
-                <Select 
-                  value={formData.sectionId} 
-                  onValueChange={(v) => setFormData({...formData, sectionId: v})}
+                <select
+                  id="sectionId"
+                  value={formData.sectionId}
+                  onChange={(event) => setFormData({ ...formData, sectionId: event.target.value })}
+                  className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <SelectTrigger id="sectionId">
-                    <SelectValue placeholder="Select a section..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sections.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Select a section...</option>
+                  {sections.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.title}
+                    </option>
+                  ))}
+                </select>
                 {sections.length === 0 && (
                   <p className="text-xs text-muted-foreground">Loading sections...</p>
                 )}
@@ -206,12 +217,12 @@ export default function LessonStudio() {
 
               <div className="space-y-2">
                 <Label htmlFor="targetAudience">Target Audience (Optional)</Label>
-                <Textarea 
-                  id="targetAudience" 
-                  placeholder="e.g. Developers new to cryptography" 
+                <textarea
+                  id="targetAudience"
+                  placeholder="e.g. Developers new to cryptography"
                   value={formData.targetAudience}
-                  onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
-                  className="resize-none"
+                  onChange={(event) => setFormData({ ...formData, targetAudience: event.target.value })}
+                  className="min-h-[96px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 />
               </div>
             </CardContent>
@@ -229,15 +240,17 @@ export default function LessonStudio() {
 
           <div className="lg:col-span-2 space-y-6">
             {loading && (
-              <Alert className="bg-primary/10 border-primary-foreground/20">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertTitle>AI is working...</AlertTitle>
-                <AlertDescription>
-                  {generatingPhase === "outline" 
-                    ? "Designing the curriculum structure and lesson objectives..." 
-                    : "Writing detailed MDX content and adding rich components..."}
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-start gap-3 rounded-lg border border-primary-foreground/20 bg-primary/10 p-4 text-sm">
+                <Loader2 className="mt-0.5 h-4 w-4 animate-spin" />
+                <div className="space-y-1">
+                  <p className="font-medium">AI is working...</p>
+                  <p className="text-muted-foreground">
+                    {generatingPhase === "outline"
+                      ? "Designing the curriculum structure and lesson objectives..."
+                      : "Writing detailed MDX content and adding rich components..."}
+                  </p>
+                </div>
+              </div>
             )}
 
             {!loading && !result && (
@@ -248,7 +261,7 @@ export default function LessonStudio() {
                 <div className="space-y-1">
                   <h3 className="font-medium text-lg">No curriculum generated yet</h3>
                   <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                    Configure the settings and click "Generate" to create a structured set of AI lessons.
+                    Configure the settings and click &quot;Generate&quot; to create a structured set of AI lessons.
                   </p>
                 </div>
               </div>
@@ -266,7 +279,7 @@ export default function LessonStudio() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="divide-y border rounded-lg overflow-hidden">
-                      {result.curriculum.lessons.map((lesson: any, idx: number) => (
+                      {result.curriculum.lessons.map((lesson, idx) => (
                         <div key={lesson.slug} className="p-4 flex items-start justify-between gap-4 hover:bg-muted/50 transition-colors group">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -329,9 +342,9 @@ export default function LessonStudio() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-0 flex-grow overflow-hidden">
-                <Textarea 
+                <textarea
                   value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
+                  onChange={(event) => setEditContent(event.target.value)}
                   className="h-full w-full resize-none border-0 focus-visible:ring-0 p-4 font-mono text-sm leading-relaxed"
                   placeholder="Write your MDX content here..."
                 />

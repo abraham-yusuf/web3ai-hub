@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { streamWithProviderFallback } from "@/lib/ai/providers";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { getAISettings } from "@/lib/ai/settings";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/app/api/auth/[...nextauth]/route";
+import { streamWithProviderFallback } from "@/lib/ai/providers";
+import { AI_PROVIDERS } from "@/lib/ai/types";
 
 // Validasi input request
 const generatorSchema = z.object({
   goal: z.string().min(3, "Goal harus dijelaskan dengan cukup detail"),
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   timeCommitment: z.string().optional(),
-  provider: z.string().optional(),
+  provider: z.enum(AI_PROVIDERS).optional(),
 });
 
 // Skema output AI untuk validasi JSON
@@ -29,8 +29,8 @@ interface RoadmapOutput {
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth Check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -80,24 +80,24 @@ You MUST respond ONLY with a valid JSON object. No markdown blocks, no preamble.
   ]
 }
 
-Ensure a logical progression from ${level} to the target goal. Be specific and actionable.`,
+Ensure a logical progression from ${level} to the target goal. Be specific and actionable.`;
 
     // 4. Generate Roadmap using AI SDK with Fallback
     let accumulatedText = "";
     await streamWithProviderFallback(
       {
-        provider: (provider as any) || "openai",
+        provider: provider ?? "openai",
         prompt,
         temperature: 0.7,
       },
       settings,
       (chunk) => {
         accumulatedText += chunk;
-      }
+      },
     );
 
     // Clean AI response (remove potential markdown blocks)
-    const jsonString = accumulatedText.replace(/\\`\\`\\`json|\\`\\`\\`/g, "").trim();
+    const jsonString = accumulatedText.replace(/```json|```/g, "").trim();
     const roadmapData: RoadmapOutput = JSON.parse(jsonString);
 
     // 5. Save to Database
@@ -130,7 +130,7 @@ Ensure a logical progression from ${level} to the target goal. Be specific and a
   } catch (error) {
     console.error("[LEARN_GENERATE_ERROR]", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input data", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid input data", details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal server error during roadmap generation" }, { status: 500 });
   }

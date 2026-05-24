@@ -4,6 +4,8 @@ import { Plus, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { deleteLearnPageAction } from "./actions"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminLearnPage() {
   const tracks = await prisma.learnTrack.findMany({
     orderBy: { order: "asc" },
