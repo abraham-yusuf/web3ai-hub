@@ -92,7 +92,7 @@ export default function LessonStudio() {
 
     setLoading(true);
     try {
-      const res = await fetch(\`/api/admin/learn/page/\${page.id}\`);
+      const res = await fetch(`/api/admin/learn/page/${page.id}`);
       const data = await res.json();
       
       setSelectedLesson({
@@ -114,7 +114,7 @@ export default function LessonStudio() {
 
     setSaving(true);
     try {
-      const response = await fetch(\`/api/admin/learn/page/\${selectedLesson.id}\`, {
+      const response = await fetch(`/api/admin/learn/page/${selectedLesson.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editContent }),
