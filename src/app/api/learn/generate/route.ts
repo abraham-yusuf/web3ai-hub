@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { streamWithProviderFallback } from "@/lib/ai/providers";
 import { getAISettings } from "@/lib/ai/settings";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // Validasi input request
 const generatorSchema = z.object({
