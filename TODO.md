@@ -119,8 +119,8 @@
 - [x] Add collaborative editing
 
 ## AI Learn System
-
-- [ ] AI curriculum generator
+    
+- [x] AI curriculum generator
 - [ ] AI roadmap generator
 - [ ] AI lesson generator
 - [ ] AI quiz generator
