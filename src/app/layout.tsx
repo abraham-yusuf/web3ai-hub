@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { Analytics } from "@vercel/analytics/next";
 import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default function RootLayout({
           {children}
           <Toaster richColors position="top-right" />
           <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
