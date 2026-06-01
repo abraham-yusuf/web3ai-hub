@@ -235,3 +235,34 @@ enum TrackType {
   WEB3
   AI
 }
+
+model TopicCluster {
+  id          String   @id @default(cuid())
+  topic       String   @unique  // e.g. "Solana", "DeFi", "Smart Contracts"
+  slug        String   @unique
+  description String?
+  keywords    String[] // SEO keywords for this topic
+  pillarPages String[] // slugs of pillar (hub) pages
+  relatedUrls Json?    // { blogSlugs: string[], learnSlugs: string[], airdropSlugs: string[] }
+  searchVolume Int?    // estimated monthly searches
+  difficulty  String?  // "easy" | "medium" | "hard"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([topic])
+}
+
+model SeoScore {
+  id          String   @id @default(cuid())
+  entityType  String   // "post" | "airdrop" | "tool" | "learn"
+  entitySlug  String
+  score       Int      @default(0)  // 0-100
+  factors     Json?    // { title: int, meta: int, content: int, links: int, technical: int }
+  checkedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([entityType, entitySlug])
+  @@index([entityType])
+}
