@@ -186,6 +186,26 @@ model LearnProgress {
   @@index([pageSlug])
 }
 
+model Quiz {
+  id        String     @id @default(cuid())
+  title     String
+  pageSlug  String     @unique
+  questions Json
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  pageSlug  String
+  front     String
+  back      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageSlug])
+}
+
 model SiteSettings {
   id            String   @id @default("default")
   aiProviders   Json?

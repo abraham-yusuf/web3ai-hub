@@ -109,3 +109,169 @@ export function createSectionRewritePrompt(
     "Keluarkan hanya section hasil perbaikan, tanpa tambahan judul.",
   ].join("\n")
 }
+
+// ─── Learn System Prompts ─────────────────────────────────────────────────────
+
+export function createLessonGenerationPrompt(
+  topic: string,
+  trackTitle: string,
+  level: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah instruktur AI3 yang membuat materi belajar berkualitas.",
+    `Gunakan bahasa: ${language}.`,
+    `Topik: ${topic}`,
+    `Track: ${trackTitle}`,
+    `Level: ${level}`,
+    "",
+    "Buat materi belajar lengkap dalam format Markdown dengan struktur:",
+    "1. Judul (H1)",
+    "2. Excerpt/ringkasan (1-2 kalimat)",
+    "3. Pendahuluan (apa yang akan dipelajari)",
+    "4. Konten utama dengan sub-heading (H2/H3)",
+    "5. Ringkasan poin-poin penting (Key Takeaways)",
+    "6. Terminologi/glossary istilah baru",
+    "",
+    "Keluarkan dalam format JSON:",
+    '{ "title": "...", "excerpt": "...", "content": "..." }',
+    "content harus dalam format Markdown lengkap.",
+  ].join("\n")
+}
+
+export function createQuizGenerationPrompt(
+  pageTitle: string,
+  content: string,
+  count: number,
+  language: string,
+): string {
+  return [
+    "Kamu adalah instruktur AI3 yang membuat kuis penilaian.",
+    `Gunakan bahasa: ${language}.`,
+    `Judul materi: ${pageTitle}`,
+    "",
+    "Berdasarkan materi berikut, buat kuis dengan pilihan ganda.",
+    buildContentContext(content.slice(0, 4000)),
+    "",
+    `Buat ${count} soal pilihan ganda dengan format JSON:`,
+    "[",
+    '  { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 0, "explanation": "..." },',
+    "  ...",
+    "]",
+    "",
+    "correct adalah index 0-3 dari option yang benar.",
+    "explanation adalah penjelasan singkat mengapa jawaban itu benar.",
+    "Soal harus bervariasi: pemahaman, aplikasi, analisis.",
+  ].join("\n")
+}
+
+export function createFlashcardGenerationPrompt(
+  pageTitle: string,
+  content: string,
+  count: number,
+  language: string,
+): string {
+  return [
+    "Kamu adalah instruktur AI3 yang membuat flashcard belajar.",
+    `Gunakan bahasa: ${language}.`,
+    `Judul materi: ${pageTitle}`,
+    "",
+    "Berdasarkan materi berikut, buat flashcard.",
+    buildContentContext(content.slice(0, 4000)),
+    "",
+    `Buat ${count} flashcard dalam format JSON:`,
+    "[",
+    '  { "front": "pertanyaan/konsep", "back": "jawaban/penjelasan" },',
+    "  ...",
+    "]",
+    "",
+    "front: pertanyaan singkat atau istilah (maksimal 20 kata)",
+    "back: jawaban atau penjelasan (maksimal 50 kata)",
+    "Fokus pada konsep penting, istilah teknis, dan fakta kunci.",
+  ].join("\n")
+}
+
+export function createSimplifyContentPrompt(
+  content: string,
+  level: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah instruktur AI3 yang menyederhanakan materi belajar.",
+    `Gunakan bahasa: ${language}.`,
+    `Level penyederhanaan: ${level} (beginner/intermediate/advanced).`,
+    "",
+    "Sederhanakan materi berikut agar mudah dipahami:",
+    buildContentContext(content),
+    "",
+    "Ketentuan:",
+    "1. Gunakan bahasa sehari-hari",
+    "2. Pecah konsep复杂 menjadi bagian kecil",
+    "3. Berikan contoh konkret",
+    "4. Hapus jargon yang tidak perlu, jelaskan jika perlu",
+    "5. Output dalam Markdown",
+    "6. Tambahkan emoji yang relevan untuk sub-heading",
+    "7. Sertakan Analog & catatan berguna",
+  ].join("\n")
+}
+
+export function createTranslateContentPrompt(
+  content: string,
+  targetLanguage: string,
+): string {
+  return [
+    `Terjemahkan materi berikut ke bahasa ${targetLanguage}.`,
+    "Pertahankan format Markdown, termasuk heading, list, dan formatting.",
+    "Jika ada istilah teknis, tetap gunakan istilah Inggris jika lebih umum di Indonesia.",
+    "",
+    "Materi:",
+    buildContentContext(content),
+  ].join("\n")
+}
+
+export function createExplainTextPrompt(
+  selection: string,
+  context: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah tutor AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Jelaskan teks berikut secara jelas dan mendalam:`,
+    `"${selection}"`,
+    "",
+    "Konteks materi:",
+    context.slice(0, 3000),
+    "",
+    "Berikan penjelasan dalam format:",
+    "1. Definisi/single-line explanation",
+    "2. Penjelasan detail (2-3 kalimat)",
+    "3. Contoh praktis",
+    "4. Hubungan dengan materi lain (jika ada)",
+  ].join("\n")
+}
+
+export function createLearningAssistantPrompt(
+  pageTitle: string,
+  content: string,
+  question: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah AI Learning Assistant untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Materi: ${pageTitle}`,
+    buildContentContext(content.slice(0, 5000)),
+    "",
+    `Pertanyaan: ${question}`,
+    "",
+    "Petunjuk:",
+    "- Jawab berbasis materi yang diberikan",
+    "- Jika pertanyaan di luar konteks, jawab secara umum tapi tetap membantu",
+    "- Gunakan bahasa yang ramah dan mudah dipahami",
+    "- Sertakan contoh jika relevan",
+    "- Untuk konsep, gunakan analogi sehari-hari",
+  ].join("\n")
+}
