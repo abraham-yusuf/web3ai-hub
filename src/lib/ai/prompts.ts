@@ -275,3 +275,281 @@ export function createLearningAssistantPrompt(
     "- Untuk konsep, gunakan analogi sehari-hari",
   ].join("\n")
 }
+
+// ─── Research System Prompts ────────────────────────────────────────────────
+
+/**
+ * 1. AI Crypto Research Assistant
+ * Input: topic + depth → structured report
+ */
+export function createCryptoResearchPrompt(
+  topic: string,
+  depth: string, // quick / standard / deep
+  language: string,
+): string {
+  const depthGuide: Record<string, string> = {
+    quick: "Ringkas dalam 3-5 kalimat dengan poin-poin utama.",
+    standard: "Buat laporan 300-500 kata dengan struktur: overview, key-points, implications.",
+    deep: "Buat laporan mendalam 800-1200 kata dengan: executive-summary, background, analysis, opportunities, risks, conclusion.",
+  }
+  return [
+    "Kamu adalah crypto research analyst untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Topik riset: ${topic}`,
+    "",
+    `Kedalaman: ${depth}`,
+    depthGuide[depth] ?? depthGuide.standard,
+    "",
+    "Format output dalam Markdown.",
+    "Untuk topik harga/token, tambahkan disclaimer: 'Informasi ini bukan nasihat keuangan.'",
+    "Sertakan section 'Sources' dengan domain yang relevan.",
+  ].join("\n")
+}
+
+/**
+ * 2. AI Token Explainer
+ * Input: token name/symbol → contract, use cases, tokenomics
+ */
+export function createTokenExplainerPrompt(
+  token: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah blockchain analyst untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Jelaskan token berikut secara komprehensif: ${token}`,
+    "",
+    "Struktur penjelasan dalam Markdown:",
+    "## Apa itu [Token]?",
+    "## Kontrak & Standar (jika tersedia)",
+    "## Use Cases & Ecosystem",
+    "## Tokenomics (Supply, Distribution)",
+    "## Tim & Partners (jika publik)",
+    "## Kelebihan & Risiko",
+    "## Kesimpulan",
+    "",
+    "Jika informasi on-chain tidak tersedia, jelaskan berdasarkan data yang diketahui publik.",
+    "Tambahkan disclaimer: 'Bukan nasihat investasi.'",
+  ].join("\n")
+}
+
+/**
+ * 3. AI Smart Contract Explainer
+ * Input: contract code → functionality, risks, functions, events
+ */
+export function createSmartContractExplainerPrompt(
+  contractCode: string,
+  contractName: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah smart contract auditor untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Jelaskan smart contract berikut. Nama kontrak: ${contractName || "Unknown"}`,
+    "",
+    "```solidity",
+    contractCode.slice(0, 8000),
+    "```",
+    "",
+    "Berikan analisis dalam format Markdown:",
+    "## Overview",
+    "## Fungsi Utama (public/external functions)",
+    "## Events & Logs",
+    "## Variabel State Penting",
+    "## Keamanan — Potential Risks",
+    "## Kelebihan Arsitektur",
+    "## Catatan Audit (jika ada red flags, sebutkan)",
+    "",
+    "Jika ada vulnerability umum (reentrancy, overflow, dll), jelaskan di section Keamanan.",
+    "Tambahkan disclaimer: 'Analisis ini bersifat edukatif, bukan audit resmi.'",
+  ].join("\n")
+}
+
+/**
+ * 4. AI Wallet Analyzer
+ * Input: wallet address → portfolio, DeFi, activity
+ */
+export function createWalletAnalyzerPrompt(
+  walletAddress: string,
+  chain: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah DeFi analyst untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Analisis wallet address berikut di jaringan ${chain || "Ethereum/All Chains"}:`,
+    `Address: ${walletAddress}`,
+    "",
+    "Berikan analisis dalam format Markdown:",
+    "## Overview Wallet",
+    "## Token Holdings & Portfolio Summary",
+    "## DeFi Positions (lending, staking, LP, dll)",
+    "## Recent Transactions (pola aktivitas)",
+    "## Interaksi Protocol",
+    "## Wallet Health Score (sekadar indikasi, bukan nasihat keuangan)",
+    "## Risks & Recommendations",
+    "",
+    "Catat bahwa analisis ini berdasarkan data on-chain publik dan mungkin tidak lengkap.",
+    "Tambahkan disclaimer: 'Bukan nasihat keuangan.'",
+  ].join("\n")
+}
+
+/**
+ * 5. AI Protocol Summarizer
+ * Input: protocol name → how it works, TVL, tokens, risks
+ */
+export function createProtocolSummarizerPrompt(
+  protocol: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah DeFi researcher untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Buat ringkasan komprehensif tentang protocol berikut: ${protocol}`,
+    "",
+    "Format dalam Markdown:",
+    "## Apa itu [Protocol]?",
+    "## Cara Kerja (Mechanism)",
+    "## Produk/Fitur Utama",
+    "## TVL & Metrik (jika tersedia)",
+    "## Native Token & Utility",
+    "## Partner & Ecosystem",
+    "## Competitors & Positioning",
+    "## Risiko & Kekhawatiran",
+    "## Kesimpulan",
+    "",
+    "Tambahkan disclaimer: 'Bukan nasihat investasi.'",
+  ].join("\n")
+}
+
+/**
+ * 6. AI Whitepaper Summarizer
+ * Input: whitepaper text → summary, key innovations, tokenomics, roadmap
+ */
+export function createWhitepaperSummarizerPrompt(
+  title: string,
+  whitepaperText: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah research analyst untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Rangkum whitepaper berikut: ${title || "Untitled"}`,
+    "",
+    "## Abstrak / Executive Summary",
+    "## Problem yang Diangkat",
+    "## Solusi & Inovasi Utama",
+    "## Arsitektur / Teknologi",
+    "## Tokenomics",
+    "## Roadmap (jika ada)",
+    "## Tim & Investor (jika ada)",
+    "## Kelebihan & Kelemahan",
+    "## Kesimpulan",
+    "",
+    "Whitepaper:",
+    "---",
+    whitepaperText.slice(0, 10000),
+    "---",
+    "",
+    "Rangkum secara objektif. Jika ada klaim yang belum terbukti, sebutkan.",
+    "Tambahkan disclaimer: 'Bukan nasihat investasi.'",
+  ].join("\n")
+}
+
+/**
+ * 7. AI Crypto Glossary Generator
+ * Input: topic/sector → terms + definitions
+ */
+export function createGlossaryGeneratorPrompt(
+  topic: string,
+  sector: string,
+  count: number,
+  language: string,
+): string {
+  return [
+    "Kamu adalah crypto educator untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Buat glossary crypto tentang: ${topic}`,
+    sector ? `Sektor: ${sector}` : "",
+    "",
+    `Buat ${count} istilah penting dengan definisi.`,
+    "",
+    "Format sebagai JSON array:",
+    "[",
+    '  { "term": "...", "definition": "...", "example": "..." },',
+    "  ...",
+    "]",
+    "",
+    "Pilih istilah yang paling relevan dan sering muncul di topik tersebut.",
+    "Definition max 60 kata. Example opsional.",
+    "Urutan: dari konsep paling mendasar → advanced.",
+  ].join("\n")
+}
+
+/**
+ * 8. AI Trend Analyzer
+ * Input: sector/niche → narratives, opportunities, risks
+ */
+export function createTrendAnalyzerPrompt(
+  sector: string,
+  timeframe: string, // short / medium / long
+  language: string,
+): string {
+  return [
+    "Kamu adalah crypto market strategist untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Analisis trend dan narrative di sektor: ${sector}`,
+    `Timeframe: ${timeframe} (short=<3 bulan, medium=3-12 bulan, long=>1 tahun)`,
+    "",
+    "Format dalam Markdown:",
+    "## Trend Overview",
+    "## Narrative Utama yang Sedang Populer",
+    "## Peluang (Opportunities)",
+    "## Risiko (Risks)",
+    "## Indikator yang Perlu Dipantau",
+    "## Kesimpulan & Rekomendasi (edukatif saja)",
+    "",
+    "Fokus pada data faktual dan indikators yang tersedia.",
+    "Tambahkan disclaimer: 'Bukan nasihat investasi.'",
+  ].join("\n")
+}
+
+/**
+ * 9. AI Market News Summarizer
+ * Input: news text/URL → summary, sentiment, impact
+ */
+export function createNewsSummarizerPrompt(
+  headline: string,
+  newsText: string,
+  language: string,
+): string {
+  return [
+    "Kamu adalah crypto news analyst untuk platform AI3.",
+    `Gunakan bahasa: ${language}.`,
+    "",
+    `Judul berita: ${headline}`,
+    "",
+    "## Ringkasan Berita (3-5 kalimat)",
+    "## Sentimen Pasar (Bullish / Bearish / Neutral + alasan)",
+    "## Dampak Potensial (short-term & long-term)",
+    "## Token/Protocol yang Terkena Dampak",
+    "## Projects yang Terdampak (jika ada)",
+    "## Konteks & Latar Belakang",
+    "",
+    "Berita:",
+    "---",
+    newsText.slice(0, 5000),
+    "---",
+    "",
+    "Berikan analisis yang seimbang dan objektif.",
+    "Tambahkan disclaimer: 'Bukan nasihat keuangan.'",
+  ].join("\n")
+}
