@@ -135,15 +135,15 @@
 
 ## AI Research Features
 
-- [ ] AI crypto research assistant
-- [ ] AI token explainer
-- [ ] AI smart contract explainer
-- [ ] AI wallet analyzer
-- [ ] AI protocol summarizer
-- [ ] AI whitepaper summarizer
-- [ ] AI crypto glossary generator
-- [ ] AI trend analyzer
-- [ ] AI market news summarizer
+- [x] AI crypto research assistant
+- [x] AI token explainer
+- [x] AI smart contract explainer
+- [x] AI wallet analyzer
+- [x] AI protocol summarizer
+- [x] AI whitepaper summarizer
+- [x] AI crypto glossary generator
+- [x] AI trend analyzer
+- [x] AI market news summarizer
 
 ---
 
