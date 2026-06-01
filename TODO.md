@@ -123,15 +123,15 @@
     
 - [x] AI curriculum generator
 - [x] AI roadmap generator
-- [ ] AI lesson generator
-- [ ] AI quiz generator
-- [ ] AI flashcard generator
-- [ ] AI tutor sidebar
-- [ ] AI explain selected text
-- [ ] AI simplify content
-- [ ] AI translate lessons
-- [ ] AI voice narration
-- [ ] AI learning assistant
+- [x] AI lesson generator
+- [x] AI quiz generator
+- [x] AI flashcard generator
+- [x] AI tutor sidebar
+- [x] AI explain selected text
+- [x] AI simplify content
+- [x] AI translate lessons
+- [x] AI voice narration
+- [x] AI learning assistant
 
 ## AI Research Features
 

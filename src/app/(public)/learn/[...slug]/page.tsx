@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/ad-slot"
 import { LearnChatSidebar } from "@/components/learn/learn-chat-sidebar"
+import { LessonActions } from "@/components/learn/lesson-actions"
 import { ProgressTracker } from "@/components/learn/progress-tracker"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"
@@ -70,6 +71,8 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
       <ProgressTracker pageSlug={slugPath} initialCompleted={progress?.completed ?? false} />
 
+      <LessonActions title={page.title} content={page.content} />
+
       <div className="prose prose-zinc max-w-none dark:prose-invert">
         <MDXRemote source={page.content} components={components} />
       </div>
@@ -96,7 +99,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
       <AdSlot section="learn_detail" className="rounded-xl border p-4" />
       <InternalLinksBlock />
-      <LearnChatSidebar title={page.title} context={page.content} />
+      <LearnChatSidebar title={page.title} content={page.content} pageSlug={slugPath} />
     </article>
   )
 }
