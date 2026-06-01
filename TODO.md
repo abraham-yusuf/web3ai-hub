@@ -30,8 +30,9 @@
 
 ## Sprint 5 — Phase 3 (Monetisasi + SEO Hardening)
 - [x] Ad Infra — Reusable AdSlot with role-based suppression and section-based config.
-- [x] Placement — Ad slots wired on blog, learn, and AI tools listing/detail; hide for admin/editor.
+- [x] Placement — Ad slots wired on blog, learn, and AI tools listing/detail; hide for admin/editor. Homepage banner included.
 - [x] SEO Hardening — Canonical metadata, robots/sitemap routes, and internal linking block present.
+- [x] AdSense Analytics — Admin dashboard with affiliate click chart, top tools table, and content stats (auth-gated).
 
 ## Sprint 6 — Phase 4 (Learn Module Part 1)
 - [x] Navigation UX — Sidebar hierarchy, breadcrumb, and prev/next lesson navigation live.
@@ -121,7 +122,7 @@
 ## AI Learn System
     
 - [x] AI curriculum generator
-- [ ] AI roadmap generator
+- [x] AI roadmap generator
 - [ ] AI lesson generator
 - [ ] AI quiz generator
 - [ ] AI flashcard generator
@@ -225,7 +226,7 @@
 - [ ] AI tool collections
 - [ ] Trending tools system
 - [ ] Sponsored tools system
-- [ ] Affiliate analytics dashboard
+- [x] Affiliate analytics dashboard
 
 ## Web3 Tools
 

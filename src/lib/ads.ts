@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { env } from "@/lib/env"
 
 export const AD_SECTIONS = [
+  "homepage",
   "blog_list",
   "blog_detail_inline",
   "blog_detail_sidebar",
@@ -34,6 +35,7 @@ const defaultSettings: AdSettings = {
   globallyEnabled: false,
   clientId: env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "",
   sections: {
+    homepage: { enabled: true, slotId: "" },
     blog_list: { enabled: true, slotId: "" },
     blog_detail_inline: { enabled: true, slotId: "" },
     blog_detail_sidebar: { enabled: true, slotId: "" },

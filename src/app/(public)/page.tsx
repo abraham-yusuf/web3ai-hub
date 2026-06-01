@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AdSlot } from "@/components/ads/ad-slot"
 import { ArrowRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { ContinueLearningCard } from "@/components/learn/continue-learning-card"
@@ -44,6 +45,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      <AdSlot section="homepage" className="rounded-xl border p-4" />
 
       <ContinueLearningCard pages={learnPages} />
 

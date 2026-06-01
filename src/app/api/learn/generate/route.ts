@@ -1,60 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
-import { getAISettings } from "@/lib/ai/settings";
-import { streamWithProviderFallback } from "@/lib/ai/providers";
-import { AI_PROVIDERS } from "@/lib/ai/types";
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { getAISettings } from "@/lib/ai/settings"
+import { streamWithProviderFallback } from "@/lib/ai/providers"
+import { AI_PROVIDERS } from "@/lib/ai/types"
 
 // Validasi input request
 const generatorSchema = z.object({
+  topic: z.string().min(1).optional(),
   goal: z.string().min(3, "Goal harus dijelaskan dengan cukup detail"),
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   timeCommitment: z.string().optional(),
   provider: z.enum(AI_PROVIDERS).optional(),
-});
+})
 
 // Skema output AI untuk validasi JSON
 interface RoadmapOutput {
-  title: string;
-  goal: string;
+  title: string
+  goal: string
   steps: {
-    title: string;
-    description: string;
-    type: "content" | "task";
-    suggestedPageSlug?: string;
-  }[];
+    title: string
+    description: string
+    type: "content" | "task"
+    suggestedPageSlug?: string | null
+    estimatedTime?: string | null // e.g. "30 minutes", "2 hours", "1 day"
+    milestone?: string | null // e.g. "Foundation", "Core DeFi", "Advanced"
+  }[]
 }
 
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth Check
-    const session = await auth();
+    const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const body = await req.json();
-    const { goal, level, timeCommitment, provider } = generatorSchema.parse(body);
-    const userId = session.user.id;
+    const body = await req.json()
+    const { topic, goal, level, timeCommitment, provider } = generatorSchema.parse(body)
+    const userId = session.user.id
 
     // 2. Get AI Settings
-    const settings = await getAISettings();
+    const settings = await getAISettings()
 
     // 3. Construct Prompt
     const existingPages = await prisma.learnPage.findMany({
       select: { slug: true, title: true },
-    });
-    const pagesContext = existingPages
-      .map((p) => `${p.slug}: ${p.title}`)
-      .join(", ");
+    })
+    const pagesContext = existingPages.map((p) => `${p.slug}: ${p.title}`).join(", ")
+
+    const topicContext = topic ? `\n- Topic Area: ${topic}` : ""
 
     const prompt = `You are an expert Web3 and AI Curriculum Architect. Your task is to create a highly personalized learning roadmap for a user.
 
 User Profile:
 - Goal: ${goal}
 - Current Level: ${level}
-- Time Commitment: ${timeCommitment || "Standard"}
+- Time Commitment: ${timeCommitment || "Standard"}${topicContext}
 
 Context:
 The platform "AI3 / Web3AI Hub" provides educational content. Below is the list of existing content pages available in our database:
@@ -75,15 +78,17 @@ You MUST respond ONLY with a valid JSON object. No markdown blocks, no preamble.
       "title": "Step Title",
       "description": "Detailed explanation of what to learn or do",
       "type": "content" | "task",
-      "suggestedPageSlug": "exact-slug-from-list-or-null"
+      "suggestedPageSlug": "exact-slug-from-list-or-null",
+      "estimatedTime": "e.g. '30 minutes', '2 hours', '1 day', '3 days'",
+      "milestone": "Phase label e.g. 'Foundation', 'Core Concepts', 'Advanced Integration', 'Final Project'"
     }
   ]
 }
 
-Ensure a logical progression from ${level} to the target goal. Be specific and actionable.`;
+Ensure a logical progression from ${level} to the target goal. Be specific and actionable.`
 
     // 4. Generate Roadmap using AI SDK with Fallback
-    let accumulatedText = "";
+    let accumulatedText = ""
     await streamWithProviderFallback(
       {
         provider: provider ?? "openai",
@@ -92,13 +97,13 @@ Ensure a logical progression from ${level} to the target goal. Be specific and a
       },
       settings,
       (chunk) => {
-        accumulatedText += chunk;
+        accumulatedText += chunk
       },
-    );
+    )
 
     // Clean AI response (remove potential markdown blocks)
-    const jsonString = accumulatedText.replace(/```json|```/g, "").trim();
-    const roadmapData: RoadmapOutput = JSON.parse(jsonString);
+    const jsonString = accumulatedText.replace(/```json|```/g, "").trim()
+    const roadmapData: RoadmapOutput = JSON.parse(jsonString)
 
     // 5. Save to Database
     const userRoadmap = await prisma.userRoadmap.create({
@@ -113,25 +118,23 @@ Ensure a logical progression from ${level} to the target goal. Be specific and a
             description: step.description,
             order: index,
             type: step.type,
-            pageSlug: step.suggestedPageSlug,
+            pageSlug: step.suggestedPageSlug ?? null,
+            estimatedTime: step.estimatedTime ?? null,
+            milestone: step.milestone ?? null,
           })),
         },
       },
       include: {
         steps: true,
       },
-    });
+    })
 
-    return NextResponse.json({ 
-      success: true, 
-      roadmap: userRoadmap 
-    });
-
+    return NextResponse.json({ success: true, roadmap: userRoadmap })
   } catch (error) {
-    console.error("[LEARN_GENERATE_ERROR]", error);
+    console.error("[LEARN_GENERATE_ERROR]", error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input data", details: error.issues }, { status: 400 });
+      return NextResponse.json({ error: "Invalid input data", details: error.issues }, { status: 400 })
     }
-    return NextResponse.json({ error: "Internal server error during roadmap generation" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error during roadmap generation" }, { status: 500 })
   }
 }

@@ -40,7 +40,7 @@ const serverEnvSchema = z
 
     // Analytics (Umami)
     NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
-    NEXT_PUBLIC_UMAMI_URL: z.string().url().optional(),
+    NEXT_PUBLIC_UMAMI_URL: z.string().optional(),
 
     // Google Analytics / Search Console
     NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),

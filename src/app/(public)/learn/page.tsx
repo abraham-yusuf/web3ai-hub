@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
-import { AdSlot } from "@/components/ads/ad-slot"
+
 import { InternalLinksBlock } from "@/components/layout/internal-links"
+import { ActiveRoadmapsBanner } from "@/components/learn/active-roadmaps-banner"
 import { LearnRetentionDashboard } from "@/components/learn/learn-retention-dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getLearnNavigation } from "@/lib/learn"
@@ -39,7 +40,7 @@ export default async function LearnIndexPage() {
         </p>
       </div>
 
-      <AdSlot section="learn_list" className="rounded-xl border p-4" />
+      <ActiveRoadmapsBanner />
 
       <LearnRetentionDashboard tracks={structure} initialCompletedSlugs={completedProgress.map((item: { pageSlug: string }) => item.pageSlug)} />
 
