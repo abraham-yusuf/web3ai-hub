@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
+import { MobileNavProvider } from "@/components/layout/mobile-nav-context"
 import { ResearchSidebar, type ResearchMode } from "@/components/research/research-sidebar"
 import { emitResearchEvent } from "@/components/research/research-events"
 
@@ -107,54 +109,57 @@ export default function ResearchPage() {
   }
 
   return (
-    <div className="flex min-h-screen gap-0">
-      {/* Left: Tool cards */}
-      <main className="flex-1 px-4 py-8 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">AI Research Center</h1>
-            <p className="mt-2 text-muted-foreground">
-              9 AI tools untuk riset crypto & Web3. Pilih tool, masukkan input, dan dapatkan analisis instan.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                🔬 Riset Terstruktur
-              </span>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                📊 Data On-Chain
-              </span>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                ⚠️ Disclaimer Riset Saja
-              </span>
+    <MobileNavProvider>
+      <div className="flex min-h-screen gap-0">
+        {/* Left: Tool cards */}
+        <main className="flex-1 px-4 py-8 pb-24 md:px-8 md:pb-8">
+          <div className="mx-auto max-w-5xl">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">AI Research Center</h1>
+              <p className="mt-2 text-muted-foreground">
+                9 AI tools untuk riset crypto & Web3. Pilih tool, masukkan input, dan dapatkan analisis instan.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  🔬 Riset Terstruktur
+                </span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  📊 Data On-Chain
+                </span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  ⚠️ Disclaimer Riset Saja
+                </span>
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-800 dark:border-yellow-900 dark:bg-yellow-900/20 dark:text-yellow-300">
+              ⚠️ <strong>Disclaimer:</strong> Semua output AI bersifat edukatif dan bukan nasihat investasi.
+              Selalu do your own research (DYOR) sebelum membuat keputusan finansial.
+            </div>
+
+            {/* Tool grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {TOOLS.map((tool) => (
+                <ToolCard
+                  key={tool.mode}
+                  tool={tool}
+                  isActive={activeTool === tool.mode}
+                  onUse={(value) => handleToolClick(tool.mode, value)}
+                />
+              ))}
             </div>
           </div>
+        </main>
 
-          {/* Disclaimer */}
-          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-800 dark:border-yellow-900 dark:bg-yellow-900/20 dark:text-yellow-300">
-            ⚠️ <strong>Disclaimer:</strong> Semua output AI bersifat edukatif dan bukan nasihat investasi.
-            Selalu do your own research (DYOR) sebelum membuat keputusan finansial.
-          </div>
-
-          {/* Tool grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {TOOLS.map((tool) => (
-              <ToolCard
-                key={tool.mode}
-                tool={tool}
-                isActive={activeTool === tool.mode}
-                onUse={(value) => handleToolClick(tool.mode, value)}
-              />
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* Right: Research sidebar */}
-      <aside className="hidden w-96 border-l bg-card p-6 lg:block sticky top-0 h-screen overflow-y-auto">
-        <ResearchSidebar activeTool={activeTool} onToolChange={setActiveTool} />
-      </aside>
-    </div>
+        {/* Right: Research sidebar */}
+        <aside className="hidden w-96 border-l bg-card p-6 lg:block sticky top-0 h-screen overflow-y-auto">
+          <ResearchSidebar activeTool={activeTool} onToolChange={setActiveTool} />
+        </aside>
+      </div>
+      <MobileBottomNav />
+    </MobileNavProvider>
   )
 }
 
