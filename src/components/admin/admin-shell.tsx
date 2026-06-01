@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Bot, FileText, Gift, GraduationCap, Home, Settings, UserCircle, Wrench } from "lucide-react"
+import { BarChart3, BarChart4, Bot, FileText, Gift, GraduationCap, Home, Settings, UserCircle, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type AdminShellProps = {
@@ -17,6 +17,7 @@ type AdminShellProps = {
 
 const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart4 },
   { href: "/admin/posts", label: "Posts", icon: FileText },
   { href: "/admin/learn", label: "Learn", icon: GraduationCap },
   { href: "/admin/ai-writer", label: "AI Writer", icon: Bot },

@@ -1,91 +1,60 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Target, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { RoadmapVisualizer } from "@/components/learn/roadmap-visualizer";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Sparkles, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
-interface RoadmapStep {
-  id: string;
-  title: string;
-  description: string;
-  order: number;
-  type: string;
-  pageSlug: string | null;
-  estimatedTime: string | null;
-  milestone: string | null;
-  isCompleted: boolean;
-}
-
-interface RoadmapData {
-  id: string;
-  title: string;
-  goal: string;
-  level: string;
-  steps: RoadmapStep[];
-}
+const TOPICS = [
+  { value: "web3", label: "Web3 & Blockchain" },
+  { value: "ai", label: "AI & Machine Learning" },
+  { value: "defi", label: "DeFi & Trading" },
+  { value: "frontend", label: "Frontend Development" },
+  { value: "smart-contracts", label: "Smart Contract Development" },
+  { value: "general", label: "General / Other" },
+]
 
 export default function AIGeneratorPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
+    topic: "web3",
     goal: "",
     level: "Beginner",
-    timeCommitment: "Standard",
-  });
+    timeCommitment: "",
+  })
 
   async function handleGenerate() {
-    setIsLoading(true);
+    if (!formData.goal.trim()) {
+      toast.error("Please enter your learning goal")
+      return
+    }
+    setIsLoading(true)
     try {
       const response = await fetch("/api/learn/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      });
+      })
 
-      if (!response.ok) throw new Error("Failed to generate roadmap");
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || "Failed to generate roadmap")
+      }
 
-      const data = await response.json();
-      setRoadmap(data.roadmap);
-      toast.success("Your personalized roadmap is ready!");
+      const data = await response.json()
+      toast.success("Roadmap generated! Redirecting...")
+      router.push(`/learn/roadmap/${data.roadmap.id}`)
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong. Please try again.");
+      console.error(error)
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }
-
-  if (roadmap) {
-    return (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => setRoadmap(null)} className="gap-2">
-            <Target className="h-4 w-4" /> Create New Roadmap
-          </Button>
-          <Badge variant="secondary" className="px-3 py-1">
-            Level: {roadmap.level}
-          </Badge>
-        </div>
-
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{roadmap.title}</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">{roadmap.goal}</p>
-        </div>
-
-        <RoadmapVisualizer
-          steps={roadmap.steps}
-          onToggleComplete={async (id: string) => {
-            toast.info(`Step ${id} marked as completed!`);
-          }}
-        />
-      </div>
-    );
   }
 
   return (
@@ -107,9 +76,22 @@ export default function AIGeneratorPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
+            <Label htmlFor="topic">Topic Area</Label>
+            <select
+              id="topic"
+              value={formData.topic}
+              onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+              className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {TOPICS.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="goal">
-              What is your goal? (e.g. &quot;I want to build a Solana DEX&quot; or &quot;Learn AI Agents from
-              scratch&quot;)
+              What is your goal? (e.g. &quot;I want to build a Solana DEX&quot; or &quot;Learn AI Agents from scratch&quot;)
             </Label>
             <Input
               id="goal"
@@ -135,10 +117,10 @@ export default function AIGeneratorPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Time Commitment (Optional)</Label>
+              <Label htmlFor="time">Daily Time Commitment (Optional)</Label>
               <Input
                 id="time"
-                placeholder="e.g. 5 hours/week"
+                placeholder="e.g. 2 hours/day"
                 value={formData.timeCommitment}
                 onChange={(e) => setFormData({ ...formData, timeCommitment: e.target.value })}
                 className="h-10"
@@ -148,7 +130,7 @@ export default function AIGeneratorPage() {
 
           <Button
             onClick={handleGenerate}
-            disabled={isLoading || !formData.goal}
+            disabled={isLoading || !formData.goal.trim()}
             className="w-full h-12 text-lg gap-2"
           >
             {isLoading ? (
@@ -166,5 +148,5 @@ export default function AIGeneratorPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
