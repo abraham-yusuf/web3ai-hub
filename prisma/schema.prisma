@@ -165,11 +165,61 @@ model Airdrop {
   steps           Json?
   requirements    String[]
   links           Json?
+  priceUsd        String?
+  marketCap       String?
+  launchDate      DateTime?
+  telegramUrl     String?
+  twitterUrl      String?
+  websiteUrl      String?
+  whitepaperUrl   String?
+  riskLevel       String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  alerts          AirdropAlert[]
+  reviews         AirdropReview[]
+  riskScore       AirdropRiskScore?
 
   @@index([slug])
   @@index([status])
+}
+
+model AirdropAlert {
+  id        String          @id @default(cuid())
+  airdropId String
+  type      AirdropAlertType
+  message   String
+  isRead    Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  airdrop   Airdrop         @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
+}
+
+model AirdropReview {
+  id        String   @id @default(cuid())
+  airdropId String
+  userId    String
+  rating    Int
+  comment   String?
+  riskScore Int?
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  airdrop   Airdrop  @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@unique([airdropId, userId])
+  @@index([airdropId])
+}
+
+model AirdropRiskScore {
+  id         String   @id @default(cuid())
+  airdropId  String   @unique
+  score      Int
+  factors    Json?
+  analyzedAt DateTime @default(now())
+  airdrop    Airdrop  @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
 }
 
 model AITool {
@@ -307,6 +357,14 @@ enum Difficulty {
   EASY
   MEDIUM
   HARD
+  SCAM
+}
+
+enum AirdropAlertType {
+  DEADLINE
+  STATUS_CHANGE
+  NEW_INFO
+  REMINDER
 }
 
 enum TrackType {
@@ -378,4 +436,72 @@ model Faq {
   @@index([slug])
   @@index([language])
   @@index([category])
+}
+
+model AirdropTask {
+  id          String    @id @default(cuid())
+  airdropId   String
+  title       String    // e.g. "Follow Twitter", "Join Discord", "Bridge funds"
+  description String?
+  type        String    // "social", "defi", "testnet", "bridge", "swap"
+  xpReward    Int       @default(10)
+  isCompleted Boolean   @default(false)
+  userId      String?   // null = not started yet
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([airdropId])
+  @@index([userId])
+}
+
+model UserXP {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  totalXp   Int      @default(0)
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model UserAirdropProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  airdropId  String
+  xpEarned   Int      @default(0)
+  tasksDone  Int      @default(0)
+  lastActive DateTime @default(now())
+
+  @@unique([userId, airdropId])
+  @@index([userId])
+  @@index([airdropId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String?
+  title     String
+  message   String
+  type      String   // "deadline" | "reminder" | "update" | "xp_earned"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, isRead])
+}
+
+model NotificationSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String
+  type      String   // "deadline" | "status_change" | "new_task"
+  email     String?
+  telegram  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, airdropId, type])
+  @@index([userId])
+  @@index([airdropId])
 }

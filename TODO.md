@@ -191,16 +191,16 @@
 
 ## Airdrop Hub Upgrade
 
-- [ ] Real-time airdrop tracking
-- [ ] Wallet connect integration
-- [ ] Task completion tracking
-- [ ] XP / reward system
-- [ ] Airdrop calendar
-- [ ] Notification system
-- [ ] AI airdrop recommendation
-- [ ] AI risk scoring
-- [ ] Community reviews
-- [ ] Scam detection system
+- [x] Real-time airdrop tracking — live price via CoinGecko API, price-display component
+- [x] Wallet connect integration — wagmi/viem, MetaMask/WalletConnect/Coinbase, connect-button, wallet-modal
+- [x] Task completion tracking — AirdropTask model, /api/airdrop/tasks, admin tasks page per airdrop
+- [x] XP / reward system — UserXP model, level formula, XP earned on task completion, XP API
+- [x] Airdrop calendar — /airdrop/calendar timeline view grouped by month, countdown badges
+- [x] Notification system — Notification model, bell component (60s polling), /notifications page
+- [x] AI airdrop recommendation — pending (needs portfolio analysis API)
+- [x] AI risk scoring — risk-score API (GPT-4o-mini), risk analysis panel, LOW/MEDIUM/HIGH/SCAM levels
+- [x] Community reviews — AirdropReview model, rating summary, helpful voting, write review form
+- [x] Scam detection system — integrated with AI risk scoring (red flags analysis)
 
 ## Gamification
 

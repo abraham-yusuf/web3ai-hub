@@ -20,6 +20,10 @@ import { Moon, Sun, Menu, X, Search } from "lucide-react"
 import { useTheme } from "next-themes"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { getLocaleFromPath } from "@/lib/i18n"
+import { NotificationBell } from "@/components/airdrop/notification-bell"
+
+// Demo user ID - in production, this would come from auth session
+const DEMO_USER_ID = "demo-user-123"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -98,6 +102,8 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
+
+            <NotificationBell userId={DEMO_USER_ID} />
 
             <Button
               variant="ghost"
