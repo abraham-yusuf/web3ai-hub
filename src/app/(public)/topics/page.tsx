@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { generateSeo } from "@/lib/seo"
-import { JsonLdScript, buildWebsiteJsonLd } from "@/components/seo/json-ld"
+import { JsonLdScript, buildWebsiteJsonLd } from "@/components/seo/json-ld-data"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

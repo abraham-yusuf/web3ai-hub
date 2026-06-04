@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Moon, Sun, Menu, X, Search } from "lucide-react"
 import { useTheme } from "next-themes"
+import { LanguageSwitcher } from "@/components/layout/language-switcher"
+import { getLocaleFromPath } from "@/lib/i18n"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -95,6 +97,8 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+
             <Button
               variant="ghost"
               size="icon-lg"

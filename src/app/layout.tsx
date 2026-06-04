@@ -6,6 +6,8 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { Analytics } from "@vercel/analytics/next";
 import { BRAND } from "@/lib/brand";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://ai3.my.id";
+
 export const metadata: Metadata = {
   title: `${BRAND.name} — Platform Blog & Learning Web3 + AI`,
   description: "Belajar Web3 & AI dalam satu platform. Blog, dokumentasi, airdrop hub, dan AI tools directory.",
@@ -19,6 +21,14 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
+  },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-US": `${APP_URL}/en`,
+      "id-ID": `${APP_URL}/id`,
+      "x-default": APP_URL,
+    },
   },
 };
 

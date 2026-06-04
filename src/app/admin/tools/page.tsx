@@ -16,7 +16,10 @@ export default async function AdminToolsPage() {
           <h1 className="text-3xl font-bold">AI Tools Manager</h1>
           <p className="text-muted-foreground">Kelola tools, badge featured, dan affiliate link.</p>
         </div>
-        <Link href="/admin/tools/new" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Tambah Tool</Link>
+        <div className="flex gap-2">
+          <Link href="/admin/tools/import" className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium">Import</Link>
+          <Link href="/admin/tools/new" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Tambah Tool</Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-lg border">

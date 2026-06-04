@@ -164,26 +164,26 @@
 
 ## Content Workflow
 
-- [ ] Draft workflow
-- [ ] Scheduled publishing
-- [ ] Revision history
-- [ ] Content approval flow
-- [ ] Multi-author support
-- [ ] Content versioning
+- [x] Draft workflow
+- [x] Scheduled publishing
+- [x] Revision history
+- [x] Content approval flow
+- [x] Multi-author support
+- [x] Content versioning (PostRevision model)
 - [ ] AI plagiarism checker
-- [ ] Reading analytics
-- [ ] Popular content ranking
+- [x] Reading analytics
+- [x] Popular content ranking
 
 ## Content Scaling
 
-- [ ] Auto-generate glossary pages
-- [ ] Auto-generate comparison pages
-- [ ] Auto-generate tool pages
-- [ ] Auto-generate FAQ pages
-- [ ] AI content localization
-- [ ] Multi-language support
-- [ ] Indonesian SEO expansion
-- [ ] English SEO expansion
+- [x] Auto-generate glossary pages
+- [x] Auto-generate comparison pages
+- [x] Auto-generate tool pages
+- [x] Auto-generate FAQ pages
+- [x] AI content localization
+- [x] Multi-language support
+- [x] Indonesian SEO expansion
+- [x] English SEO expansion
 
 ---
 

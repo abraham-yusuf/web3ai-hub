@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { prisma } from "@/lib/prisma"
-import { Search, Star } from "lucide-react"
+import { Search, Star, X, GitCompare } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -74,12 +74,37 @@ export default async function AiToolsPage({
         ))}
       </div>
 
+      {/* Compare Selection Bar */}
       {compareSlugs.length > 0 && (
-        <div className="rounded-xl border p-4">
-          <p className="text-sm font-medium">Compare queue: {compareSlugs.join(", ")}</p>
-          <div className="mt-3 flex gap-2">
-            <Link href={`/ai-tools/compare?slugs=${compareSlugs.join(",")}`} className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">Compare Now</Link>
-            <Link href="/ai-tools" className="inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium">Clear</Link>
+        <div className="sticky top-16 z-40 rounded-xl border bg-background/95 p-4 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <GitCompare className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">
+                  Compare Queue ({compareSlugs.length}/3)
+                </p>
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {compareSlugs.join(" • ")}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href={`/ai-tools/compare?slugs=${compareSlugs.join(",")}`}
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Compare Now
+              </Link>
+              <Link
+                href="/ai-tools"
+                className="inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -88,12 +113,20 @@ export default async function AiToolsPage({
         {tools.length > 0 ? (
           tools.map((tool) => {
             const isNew = tool.createdAt.getTime() === tool.updatedAt.getTime()
-            const canAddToCompare = !compareSlugs.includes(tool.slug) && compareSlugs.length < 3
-            const nextCompare = [...compareSlugs, tool.slug].slice(0, 3)
+            const isInCompare = compareSlugs.includes(tool.slug)
+            const canAddToCompare = !isInCompare && compareSlugs.length < 3
+            const nextCompare = isInCompare
+              ? compareSlugs.filter((s) => s !== tool.slug)
+              : [...compareSlugs, tool.slug]
 
             return (
-              <Card key={tool.id} className="flex h-full flex-col transition-colors hover:border-primary">
-                <CardHeader>
+              <Card key={tool.id} className={`flex h-full flex-col transition-colors hover:border-primary ${isInCompare ? "ring-2 ring-primary" : ""}`}>
+                {isInCompare && (
+                  <div className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <span className="text-xs font-bold">{compareSlugs.indexOf(tool.slug) + 1}</span>
+                  </div>
+                )}
+                <CardHeader className="relative">
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <Badge variant="secondary">{tool.category}</Badge>
                     <div className="flex items-center gap-1 text-sm font-bold text-amber-500">
@@ -105,7 +138,7 @@ export default async function AiToolsPage({
                     {tool.featured && <Badge>Featured</Badge>}
                     {isNew && <Badge variant="outline">New</Badge>}
                   </div>
-                  <CardTitle>{tool.name}</CardTitle>
+                  <CardTitle className="leading-tight">{tool.name}</CardTitle>
                   <CardDescription className="line-clamp-2">{tool.tagline}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col justify-end gap-3">
@@ -113,12 +146,24 @@ export default async function AiToolsPage({
                     <Badge variant="outline">{tool.pricing}</Badge>
                     <Link href={`/ai-tools/${tool.slug}`} className="text-xs font-medium text-primary hover:underline">Detail →</Link>
                   </div>
-                  {canAddToCompare ? (
-                    <Link href={`/ai-tools?q=${encodeURIComponent(q ?? "")}&compare=${nextCompare.join(",")}`} className="inline-flex h-8 items-center justify-center rounded-md border px-3 text-xs font-medium">
-                      Add to compare
+                  {isInCompare ? (
+                    <Link
+                      href={`/ai-tools?q=${encodeURIComponent(q ?? "")}&compare=${nextCompare.join(",")}`}
+                      className="inline-flex h-8 items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 text-xs font-medium text-red-600 hover:bg-red-100 dark:border-red-900 dark:bg-red-950 dark:text-red-400"
+                    >
+                      Remove from Compare
+                    </Link>
+                  ) : canAddToCompare ? (
+                    <Link
+                      href={`/ai-tools?q=${encodeURIComponent(q ?? "")}&compare=${nextCompare.join(",")}`}
+                      className="inline-flex h-8 items-center justify-center rounded-md border px-3 text-xs font-medium hover:bg-muted"
+                    >
+                      Add to Compare
                     </Link>
                   ) : (
-                    <span className="text-xs text-muted-foreground">Compare max 3 tools</span>
+                    <span className="text-center text-xs text-muted-foreground">
+                      {compareSlugs.length >= 3 ? "Compare max 3 tools" : ""}
+                    </span>
                   )}
                 </CardContent>
               </Card>

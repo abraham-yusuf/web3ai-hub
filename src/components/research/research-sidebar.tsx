@@ -612,6 +612,35 @@ export function ResearchSidebar({ activeTool, onToolChange }: {
 
         {error && <p className="text-xs text-destructive">{error}</p>}
 
+        {/* Save to Glossary button — only show after glossary generation completes */}
+        {mode === "glossary-generator" && !loading && answer && (
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/research/glossary", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    topic: glossaryTopic,
+                    sector: glossarySector,
+                    count: glossaryCount,
+                    language,
+                  }),
+                })
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan")
+                setAnswer((prev) => prev + `\n\n✅ ${data.saved} istilah disimpan ke glossary.`)
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+              }
+            }}
+            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-green-600 px-4 text-sm font-medium text-green-700 hover:bg-green-50"
+          >
+            💾 Simpan ke Glossary
+          </button>
+        )}
+
         {/* Streaming answer — key forces remount on mode change (clears old answer) */}
         {answer ? (
           <div
