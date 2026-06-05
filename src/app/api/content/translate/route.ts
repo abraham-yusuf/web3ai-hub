@@ -2,32 +2,9 @@ import { NextResponse, type NextRequest } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { translateText } from "@/lib/translations"
+import { rateLimit, RATE_LIMIT_TIERS, rateLimitHeaders, getClientIdentity } from "@/lib/rate-limiter"
 
 export const runtime = "nodejs"
-
-const WINDOW_MS = 60_000
-const MAX_REQUESTS_PER_WINDOW = 10
-
-const memoryStore = new Map<string, { count: number; resetAt: number }>()
-
-function checkRateLimit(identity: string): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now()
-  const current = memoryStore.get(identity)
-
-  if (!current || current.resetAt <= now) {
-    const nextBucket = { count: 1, resetAt: now + WINDOW_MS }
-    memoryStore.set(identity, nextBucket)
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: nextBucket.resetAt }
-  }
-
-  if (current.count >= MAX_REQUESTS_PER_WINDOW) {
-    return { allowed: false, remaining: 0, resetAt: current.resetAt }
-  }
-
-  current.count += 1
-  memoryStore.set(identity, current)
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - current.count, resetAt: current.resetAt }
-}
 
 const translateSchema = z.object({
   text: z.string().min(1),
@@ -43,23 +20,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const identity =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    session.user.email ||
-    "unknown"
-
-  const limiter = checkRateLimit(identity)
+  const identity = session.user.email || getClientIdentity(request)
+  const limiter = rateLimit(identity, RATE_LIMIT_TIERS.strict, "translate")
 
   if (!limiter.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded", resetAt: limiter.resetAt },
-      {
-        status: 429,
-        headers: {
-          "x-ratelimit-remaining": String(limiter.remaining),
-          "x-ratelimit-reset": String(limiter.resetAt),
-        },
-      },
+      { status: 429, headers: rateLimitHeaders(limiter) },
     )
   }
 
@@ -83,12 +50,7 @@ export async function POST(request: NextRequest) {
         from: parsed.data.from,
         to: parsed.data.to,
       },
-      {
-        headers: {
-          "x-ratelimit-remaining": String(limiter.remaining),
-          "x-ratelimit-reset": String(limiter.resetAt),
-        },
-      },
+      { headers: rateLimitHeaders(limiter) },
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Translation failed"

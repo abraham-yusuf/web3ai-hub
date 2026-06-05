@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import OpenAI from "openai"
 import { z } from "zod"
 import { env } from "@/lib/env"
+import { rateLimit, RATE_LIMIT_TIERS, rateLimitHeaders, getClientIdentity } from "@/lib/rate-limiter"
 import {
   createQuizGenerationPrompt,
   createFlashcardGenerationPrompt,
@@ -22,6 +23,16 @@ const inputSchema = z.object({
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
+  const identity = getClientIdentity(request)
+  const limiter = rateLimit(identity, RATE_LIMIT_TIERS.normal, "learn-chat")
+
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded", resetAt: limiter.resetAt },
+      { status: 429, headers: rateLimitHeaders(limiter) },
+    )
+  }
+
   const payload = await request.json().catch(() => null)
   const parsed = inputSchema.safeParse(payload)
 
@@ -89,6 +100,7 @@ export async function POST(request: Request) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
+      ...rateLimitHeaders(limiter),
     },
   })
 }

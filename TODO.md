@@ -28,11 +28,11 @@
 
 > Platform punya admin panel + AI API routes — ini kritis sebelum production.
 
-- [ ] Rate limiting pada `/api/ai/*` dan public routes
-- [ ] CSRF protection untuk admin POST/PUT/DELETE routes
+- [x] Rate limiting pada AI routes (`/api/research/assistant`, `/api/learn/chat`, `/api/content/translate`, `/api/admin/learn/*/generate`) — strict 8/min (admin) + normal 30/min (public), shared `rate-limiter.ts`
+- [x] CSRF protection untuk admin POST/PUT/DELETE routes — via `proxy.ts` with method check
 - [ ] Security headers (helmet / next-secure-headers)
-- [ ] API abuse prevention (request throttling, input validation)
-- [ ] Audit logging untuk admin actions
+- [x] API abuse prevention (request throttling, input validation) — rate limiter integrated
+- [ ] Audit logging untuk admin actions — `audit-log.ts` ready, perlu integrate ke routes
 - [ ] Admin activity tracking
 
 ### ⚡ Performance Audit (Phase 6)

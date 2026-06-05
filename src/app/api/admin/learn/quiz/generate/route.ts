@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import OpenAI from "openai"
 import { z } from "zod"
 import { env } from "@/lib/env"
 import { createQuizGenerationPrompt } from "@/lib/ai/prompts"
+import { rateLimit, RATE_LIMIT_TIERS, rateLimitHeaders, getClientIdentity } from "@/lib/rate-limiter"
 
 const inputSchema = z.object({
   pageTitle: z.string().min(1),
@@ -13,7 +14,16 @@ const inputSchema = z.object({
 
 export const runtime = "nodejs"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const limiter = rateLimit(getClientIdentity(request), RATE_LIMIT_TIERS.strict, "quiz-gen")
+
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded", resetAt: limiter.resetAt },
+      { status: 429, headers: rateLimitHeaders(limiter) },
+    )
+  }
+
   const payload = await request.json().catch(() => null)
   const parsed = inputSchema.safeParse(payload)
 
@@ -65,6 +75,7 @@ export async function POST(request: Request) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
+      ...rateLimitHeaders(limiter),
     },
   })
 }
