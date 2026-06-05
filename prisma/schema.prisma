@@ -236,16 +236,105 @@ model AITool {
   logo          String?
   description   String
   category      String
-  pricing       String
+  pricing       String           // display string e.g. "From $12/mo"
+  pricingType   PricingType      @default(FREE)
+  pricingMin    Float?           // minimum price for paid tools
+  websiteUrl    String?
+  features      String[]         // key features list
+  integrations  String[]         // API, webhooks, Zapier, etc.
+  languages     String[]         // supported languages
+  platforms     String[]         // web, ios, android, desktop, api
+  hasFreeTrial  Boolean          @default(false)
+  hasApiAccess  Boolean          @default(false)
+  hasMobileApp  Boolean          @default(false)
+  viewCount     Int              @default(0)
   rating        Float            @default(0)
-  affiliateLink String?
+  ratingCount   Int              @default(0)
   featured      Boolean          @default(false)
+  sponsored     Boolean          @default(false) // paid placement
+  affiliateLink String?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   clicks        AffiliateClick[]
+  reviews       ToolReview[]
+  bookmarks     ToolBookmark[]
+  collectionItems ToolCollectionItem[]
 
   @@index([slug])
   @@index([category])
+  @@index([rating])
+  @@index([viewCount])
+}
+
+enum PricingType {
+  FREE
+  FREEMIUM
+  PAID
+  SUBSCRIPTION
+}
+
+model ToolReview {
+  id        String   @id @default(cuid())
+  toolId    String
+  userId    String?
+  userName  String   @default("Anonymous")
+  rating    Int      // 1-5
+  title     String?
+  content   String?
+  helpful   Int      @default(0)  // helpful vote count
+  verified  Boolean  @default(false) // verified user/purchase
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, rating])
+  @@index([toolId, status])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ToolBookmark {
+  id        String   @id @default(cuid())
+  toolId    String
+  userId    String   // no relation needed, anonymous bookmarks by session
+  createdAt DateTime @default(now())
+  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([toolId, userId])
+  @@index([userId])
+}
+
+model ToolCollection {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isPublic    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  color       String?  // accent color hex
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       ToolCollectionItem[]
+
+  @@index([slug])
+}
+
+model ToolCollectionItem {
+  id          String   @id @default(cuid())
+  collectionId String
+  toolId      String
+  order       Int      @default(0)
+  addedAt     DateTime @default(now())
+  collection  ToolCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  tool        AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, toolId])
+  @@index([collectionId])
 }
 
 model AffiliateClick {

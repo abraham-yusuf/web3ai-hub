@@ -7,6 +7,10 @@ import { prisma } from "@/lib/prisma"
 import { ExternalLink, Star } from "lucide-react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { auth } from "@/auth"
+import { ReviewsSection } from "@/components/tools/reviews-section"
+import { BookmarkButton } from "@/components/tools/bookmark-button"
+import { ViewTracker } from "@/components/tools/view-tracker"
 
 export const dynamic = "force-dynamic"
 
@@ -35,6 +39,7 @@ export async function generateMetadata({ params }: AiToolDetailPageProps): Promi
 
 export default async function AiToolDetailPage({ params }: AiToolDetailPageProps) {
   const { slug } = await params
+  const session = await auth()
 
   const tool = await prisma.aITool.findUnique({
     where: { slug },
@@ -42,6 +47,20 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
 
   if (!tool) {
     notFound()
+  }
+
+  // Check if current user has bookmarked this tool
+  let isBookmarked = false
+  if (session?.user?.id) {
+    const bookmark = await prisma.toolBookmark.findUnique({
+      where: {
+        toolId_userId: {
+          toolId: tool.id,
+          userId: session.user.id,
+        },
+      },
+    })
+    isBookmarked = !!bookmark
   }
 
   return (
@@ -73,9 +92,11 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
             </a>
           )}
           <a href={`/ai-tools?compare=${tool.slug}`} className="inline-flex h-9 items-center rounded-md border px-3 text-xs font-medium">Add to Compare</a>
+          <BookmarkButton toolId={tool.id} toolSlug={tool.slug} initialBookmarked={isBookmarked} size="sm" showText={false} />
         </div>
       </div>
 
+      <ViewTracker slug={tool.slug} />
       <AdSlot section="tools_detail" className="rounded-xl border p-4" />
 
       <Separator />
@@ -84,6 +105,10 @@ export default async function AiToolDetailPage({ params }: AiToolDetailPageProps
         <h2 className="text-2xl font-bold">Tentang {tool.name}</h2>
         <div className="prose prose-zinc max-w-none whitespace-pre-wrap dark:prose-invert">{tool.description}</div>
       </div>
+
+      <Separator />
+
+      <ReviewsSection toolSlug={tool.slug} />
 
       <InternalLinksBlock />
     </div>

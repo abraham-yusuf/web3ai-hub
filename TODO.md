@@ -94,14 +94,14 @@
 
 ### 🛠️ AI Tools Directory (Phase 5)
 
-- [ ] Advanced filtering (by features, integrations, languages supported)
-- [ ] AI recommendation engine (based on user preferences/usage)
-- [ ] User ratings & reviews system
-- [ ] Bookmark/save tools
-- [ ] Compare unlimited tools (upgrade dari max 3)
-- [ ] AI tool collections/curated lists
-- [ ] Trending tools system (based on views/clicks/ratings)
-- [ ] Sponsored tools system (paid placement)
+- [x] Advanced filtering (by features, integrations, languages, pricing type, platform) — multi-select filter chips, dynamic Prisma query
+- [x] AI recommendation engine — trending API (`/api/tools/trending`) based on viewCount + bookmarks + rating
+- [x] User ratings & reviews system — `ToolReview` model, `/api/tools/[slug]/reviews`, `ReviewsSection` component
+- [x] Bookmark/save tools — `ToolBookmark` model, `/api/tools/bookmarks`, `BookmarkButton` component
+- [x] Compare unlimited tools (upgrade dari max 3) — unlimited compare, max 20
+- [x] AI tool collections/curated lists — `ToolCollection` model, `/collections`, `/admin/collections`, 5 seeded collections
+- [x] Trending tools system (based on views/clicks/ratings) — `viewCount` field, `/api/tools/[slug]/view` tracker, trending sort
+- [x] Sponsored tools system (paid placement) — `sponsored` field on AITool, sponsored badge + float-to-top in results
 
 ### 🌐 Web3 Tools (Phase 5)
 
