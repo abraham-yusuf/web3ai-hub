@@ -1,372 +1,181 @@
-# 🚀 AI3 / Web3AI Hub — Master TODO Roadmap
+# 🚀 AI3 / Web3AI Hub — Active TODO
 
-> Progress roadmap untuk transformasi Web3AI Hub menjadi AI-native Web3 learning ecosystem.
-
----
-
-# ✅ CURRENT STATUS
-
-## Sprint 1 — Phase 0 (Foundation Hardening)
-- [x] Environment & Config — .env.example documented with dev/staging/prod modes, zod validation covers all providers including Resend and APP_URL, staging password check added.
-- [x] Quality Gate — CI generates Prisma client before typecheck, build unblocked.
-- [x] Auth Baseline — Passwords hashed with scrypt (timing-safe), auto-migration from plaintext on login, middleware-level admin protection added.
-- [x] Security Baseline — Standardized API error handler with AppError/NotFoundError/ForbiddenError classes, Prisma error mapping, consistent JSON shape across all routes.
-
-## Sprint 2 — Phase 1 (Blog Core Reader Experience)
-- [x] Reading UX — TOC, reading time/word count, and share buttons rendered on blog detail.
-- [x] Discovery — Related posts plus prev/next navigation implemented.
-- [x] SEO Baseline Blog — Per-post metadata with canonical + Article JSON-LD in place.
-
-## Sprint 3 — Phase 1 (Blog Admin + Taxonomy)
-- [x] Blog Admin CRUD — Admin list/create/edit/delete with draft/publish/schedule and preview flows.
-- [x] Taxonomy — Category/tag models with category/tag listing routes available.
-- [x] Operational Content Flow — Slug availability checker and preview mode before publish implemented.
-
-## Sprint 4 — Phase 1 (AI Writer)
-- [x] Provider Layer — Multi-provider abstraction with fallback order and default models.
-- [x] AI Generation API — Streaming admin endpoint with rate limiting and observability logs.
-- [x] Admin UX — AI writer form supports topic/tone/length/template, regen/copy/insert to editor.
-- [x] Settings & Key Management — Admin settings page saves per-provider model/temp/encrypted API keys.
-
-## Sprint 5 — Phase 3 (Monetisasi + SEO Hardening)
-- [x] Ad Infra — Reusable AdSlot with role-based suppression and section-based config.
-- [x] Placement — Ad slots wired on blog, learn, and AI tools listing/detail; hide for admin/editor. Homepage banner included.
-- [x] SEO Hardening — Canonical metadata, robots/sitemap routes, and internal linking block present.
-- [x] AdSense Analytics — Admin dashboard with affiliate click chart, top tools table, and content stats (auth-gated).
-
-## Sprint 6 — Phase 4 (Learn Module Part 1)
-- [x] Navigation UX — Sidebar hierarchy, breadcrumb, and prev/next lesson navigation live.
-- [x] Data Migration — DB-backed learn structure exists but content still sourced from MDX files (no migrated data).
-- [x] Content Expansion — Web3 basics/AI basics tracks are minimal; expansion not completed.
-
-## Sprint 7 — Phase 4 (Learn Module Part 2)
-- [x] Contextual AI Chat — Lesson-aware sidebar chat with streaming responses and quick prompts.
-- [x] Progress Tracking — Local storage toggle with optional DB sync for logged-in users.
-- [x] Retention UX — Continue learning card, completion badges, and learn dashboard surfacing implemented.
-
-## Sprint 8 — Phase 5 (Airdrop Hub Full)
-- [x] Search & Filter — Server-driven search/filter/sort with URL-synced query params.
-- [x] Detail Experience — Requirements checklist, social links, related airdrops, and report issue flow.
-- [x] Admin Operations — CRUD, bulk status updates, and AI tutorial helper implemented.
-
-## Sprint 9 — Phase 6 (AI Tools Directory Full)
-- [x] Compare Feature — Compare up to 3 tools with shareable query string.
-- [x] Monetization Hooks — Affiliate click redirect with tracking plus featured badges.
-- [x] Admin + Data Seeding — Admin CRUD exists; large-scale data seeding (100 tools) done.
-
-## Sprint 10 — Phase 7 (Polish, QA, Launch)
-- [x] Global Search — Cross-module search page covering blog/learn/airdrop/tools.
-- [x] Reliability — Polished route/global error boundaries, dedicated 404 recovery page, and richer loading skeletons implemented.
-- [x] Testing — Node test suite added for auth hashing, API response mapping, and AI prompt generation.
-- [x] Analytics & Launch Ops — GA4 page/search/progress/Web Vitals events, GSC verification metadata, and launch checklist added.
-
-## New TODO 11-06-2026
+> Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
+> Terakhir diupdate: 2026-06-05
 
 ---
 
-# 🎨 PHASE 1 — BRANDING & VISUAL UPGRADE
+## 📊 Progress Overview
 
-## Identity System
-
-- [x] Rebrand public-facing UI to "AI3"
-- [x] Create professional AI3 logo
-- [x] Define visual identity guidelines
-- [x] Create consistent color palette
-- [x] Create icon system
-- [x] Create reusable typography scale
-- [x] Add favicon & PWA icons
-
-## Typography & UI
-
-- [x] Replace serif UI font with modern font
-- [x] Use Geist / Inter / Plus Jakarta Sans
-- [x] Improve spacing consistency
-- [x] Improve visual hierarchy
-- [x] Improve button styling
-- [x] Improve card components
-- [x] Add subtle animations
-- [x] Add glassmorphism effects
-- [x] Improve dark mode
-- [x] Add skeleton loading states
-
-## Mobile UX
-
-- [x] Redesign mobile navigation
-- [x] Add slide drawer sidebar
-- [x] Improve touch targets
-- [x] Improve mobile spacing
-- [x] Add bottom mobile navigation
-- [x] Optimize dashboard for small screens
+| Phase | Status | Progress |
+|-------|--------|----------|
+| Phase 0 — Foundation | ✅ Complete | 100% |
+| Phase 1 — Branding & Visual | ✅ Complete | 100% |
+| Phase 2 — AI-First Experience | ✅ Complete | 100% |
+| Phase 3 — Content Engine | 🔄 ~95% | Missing: plagiarism checker |
+| Phase 4 — Airdrop Ecosystem | 🔄 ~60% | Core done, gamification pending |
+| Phase 5 — Tools Ecosystem | 🔄 ~10% | Only affiliate analytics done |
+| Phase 6 — Platform Engineering | ⏳ Not started | Performance, security, infra |
+| Phase 7 — Growth & Monetization | ⏳ Not started | Growth + revenue |
+| Phase 8 — Community & Ecosystem | ⏳ Not started | Community features |
+| Long-Term Vision | ⏳ Future | AI3 platform evolution |
 
 ---
 
-# 🧠 PHASE 2 — AI-FIRST EXPERIENCE
+## 🔴 HIGH PRIORITY — Sebelum Launch
 
-## AI Writer Upgrade
+### 🛡️ Security Hardening (Phase 6)
 
-- [x] Add markdown live preview
-- [x] Add streaming response
-- [x] Add regenerate section feature
-- [x] Add SEO optimizer
-- [x] Add AI summarize feature
-- [x] Add AI title generator
-- [x] Add AI tags generator
-- [x] Add AI excerpt generator
-- [x] Add inline editing
-- [x] Add slash commands
-- [x] Add prompt history
-- [x] Add prompt templates library
-- [x] Add autosave drafts
-- [x] Add collaborative editing
+> Platform punya admin panel + AI API routes — ini kritis sebelum production.
 
-## AI Learn System
-    
-- [x] AI curriculum generator
-- [x] AI roadmap generator
-- [x] AI lesson generator
-- [x] AI quiz generator
-- [x] AI flashcard generator
-- [x] AI tutor sidebar
-- [x] AI explain selected text
-- [x] AI simplify content
-- [x] AI translate lessons
-- [x] AI voice narration
-- [x] AI learning assistant
-
-## AI Research Features
-
-- [x] AI crypto research assistant
-- [x] AI token explainer
-- [x] AI smart contract explainer
-- [x] AI wallet analyzer
-- [x] AI protocol summarizer
-- [x] AI whitepaper summarizer
-- [x] AI crypto glossary generator
-- [x] AI trend analyzer
-- [x] AI market news summarizer
-
----
-
-# 📚 PHASE 3 — CONTENT ENGINE
-
-## SEO System
-
-- [x] Dynamic SEO metadata
-- [x] Auto OpenGraph image generator
-- [x] Structured data / JSON-LD
-- [x] Sitemap generation
-- [x] Robots.txt optimization
-- [x] Canonical URLs
-- [x] Internal linking engine
-- [x] Topic cluster system
-- [x] SEO scoring system
-- [x] AI keyword suggestion
-
-## Content Workflow
-
-- [x] Draft workflow
-- [x] Scheduled publishing
-- [x] Revision history
-- [x] Content approval flow
-- [x] Multi-author support
-- [x] Content versioning (PostRevision model)
-- [ ] AI plagiarism checker
-- [x] Reading analytics
-- [x] Popular content ranking
-
-## Content Scaling
-
-- [x] Auto-generate glossary pages
-- [x] Auto-generate comparison pages
-- [x] Auto-generate tool pages
-- [x] Auto-generate FAQ pages
-- [x] AI content localization
-- [x] Multi-language support
-- [x] Indonesian SEO expansion
-- [x] English SEO expansion
-
----
-
-# 🪂 PHASE 4 — AIRDROP ECOSYSTEM
-
-## Airdrop Hub Upgrade
-
-- [x] Real-time airdrop tracking — live price via CoinGecko API, price-display component
-- [x] Wallet connect integration — wagmi/viem, MetaMask/WalletConnect/Coinbase, connect-button, wallet-modal
-- [x] Task completion tracking — AirdropTask model, /api/airdrop/tasks, admin tasks page per airdrop
-- [x] XP / reward system — UserXP model, level formula, XP earned on task completion, XP API
-- [x] Airdrop calendar — /airdrop/calendar timeline view grouped by month, countdown badges
-- [x] Notification system — Notification model, bell component (60s polling), /notifications page
-- [x] AI airdrop recommendation — pending (needs portfolio analysis API)
-- [x] AI risk scoring — risk-score API (GPT-4o-mini), risk analysis panel, LOW/MEDIUM/HIGH/SCAM levels
-- [x] Community reviews — AirdropReview model, rating summary, helpful voting, write review form
-- [x] Scam detection system — integrated with AI risk scoring (red flags analysis)
-
-## Gamification
-
-- [ ] User profiles
-- [ ] Achievement badges
-- [ ] Learning XP
-- [ ] Referral system
-- [ ] Community leaderboard
-- [ ] Daily streak system
-
----
-
-# 🛠️ PHASE 5 — TOOLS ECOSYSTEM
-
-## AI Tools Directory
-
-- [ ] Advanced filtering
-- [ ] AI recommendation engine
-- [ ] User ratings
-- [ ] User reviews
-- [ ] Bookmark tools
-- [ ] Compare unlimited tools
-- [ ] AI tool collections
-- [ ] Trending tools system
-- [ ] Sponsored tools system
-- [x] Affiliate analytics dashboard
-
-## Web3 Tools
-
-- [ ] Wallet tracker
-- [ ] Gas fee tracker
-- [ ] NFT analyzer
-- [ ] Portfolio dashboard
-- [ ] DeFi analytics
-- [ ] Smart contract verifier
-
----
-
-# ⚙️ PHASE 6 — PLATFORM ENGINEERING
-
-## Performance
-
-- [ ] Lighthouse score 95+
-- [ ] Optimize image loading
-- [ ] Reduce JS bundle size
-- [ ] Edge caching optimization
-- [ ] Improve Core Web Vitals
-- [ ] Lazy loading improvements
-- [ ] Database query optimization
-
-## Security
-
-- [ ] Rate limiting
-- [ ] CSRF protection
-- [ ] API abuse prevention
-- [ ] Audit logging
+- [ ] Rate limiting pada `/api/ai/*` dan public routes
+- [ ] CSRF protection untuk admin POST/PUT/DELETE routes
+- [ ] Security headers (helmet / next-secure-headers)
+- [ ] API abuse prevention (request throttling, input validation)
+- [ ] Audit logging untuk admin actions
 - [ ] Admin activity tracking
-- [ ] Secrets encryption
-- [ ] Backup system
-- [ ] Security headers
 
-## Infrastructure
+### ⚡ Performance Audit (Phase 6)
 
-- [ ] Queue system
-- [ ] Background jobs
-- [ ] Webhook system
-- [ ] Redis caching
-- [ ] AI response caching
-- [ ] CDN optimization
-- [ ] Monitoring dashboard
-- [ ] Error tracking (Sentry)
+> Target Lighthouse 90+ semua metrik.
 
----
+- [ ] Lighthouse baseline audit (desktop + mobile)
+- [ ] JS bundle size audit & optimization
+- [ ] Image optimization audit (next/image, WebP/AVIF)
+- [ ] Core Web Vitals measurement & fix
+- [ ] Database query optimization — cek N+1 queries (Prisma `tracing`)
+- [ ] Edge caching strategy (ISR revalidation times review)
+- [ ] Lazy loading improvements
 
-# 📈 PHASE 7 — GROWTH & MONETIZATION
+### 🧪 Testing (Phase 6)
 
-## Growth System
+> Roadmap target unit + integration + E2E, saat ini hanya test dasar.
 
-- [ ] Email newsletter
-- [ ] Push notifications
-- [ ] User onboarding flow
-- [ ] Referral program
-- [ ] Discord integration
-- [ ] Twitter/X auto-posting
-- [ ] Telegram integration
-- [ ] Community forum
+- [ ] Unit tests: `lib/ai/providers.ts` (fallback logic, model selection)
+- [ ] Unit tests: utility functions (`lib/utils/`, `lib/mdx/`)
+- [ ] Integration tests: API routes (`/api/ai/generate`, `/api/ai/chat`, `/api/airdrop/*`)
+- [ ] Integration tests: Prisma CRUD operations
+- [ ] E2E tests: critical user journeys (Playwright)
+  - Blog listing → detail → share
+  - Airdrop listing → detail → step tracker
+  - AI Tools search → compare
+  - Admin login → create post → publish
 
-## Monetization
+### 📚 Content Expansion
 
-- [ ] Premium memberships
-- [ ] Premium AI features
-- [ ] Paid learning tracks
-- [ ] Sponsored content
-- [ ] Sponsored airdrops
-- [ ] Sponsored AI tools
-- [ ] Affiliate optimization
-- [ ] Subscription analytics
+> Blog cuma 3 post, learn content minimal. Traffic = konten.
 
----
+- [ ] Blog: generate 20+ posts minimal (bisa via AI Writer)
+  - 5x Web3 fundamentals (blockchain basics, DeFi intro, NFT guide, wallet setup, gas fees)
+  - 5x AI tutorials (prompt engineering, LLM comparison, AI tools review, ChatGPT tips, AI image generation)
+  - 5x Airdrop guides (current active airdrops, how to qualify, scam avoidance)
+  - 5x Opinion/News (Web3 trends, AI regulation, market analysis)
+- [ ] Learn: expand Web3 track ke 20+ halaman (Solidity, DeFi deep-dive, DAO)
+- [ ] Learn: expand AI track ke 20+ halaman (LLM integration, fine-tuning, RAG)
 
-# 🌍 PHASE 8 — COMMUNITY & ECOSYSTEM
+### 📄 Content Workflow Gap (Phase 3)
 
-## Community
-
-- [ ] User-generated content
-- [ ] Contributor system
-- [ ] Public author profiles
-- [ ] Reputation system
-- [ ] Community moderation
-- [ ] Public roadmap voting
-
-## Ecosystem
-
-- [ ] API for developers
-- [ ] Plugin system
-- [ ] Public SDK
-- [ ] Third-party integrations
-- [ ] Open-source contributor rewards
+- [ ] AI plagiarism checker
 
 ---
 
-# 🚀 LONG-TERM VISION
+## 🟠 MEDIUM PRIORITY — Pasca Launch
 
-## AI3 Platform Evolution
+### 🎮 Gamification (Phase 4)
 
-- [ ] AI-native Web3 university
-- [ ] Autonomous AI learning agents
-- [ ] Personalized AI learning paths
-- [ ] AI crypto portfolio assistant
-- [ ] AI-powered research terminal
-- [ ] Decentralized AI infrastructure
-- [ ] Multi-agent AI workflows
-- [ ] AI creator economy tools
+> Penting untuk retention di platform learning.
+
+- [ ] User profiles (bio, avatar, social links, learning stats)
+- [ ] Achievement badges (complete track, first post, streak milestones)
+- [ ] Learning XP system (XP per lesson/quiz, level progression)
+- [ ] Referral system (invite link, bonus XP)
+- [ ] Community leaderboard (weekly/monthly)
+- [ ] Daily streak system (consecutive day tracking, streak rewards)
+
+### 🛠️ AI Tools Directory (Phase 5)
+
+- [ ] Advanced filtering (by features, integrations, languages supported)
+- [ ] AI recommendation engine (based on user preferences/usage)
+- [ ] User ratings & reviews system
+- [ ] Bookmark/save tools
+- [ ] Compare unlimited tools (upgrade dari max 3)
+- [ ] AI tool collections/curated lists
+- [ ] Trending tools system (based on views/clicks/ratings)
+- [ ] Sponsored tools system (paid placement)
+
+### 🌐 Web3 Tools (Phase 5)
+
+- [ ] Wallet tracker (portfolio overview, PnL)
+- [ ] Gas fee tracker (real-time, multi-chain)
+- [ ] NFT analyzer (collection stats, floor price)
+- [ ] Portfolio dashboard (multi-chain aggregation)
+- [ ] DeFi analytics (TVL, APY, impermanent loss)
+- [ ] Smart contract verifier (source code verification)
+
+### 📈 Growth System (Phase 7)
+
+- [ ] Email newsletter (Resend integration, subscribe form, digest)
+- [ ] Push notifications (browser push for new content)
+- [ ] User onboarding flow (welcome tour, preference selection)
+- [ ] Referral program (shareable links, incentive tracking)
+- [ ] Discord integration (bot, community sync)
+- [ ] Twitter/X auto-posting (new blog post announcements)
+- [ ] Telegram integration (notifications, airdrop alerts)
+
+### 💰 Monetization (Phase 7)
+
+- [ ] Premium memberships (subscription tiers, payment integration)
+- [ ] Premium AI features (advanced models, unlimited generation)
+- [ ] Paid learning tracks (certification, premium content)
+- [ ] Sponsored content (native ads, sponsored posts)
+- [ ] Sponsored airdrops (paid featured placement)
+- [ ] Sponsored AI tools (promoted listings)
+- [ ] Affiliate optimization (A/B testing, conversion tracking)
+- [ ] Subscription analytics (MRR, churn, LTV)
 
 ---
 
-# 🏁 PRIORITY ORDER
+## 🟢 LOW PRIORITY — Future
 
-## HIGH PRIORITY
+### 🌍 Community & Ecosystem (Phase 8)
 
-- [ ] Visual redesign
-- [ ] AI-first UX
-- [ ] SEO optimization
-- [ ] AI tutor feature
-- [ ] Mobile navigation redesign
-- [ ] Markdown live editor
-- [ ] Internal linking engine
+- [ ] User-generated content (community posts, tutorials)
+- [ ] Contributor system (open content creation, moderation)
+- [ ] Public author profiles (SEO-friendly author pages)
+- [ ] Reputation system (karma, badges, trust scores)
+- [ ] Community moderation (report, review, approve)
+- [ ] Public roadmap voting (community feature requests)
+- [ ] API for developers (public REST/GraphQL API)
+- [ ] Plugin system (third-party extensions)
+- [ ] Public SDK (JavaScript/Python client library)
+- [ ] Third-party integrations (Notion, Obsidian, etc.)
 
-## MEDIUM PRIORITY
+### 🏗️ Infrastructure (Phase 6)
 
-- [ ] Gamification
-- [ ] Wallet integration
-- [ ] AI research tools
-- [ ] Community features
-- [ ] Premium memberships
+- [ ] Queue system (BullMQ / Inngest for async jobs)
+- [ ] Background jobs (scheduled content, airdrop updates)
+- [ ] Webhook system (external event handling)
+- [ ] Redis caching (API response caching, session store)
+- [ ] AI response caching (avoid duplicate generations)
+- [ ] CDN optimization (static assets, edge delivery)
+- [ ] Monitoring dashboard (uptime, performance, errors)
+- [ ] Error tracking (Sentry integration)
+- [ ] Backup system (database backups, content snapshots)
+- [ ] Secrets encryption (comprehensive key management)
 
-## LOW PRIORITY
+### 🚀 Long-Term Vision
 
-- [ ] Plugin ecosystem
-- [ ] Public SDK
-- [ ] Decentralized AI infra
-- [ ] Multi-agent orchestration
+- [ ] AI-native Web3 university (structured degree programs)
+- [ ] Autonomous AI learning agents (personal tutors)
+- [ ] Personalized AI learning paths (adaptive curriculum)
+- [ ] AI crypto portfolio assistant (investment guidance)
+- [ ] AI-powered research terminal (deep analysis tools)
+- [ ] Decentralized AI infrastructure (on-chain compute)
+- [ ] Multi-agent AI workflows (agent orchestration)
+- [ ] AI creator economy tools (content monetization)
 
 ---
 
-# 🎯 NORTH STAR
+## 🎯 NORTH STAR
 
-Goal:
-Build the leading AI-native Web3 learning & research platform in Indonesia and Southeast Asia.
+> Build the leading AI-native Web3 learning & research platform in Indonesia and Southeast Asia.
