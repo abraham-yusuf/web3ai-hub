@@ -11,7 +11,7 @@
 **Platform konten all-in-one untuk komunitas Web3 & AI Indonesia.**
 Blog · Dokumentasi Interaktif · Airdrop Hub · AI Tools Directory
 
-[Demo](#) · [Dokumentasi](#) · [Roadmap](./ROADMAP.md) · [Kontribusi](#contributing)
+[Demo](#) · [Dokumentasi](#) · [Roadmap](./docs/ROADMAP.md) · [Kontribusi](#contributing)
 
 </div>
 
