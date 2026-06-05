@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import { auditLog } from "@/lib/audit-log"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -55,7 +56,7 @@ export async function createFaqEntryAction(formData: FormData) {
   const existing = await prisma.faq.findUnique({ where: { slug }, select: { id: true } })
   if (existing) throw new Error("Slug sudah digunakan. Gunakan question lain.")
 
-  await prisma.faq.create({
+  const faq = await prisma.faq.create({
     data: {
       question,
       answer,
@@ -65,6 +66,12 @@ export async function createFaqEntryAction(formData: FormData) {
       order,
       isPublished,
     },
+  })
+
+  await auditLog("faq.create", session.user.email ?? session.user.name ?? "unknown", "Faq", {
+    actorId: session.user.id,
+    resourceId: faq.id,
+    details: { question, slug, language },
   })
 
   revalidatePath("/faq")
@@ -111,14 +118,31 @@ export async function updateFaqEntryAction(formData: FormData) {
     },
   })
 
+  await auditLog("faq.update", session.user.email ?? session.user.name ?? "unknown", "Faq", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { question, slug, language },
+  })
+
   revalidatePath("/faq")
   revalidatePath("/admin/faq")
   redirect("/admin/faq")
 }
 
 export async function deleteFaqEntryAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const id = getString(formData, "id")
+  const faq = await prisma.faq.findUnique({ where: { id }, select: { question: true, slug: true } })
   await prisma.faq.delete({ where: { id } })
+
+  await auditLog("faq.delete", session.user.email ?? session.user.name ?? "unknown", "Faq", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { question: faq?.question, slug: faq?.slug },
+  })
+
   revalidatePath("/faq")
   revalidatePath("/admin/faq")
 }
@@ -131,6 +155,13 @@ export async function updateFaqOrderAction(id: string, newOrder: number) {
     where: { id },
     data: { order: newOrder },
   })
+
+  await auditLog("faq.reorder", session.user.email ?? session.user.name ?? "unknown", "Faq", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { newOrder },
+  })
+
   revalidatePath("/admin/faq")
 }
 

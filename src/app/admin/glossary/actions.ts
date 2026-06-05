@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import { auditLog } from "@/lib/audit-log"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -56,7 +57,7 @@ export async function createGlossaryEntryAction(formData: FormData) {
   const existing = await prisma.glossaryEntry.findUnique({ where: { slug }, select: { id: true } })
   if (existing) throw new Error("Slug sudah digunakan. Gunakan term lain.")
 
-  await prisma.glossaryEntry.create({
+  const entry = await prisma.glossaryEntry.create({
     data: {
       term,
       slug,
@@ -67,6 +68,12 @@ export async function createGlossaryEntryAction(formData: FormData) {
       language,
       isPublished,
     },
+  })
+
+  await auditLog("glossary.create", session.user.email ?? session.user.name ?? "unknown", "Glossary", {
+    actorId: session.user.id,
+    resourceId: entry.id,
+    details: { term, slug, language },
   })
 
   revalidatePath("/glossary")
@@ -113,14 +120,31 @@ export async function updateGlossaryEntryAction(formData: FormData) {
     },
   })
 
+  await auditLog("glossary.update", session.user.email ?? session.user.name ?? "unknown", "Glossary", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { term, slug, language },
+  })
+
   revalidatePath("/glossary")
   revalidatePath("/admin/glossary")
   redirect("/admin/glossary")
 }
 
 export async function deleteGlossaryEntryAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const id = getString(formData, "id")
+  const entry = await prisma.glossaryEntry.findUnique({ where: { id }, select: { term: true, slug: true } })
   await prisma.glossaryEntry.delete({ where: { id } })
+
+  await auditLog("glossary.delete", session.user.email ?? session.user.name ?? "unknown", "Glossary", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { term: entry?.term, slug: entry?.slug },
+  })
+
   revalidatePath("/glossary")
   revalidatePath("/admin/glossary")
 }
@@ -155,6 +179,11 @@ export async function importGlossaryEntriesAction(
   await prisma.glossaryEntry.createMany({
     data,
     skipDuplicates: true,
+  })
+
+  await auditLog("glossary.bulk-import", session.user.email ?? session.user.name ?? "unknown", "Glossary", {
+    actorId: session.user.id,
+    details: { count: entries.length },
   })
 
   revalidatePath("/glossary")

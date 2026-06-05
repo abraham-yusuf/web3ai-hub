@@ -30,10 +30,10 @@
 
 - [x] Rate limiting pada AI routes (`/api/research/assistant`, `/api/learn/chat`, `/api/content/translate`, `/api/admin/learn/*/generate`) — strict 8/min (admin) + normal 30/min (public), shared `rate-limiter.ts`
 - [x] CSRF protection untuk admin POST/PUT/DELETE routes — via `proxy.ts` with method check
-- [ ] Security headers (helmet / next-secure-headers)
+- [x] Security headers (helmet) — Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Strict-Transport-Security
 - [x] API abuse prevention (request throttling, input validation) — rate limiter integrated
-- [ ] Audit logging untuk admin actions — `audit-log.ts` ready, perlu integrate ke routes
-- [ ] Admin activity tracking
+- [x] Audit logging untuk admin actions — integrated ke posts, airdrops, tools, faq, glossary actions, `AdminActivity` model di DB
+- [x] Admin activity tracking — `AdminActivity` table dengan actor, resource, action, metadata, indexed untuk dashboard
 
 ### ⚡ Performance Audit (Phase 6)
 

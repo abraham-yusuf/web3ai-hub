@@ -332,6 +332,23 @@ model SiteSettings {
   updatedAt     DateTime @updatedAt
 }
 
+model AdminActivity {
+  id          String   @id @default(cuid())
+  action      String   // "post.create", "airdrop.update", "tool.delete", etc.
+  resource    String   // "Post", "Airdrop", "Tool", "Faq", "Glossary", etc.
+  resourceId  String?  // ID of the affected resource
+  actorId     String   // User ID
+  actorEmail  String?  // User email
+  ip          String?
+  userAgent   String?
+  metadata    Json?    // Additional context (old values, changes, etc.)
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+}
+
 enum Role {
   ADMIN
   EDITOR

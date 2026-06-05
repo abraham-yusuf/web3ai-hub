@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
+import { auditLog } from "@/lib/audit-log"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -19,10 +21,13 @@ function toSlug(input: string) {
 }
 
 export async function createToolAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const name = getString(formData, "name")
   const slug = toSlug(getString(formData, "slug") || name)
 
-  await prisma.aITool.create({
+  const tool = await prisma.aITool.create({
     data: {
       name,
       slug,
@@ -36,12 +41,21 @@ export async function createToolAction(formData: FormData) {
     },
   })
 
+  await auditLog("tool.create", session.user.email ?? session.user.name ?? "unknown", "Tool", {
+    actorId: session.user.id,
+    resourceId: tool.id,
+    details: { name, slug },
+  })
+
   revalidatePath("/ai-tools")
   revalidatePath("/admin/tools")
   redirect("/admin/tools")
 }
 
 export async function updateToolAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const id = getString(formData, "id")
   const name = getString(formData, "name")
   const slug = toSlug(getString(formData, "slug") || name)
@@ -61,6 +75,12 @@ export async function updateToolAction(formData: FormData) {
     },
   })
 
+  await auditLog("tool.update", session.user.email ?? session.user.name ?? "unknown", "Tool", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { name, slug },
+  })
+
   revalidatePath("/ai-tools")
   revalidatePath(`/ai-tools/${slug}`)
   revalidatePath("/admin/tools")
@@ -68,8 +88,18 @@ export async function updateToolAction(formData: FormData) {
 }
 
 export async function deleteToolAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const id = getString(formData, "id")
+  const tool = await prisma.aITool.findUnique({ where: { id }, select: { name: true, slug: true } })
   await prisma.aITool.delete({ where: { id } })
+
+  await auditLog("tool.delete", session.user.email ?? session.user.name ?? "unknown", "Tool", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { name: tool?.name, slug: tool?.slug },
+  })
 
   revalidatePath("/ai-tools")
   revalidatePath("/admin/tools")

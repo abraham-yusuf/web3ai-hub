@@ -5,6 +5,7 @@ import { ensureSlug, parseTagsInput } from "@/lib/posts"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import { auditLog } from "@/lib/audit-log"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -121,6 +122,12 @@ export async function createPostAction(formData: FormData) {
     },
   })
 
+  await auditLog("post.create", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: post.id,
+    details: { title, slug, category, status },
+  })
+
   revalidatePath("/blog")
   revalidatePath("/admin/posts")
   redirect("/admin/posts")
@@ -174,6 +181,12 @@ export async function updatePostAction(formData: FormData) {
     },
   })
 
+  await auditLog("post.update", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { title, slug, category, status },
+  })
+
   revalidatePath("/blog")
   revalidatePath(`/blog/${slug}`)
   revalidatePath("/admin/posts")
@@ -190,6 +203,11 @@ export async function submitForReviewAction(formData: FormData) {
   await prisma.post.update({
     where: { id },
     data: { status: "PENDING_REVIEW" },
+  })
+
+  await auditLog("post.submit-review", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
   })
 
   revalidatePath("/admin/posts")
@@ -215,6 +233,11 @@ export async function approvePostAction(formData: FormData) {
     },
   })
 
+  await auditLog("post.approve", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+  })
+
   revalidatePath("/admin/posts")
   redirect("/admin/posts")
 }
@@ -238,6 +261,11 @@ export async function publishPostAction(formData: FormData) {
     },
   })
 
+  await auditLog("post.publish", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+  })
+
   revalidatePath("/blog")
   revalidatePath("/admin/posts")
   redirect("/admin/posts")
@@ -253,6 +281,11 @@ export async function archivePostAction(formData: FormData) {
   await prisma.post.update({
     where: { id },
     data: { status: "ARCHIVED", published: false },
+  })
+
+  await auditLog("post.archive", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
   })
 
   revalidatePath("/admin/posts")
@@ -289,6 +322,12 @@ export async function restoreRevisionAction(formData: FormData) {
     },
   })
 
+  await auditLog("post.restore-revision", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { revisionId },
+  })
+
   revalidatePath("/admin/posts")
   revalidatePath("/blog")
   redirect("/admin/posts")
@@ -313,6 +352,12 @@ export async function addCoAuthorAction(formData: FormData) {
     update: { role },
   })
 
+  await auditLog("post.add-coauthor", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { coAuthorId: userId, role },
+  })
+
   revalidatePath("/admin/posts")
   redirect(`/admin/posts/${postId}/edit`)
 }
@@ -326,13 +371,31 @@ export async function removeCoAuthorAction(formData: FormData) {
 
   await prisma.postAuthor.deleteMany({ where: { postId, userId } })
 
+  await auditLog("post.remove-coauthor", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { coAuthorId: userId },
+  })
+
   revalidatePath("/admin/posts")
   redirect(`/admin/posts/${postId}/edit`)
 }
 
 export async function deletePostAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
   const id = getString(formData, "id")
+  const post = await prisma.post.findUnique({ where: { id }, select: { title: true, slug: true } })
+
   await prisma.post.delete({ where: { id } })
+
+  await auditLog("post.delete", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { title: post?.title, slug: post?.slug },
+  })
+
   revalidatePath("/blog")
   revalidatePath("/admin/posts")
 }
