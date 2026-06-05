@@ -7,18 +7,52 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [Unreleased] — Sprint 11: Gamification
+## [0.10.0] — 2026-06-05
 
-**Started:** 2026-06-05
+### 🎮 Gamification (Sprint 11)
 
-### 🎮 Gamification (in progress)
+> Commit: `4498dba`
 
-- [ ] User profiles (bio, avatar, social links, learning stats)
-- [ ] Achievement badges (complete track, first post, streak milestones)
-- [ ] Learning XP system (XP per lesson/quiz, level progression)
-- [ ] Referral system (invite link, bonus XP)
-- [ ] Community leaderboard (weekly/monthly)
-- [ ] Daily streak system (consecutive day tracking, streak rewards)
+**Schema:**
+- `Achievement` model — tiers (BRONZE/SILVER/GOLD/PLATINUM/DIAMOND), triggers, XP rewards
+- `UserAchievement` junction table with `earnedAt`, `xpAwarded`
+- `Streak` model — `currentStreak`, `longestStreak`, `lastActiveDate`
+- `Referral` model — unique codes, expiry, XP bonuses for both parties
+- `DailyActivity` model — daily XP tracking per user
+- `UserProfile` model — bio, social links, preferences
+- Extended `User` model with relations
+
+**Core Library (`src/lib/gamification.ts`):**
+- `xpToLevel(xp)` — square-root formula (level = √(xp/100))
+- `xpProgress(xp)` — 0–100% progress within current level
+- `addXp(userId, amount, reason)` — atomic XP increment + level-up detection
+- `recordActivity(userId, xpEarned)` — streak tracking, consecutive day detection
+- `checkAchievements(userId, trigger)` — auto-award based on threshold
+- `createReferralLink(userId)` / `useReferralCode(code, refereeId)` — 50 XP both parties
+- `getLeaderboard(limit)` — top 50 by XP with rank, level, badge
+
+**Public Pages:**
+- `/leaderboard` — top 50 users, podium (gold/silver/bronze), rank list
+- `/profile/[username]` — public profile: avatar, bio, social links, XP/streak/achievements
+- `/achievements` — gallery grouped by tier, locked/unlocked state, trigger info
+
+**Components:**
+- `StreakWidget` — flame icon, current streak, weekly progress grid
+- `XpBadge` — level badge with animated progress bar
+
+**API Routes:**
+- `GET /api/gamification/leaderboard` — public, top 50
+- `GET|POST /api/gamification/streak` — auth required, record activity
+- `GET /api/gamification/achievements` — auth optional (?include=all)
+- `GET|POST /api/gamification/referral` — auth required
+
+**Admin:**
+- `/admin/achievements` — manage achievements, toggle active, create new
+- `scripts/seed-achievements.ts` — 15 default achievements seeded
+
+**Also:**
+- Simple `Avatar` UI component (img-based, no compound pattern)
+- `SeoType.profile` added to seo.ts
 
 ---
 
