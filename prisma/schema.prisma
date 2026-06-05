@@ -28,6 +28,12 @@ model User {
   postRevisions PostRevision[]
   postViews     PostView[]
   postAuthors   PostAuthor[]
+  xp            UserXP?
+  achievements  UserAchievement[]
+  streak        Streak?
+  referralsGiven Referral[]      @relation("Referrer")
+  referralsUsed Referral[]       @relation("Referee")
+  dailyActivity DailyActivity[]
 }
 
 model UserRoadmap {
@@ -477,8 +483,10 @@ model UserXP {
   totalXp   Int      @default(0)
   level     Int      @default(1)
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([totalXp])
 }
 
 model UserAirdropProgress {
@@ -521,4 +529,88 @@ model NotificationSubscription {
   @@unique([userId, airdropId, type])
   @@index([userId])
   @@index([airdropId])
+}
+
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  name        String
+  description String
+  icon        String            // emoji or icon name
+  tier        AchievementTier   @default(BRONZE)
+  xpReward    Int               @default(10)
+  trigger     String            // "post.publish" | "streak.7" | "xp.1000" | "learn.complete" | "referral.use"
+  threshold   Int               @default(1)     // how many times trigger must fire
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  users       UserAchievement[]
+
+  @@index([slug])
+  @@index([trigger])
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  earnedAt      DateTime    @default(now())
+  xpAwarded     Int         @default(0)
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+model Streak {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  currentStreak Int     @default(0)
+  longestStreak Int     @default(0)
+  lastActiveDate DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([currentStreak])
+}
+
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String
+  refereeId   String?  // filled when referee signs up
+  code        String   @unique
+  usedAt      DateTime?
+  xpBonusAwarded Int   @default(0)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee     User?    @relation("Referee", fields: [refereeId], references: [id], onDelete: SetNull)
+
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([code])
+}
+
+model DailyActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  xpEarned  Int      @default(0)
+  actions   Int      @default(0)  // number of tracked actions that day
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
 }

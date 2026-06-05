@@ -19,6 +19,7 @@ export type SeoType =
   | "research"
   | "roadmap"
   | "search"
+  | "profile"
 
 interface GenerateSeoOptions {
   title?: string
@@ -133,6 +134,7 @@ function resolveUrl(type: SeoType, slug?: string): string {
     research: "/research",
     roadmap: slug ? `/learn/roadmap/${slug}` : "/learn",
     search: "/search",
+    profile: "/profile",
   }
   return `${APP_URL}${paths[type] ?? "/"}`
 }

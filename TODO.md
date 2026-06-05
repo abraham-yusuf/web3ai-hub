@@ -1,7 +1,7 @@
 # 🚀 AI3 / Web3AI Hub — Active TODO
 
 > Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
-> Terakhir diupdate: 2026-06-05
+> Terakhir diupdate: 2026-06-05 | **Sprint 11: Gamification**
 
 ---
 
