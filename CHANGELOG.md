@@ -9,6 +9,42 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.10.0] — 2026-06-05
 
+### 🛠️ AI Tools Directory
+
+> Commit: `649a50e`
+
+**Schema:**
+- Extended `AITool`: `pricingType` (enum FREE/FREEMIUM/PAID/SUBSCRIPTION), `pricingMin`, `websiteUrl`, `features/integrations/languages/platforms` (string arrays), `hasFreeTrial`, `hasApiAccess`, `hasMobileApp`, `viewCount`, `ratingCount`, `sponsored`
+- New: `ToolReview` model (rating, title, content, helpful votes, verified, status PENDING/APPROVED/REJECTED)
+- New: `ToolBookmark` (anonymous by session userId)
+- New: `ToolCollection` + `ToolCollectionItem` (curated lists)
+
+**Directory Page (`/ai-tools`):**
+- Advanced multi-filter: category (dynamic from DB), pricing type, platform, hasFreeTrial, hasApiAccess
+- Sort: rating, trending (viewCount), newest, name, views
+- Sponsored tools float to top of results
+- Compare: unlimited (max 20), sticky compare queue bar
+- Active filter summary with per-filter clear
+
+**Tool Detail (`/ai-tools/[slug]`):**
+- `ViewTracker`: auto-increments viewCount on page load
+- `BookmarkButton`: save/unsave tools (auth required)
+- `ReviewsSection`: star ratings, review list with helpful voting, submit review (PENDING)
+- Features, integrations, platforms displayed as badges
+
+**Collections:**
+- `/collections` — public listing (5 curated collections)
+- `/collections/[slug]` — collection detail with tools
+- `/admin/collections` — create/edit/delete collections, manage tools
+- Seeded: Best Free AI Tools, AI for Developers, AI Image Generators, AI Writing Assistants, Web3 & Crypto AI Tools
+
+**APIs:**
+- `POST /api/tools/[slug]/view` — view count tracker
+- `GET|POST /api/tools/[slug]/reviews` — list/submit reviews
+- `POST /api/tools/[slug]/reviews/[reviewId]/helpful` — vote helpful
+- `GET|POST|DELETE /api/tools/bookmarks` — list/toggle bookmarks
+- `GET /api/tools/trending` — top 10 by viewCount
+
 ### 🎮 Gamification (Sprint 11)
 
 > Commit: `4498dba`
