@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
-import { createReferralLink, useReferralCode } from "@/lib/gamification"
+import { createReferralLink, applyReferralCode } from "@/lib/gamification"
 
 const useReferralSchema = z.object({
   code: z.string().min(1, "Referral code is required"),
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await useReferralCode(parsed.data.code, session.user.id)
+    const result = await applyReferralCode(parsed.data.code, session.user.id)
 
     if (!result.success) {
       return NextResponse.json(

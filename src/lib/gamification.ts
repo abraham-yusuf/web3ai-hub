@@ -240,7 +240,7 @@ export async function createReferralLink(userId: string): Promise<string> {
 }
 
 /** Use a referral code (referee signs up) */
-export async function useReferralCode(code: string, refereeId: string): Promise<{
+export async function applyReferralCode(code: string, refereeId: string): Promise<{
   success: boolean
   xpBonus: number
   error?: string
