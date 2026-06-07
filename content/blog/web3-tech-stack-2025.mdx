@@ -1,0 +1,212 @@
+---
+title: "Web3 Tech Stack 2025: Tools dan Framework yang Dipakai"
+date: "2025-06-15"
+author: "Admin"
+authors: ["admin"]
+category: "Web3"
+tags: ["web3", "stack", "development", "tools"]
+excerpt: "Complete overview web3 development stack: dari smart contract development sampai frontend integration, dengan tools yang actually used di production."
+published: true
+---
+
+# Web3 Tech Stack 2025: Tools dan Framework yang Dipakai
+
+Membangun Web3 applications memerlukan kombinasi tools yang berbeda dari traditional web development. Mari kita breakdown complete stack yang dipakai di production projects.
+
+## Smart Contract Development
+
+### Core Framework
+
+| Framework | Use Case | Market Share |
+|-----------|----------|--------------|
+| **Foundry** | Best DX, testing, fast compile | ~60% new projects |
+| **Hardhat** | Good ecosystem, TypeScript | Legacy favorite |
+| **Anchor** | Solana development | Solana ecosystem |
+| **Cairo** | StarkNet development | StarkNet ecosystem |
+
+### Foundry Quick Start
+
+```bash
+# Install Foundry
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+
+# Create project
+forge init my-project
+cd my-project
+
+# Write contract
+forge create src/Contract.sol:MyContract
+
+# Test
+forge test
+```
+
+### Solidity Development
+
+```solidity
+// Modern Solidity dengan NatSpec
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+/**
+ * @title StakingToken
+ * @author Web3AI Hub
+ * @notice A staking contract with reward distribution
+ */
+contract StakingToken is ERC20 {
+    mapping(address => uint256) public stakes;
+    uint256 public rewardRate = 100; // basis points
+    
+    // ... implementation
+}
+```
+
+## Frontend Integration
+
+### Web3 Libraries
+
+| Library | Use Case | Size |
+|---------|----------|------|
+| **viem** | Lightweight, tree-shakeable | ~14KB |
+| **ethers.js v6** | Full-featured, popular | ~130KB |
+| **web3.js** | Legacy, large ecosystem | ~600KB |
+
+### Modern Integration Pattern
+
+```typescript
+import { createPublicClient, http } from 'viem'
+import { mainnet } from 'viem/chains'
+import { abi } from './abi'
+
+// Public client untuk read operations
+const publicClient = createPublicClient({
+  chain: mainnet,
+  transport: http()
+})
+
+// Read contract
+const totalSupply = await publicClient.readContract({
+  address: '0x...',
+  abi,
+  functionName: 'totalSupply'
+})
+
+// Watch events
+const unwatch = publicClient.watchContractEvent({
+  address: '0x...',
+  abi,
+  eventName: 'Transfer',
+  onLogs: (logs) => console.log(logs)
+})
+```
+
+### Wallet Connection
+
+```typescript
+import { useConnect, useAccount, useDisconnect } from 'wagmi'
+import { injected } from 'wagmi/connectors'
+
+function ConnectButton() {
+  const { connect } = useConnect()
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  
+  if (isConnected) {
+    return <button onClick={() => disconnect()}>
+      Disconnect: {address.slice(0, 6)}...
+    </button>
+  }
+  
+  return <button onClick={() => connect({ connector: injected() })}>
+    Connect Wallet
+  </button>
+}
+```
+
+## Indexing dan Data
+
+### The Graph
+
+```graphql
+# Subgraph schema
+type Transfer @entity {
+  id: ID!
+  from: Bytes!
+  to: Bytes!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+# Query
+{
+  transfers(first: 10, orderBy: blockNumber, orderDirection: desc) {
+    id
+    from
+    to
+    amount
+    blockNumber
+  }
+}
+```
+
+### Alternative Indexing Solutions
+
+| Solution | Use Case | Advantage |
+|----------|----------|-----------|
+| **Dune** | Analytics, dashboards | Best SQL support |
+| **Glassnode** | On-chain metrics | Pre-built indicators |
+| **Nansen** | Wallet labeling | AI-powered labels |
+| **Alchemy** | Transact + data | Free tier generous |
+
+## Testing
+
+### Foundry Testing
+
+```solidity
+// test/Contract.t.sol
+contract ContractTest is Test {
+    function testStaking() public {
+        vm.prank(user);
+        staking.deposit(100e18);
+        
+        assertEq(staking.stakes(user), 100e18);
+    }
+    
+    function testFuzzDeposit(uint256 amount) public {
+        vm.assume(amount > 0 && amount < 1e18);
+        
+        vm.prank(user);
+        staking.deposit(amount);
+        
+        assertEq(staking.stakes(user), amount);
+    }
+}
+```
+
+## DevOps & Monitoring
+
+### RPC Providers
+
+| Provider | Free Tier | Features |
+|----------|-----------|----------|
+| **Alchemy** | 300M compute units | Best reliability |
+| **Infura** | 100K requests/day | Industry standard |
+| **QuickNode** | 3M requests/month | Fast, multi-chain |
+
+### Monitoring Stack
+
+```
+PagerDuty ──── Alerting
+    ▲
+    │
+Grafana ──── Visualization  
+    ▲
+    │
+Your App ──── Custom metrics via OpenTelemetry
+```
+
+Web3 stack evolves cepat. Selalu check documentation terbaru dan participate di community untuk staying updated.

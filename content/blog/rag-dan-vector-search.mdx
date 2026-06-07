@@ -1,0 +1,99 @@
+---
+title: "Apa Itu RAG? Retrieval Augmented Generation Explained"
+date: "2025-06-07"
+author: "Admin"
+authors: ["admin"]
+category: "AI"
+tags: ["rag", "llm", "ai", "vector-search"]
+excerpt: "Penjelasan lengkap tentang RAG (Retrieval Augmented Generation): teknik untuk meningkatkan akurasi AI dengan menambahkan konteks dari external knowledge base."
+published: true
+---
+
+# Apa Itu RAG? Retrieval Augmented Generation Explained
+
+RAG adalah teknik dalam AI yang menggabungkan kemampuan bahasa dari Large Language Models (LLM) dengan data yang diambil dari sumber eksternal. Tujuannya adalah menghasilkan respons yang lebih akurat dan factually correct.
+
+## Kenapa Butuh RAG?
+
+LLM memiliki limitation fundamental:
+- **Knowledge cutoff** — Tidak tahu informasi setelah training
+- **Hallucination** — Sesekali menghasilkan informasi yang salah
+- **No access to private data** — Tidak bisa mengakses data spesifik pengguna
+
+RAG menyelesaikan masalah ini dengan cara memberitahu LLM informasi yang relevan saat melakukan inference.
+
+## Arsitektur RAG
+
+```
+User Query
+    │
+    ▼
+┌──────────────────┐
+│  Embedding Model │ ──── Convert query ke vector
+└──────────────────┘
+    │
+    ▼
+┌──────────────────┐
+│ Vector Database  │ ◄─── Search relevant documents
+│ (Pinecone, etc)  │
+└──────────────────┘
+    │
+    ▼
+Relevant Context
+    │
+    ▼
+┌──────────────────┐
+│  LLM + Context   │ ──── Generate answer
+└──────────────────┘
+```
+
+## Implementasi RAG
+
+### 1. Document Loading
+```python
+from langchain.document_loaders import PDFLoader
+
+loader = PDFLoader("document.pdf")
+documents = loader.load()
+```
+
+### 2. Chunking
+Pecah dokumen menjadi smaller pieces:
+- Too small = lose context
+- Too large = reduce retrieval precision
+- Optimal biasanya 500-1000 tokens
+
+### 3. Embedding & Indexing
+```python
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+
+embeddings = OpenAIEmbeddings()
+vectorstore = Chroma.from_documents(documents, embeddings)
+```
+
+### 4. Retrieval & Generation
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import RetrievalQA
+
+llm = ChatOpenAI(model="gpt-4")
+chain = RetrievalQA(llm=llm, retriever=vectorstore.as_retriever())
+```
+
+## Best Practices RAG
+
+1. **Quality over quantity** — Data yang clean lebih penting dari data yang banyak
+2. **Semantic chunking** — Pecah berdasarkan meaning, bukan arbitrary length
+3. **Hybrid search** — Kombinasikan vector + keyword search
+4. **Reranking** — Gunakan models seperti Cohere untuk improve relevance
+5. **Query expansion** — Tingkatkan recall dengan multiple reformulations
+
+## Use Cases RAG
+
+- **Customer support chatbots** — Knowledge base company
+- **Legal document analysis** — Contract review
+- **Research assistants** — Academic papers
+- **Code generation** — Documentation-aware coding
+
+RAG adalah salah satu teknik paling praktis untuk production AI systems yang membutuhkan accuracy dan grounding pada data spesifik.

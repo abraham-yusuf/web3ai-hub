@@ -1,0 +1,141 @@
+---
+title: "LLM API Primer: OpenAI, Anthropic, Google, dan Groq"
+date: "2025-06-08"
+author: "Admin"
+authors: ["admin"]
+category: "AI"
+tags: ["llm", "openai", "anthropic", "api", "ai"]
+excerpt: "Perbandingan LLM API providers: pricing, models, rate limits, dan use cases untuk memilih provider yang tepat."
+published: true
+---
+
+# LLM API Primer: OpenAI, Anthropic, Google, dan Groq
+
+Memilih LLM provider yang tepat adalah decision penting dalam membangun AI-powered applications. Mari kita bandingkan option utama di 2025.
+
+## Quick Comparison
+
+| Provider | Best For | Pricing | Context Window |
+|----------|----------|---------|----------------|
+| OpenAI | General purpose, reliability | $2.5-15/1M tokens | 128K |
+| Anthropic | Safety, long context, analysis | $3-15/1M tokens | 200K |
+| Google | Cost efficiency, multimodal | $0.5-1.5/1M tokens | 1M |
+| Groq | Speed, real-time apps | $0.1-0.8/1M tokens | 128K |
+
+## OpenAI
+
+### Models
+- **GPT-4o** — Flagship, best overall
+- **GPT-4o-mini** — Cost-efficient, good for most tasks
+- **o1/o3** — Reasoning models, good for complex tasks
+
+### Strengths
+- Most mature API
+- Best ecosystem support
+- Consistent quality
+- Excellent fine-tuning options
+
+### Pricing (Input/Output per 1M tokens)
+```
+GPT-4o: $5.00 / $15.00
+GPT-4o-mini: $0.15 / $0.60
+```
+
+## Anthropic
+
+### Models
+- **Claude 3.5 Sonnet** — Best for analysis, coding, writing
+- **Claude 3.5 Haiku** — Fast, cost-effective
+- **Claude 3 Opus** — Highest quality, slower
+
+### Strengths
+- Best-in-class safety
+- Excellent long context (200K)
+- Superior coding abilities
+- Better instruction following
+
+### Pricing
+```
+Claude 3.5 Sonnet: $3.00 / $15.00
+Claude 3.5 Haiku: $0.80 / $4.00
+```
+
+## Google (Gemini)
+
+### Models
+- **Gemini 2.0 Flash** — Fast, efficient
+- **Gemini 1.5 Pro** — Long context (1M), multimodal
+- **Gemini 2.5 Pro** — Best for complex reasoning
+
+### Strengths
+- Cheapest pricing
+- Massive context window (1M tokens)
+- Native multimodal (video, audio in)
+- Google's infrastructure
+
+### Pricing
+```
+Gemini 2.0 Flash: $0.10 / $0.40
+Gemini 1.5 Pro: $1.25 / $5.00
+```
+
+## Groq
+
+### Models
+- **Llama 4 Scout** — Fast inference
+- **Mixtral 8x7B** — Open weights
+- **Gemma 2 9B** — Google's open model
+
+### Strengths
+- Fastest inference (<100ms TTFT)
+- Best for real-time applications
+- Cost-effective
+- No rate limits (high volume)
+
+### Pricing
+```
+Groq is significantly cheaper, around $0.1-0.8/1M tokens
+```
+
+## Kapan Pilih Apa?
+
+### Use OpenAI if:
+- You need reliability and mature ecosystem
+- Building consumer apps
+- Need best-in-class performance
+
+### Use Anthropic if:
+- Safety and ethics are paramount
+- Long document analysis
+- Complex coding tasks
+
+### Use Google if:
+- Cost is major constraint
+- Need long context (1M tokens)
+- Need native multimodal
+
+### Use Groq if:
+- Real-time applications (chat, voice)
+- High volume, cost-sensitive
+- Running open models
+
+## Multi-Provider Strategy
+
+Production apps biasanya implement provider switching:
+```typescript
+const model = getModel(config.provider, config.model)
+
+async function generateWithFallback(prompt: string) {
+  const providers = ['openai', 'anthropic', 'google']
+  for (const provider of providers) {
+    try {
+      return await callProvider(provider, prompt)
+    } catch (e) {
+      if (isRateLimitError(e)) continue
+      throw e
+    }
+  }
+}
+```
+
+Pilih provider berdasarkan use case spesifik. Tidak ada satu provider yang terbaik untuk semua situasi.

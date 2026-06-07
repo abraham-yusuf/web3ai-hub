@@ -1,0 +1,58 @@
+---
+title: "Smart Contract: Apa Itu dan Bagaimana Cara Kerjanya"
+date: "2025-06-02"
+author: "Admin"
+authors: ["admin"]
+category: "Web3"
+tags: ["smart-contract", "ethereum", "web3", "solidity"]
+excerpt: "Pengenalan smart contract: program yang berjalan di blockchain dan mengeksekusi logika secara otomatis ketika kondisi terpenuhi."
+published: true
+---
+
+# Smart Contract: Apa Itu dan Bagaimana Cara Kerjanya
+
+Smart contract adalah program komputer yang disimpan di blockchain dan secara otomatis mengeksekusi perjanjian ketika kondisi yang ditentukan terpenuhi. Konsep ini pertama kali diperkenalkan oleh Nick Szabo pada tahun 1994, tetapi baru menjadi kenyataan dengan adanya Ethereum.
+
+## Cara Kerja Smart Contract
+
+```
+ Kondisi A Terpenuhi?
+        │
+        ▼
+   ┌─────────┐
+   │ Execute │ ───► Otomatis jalankan aksi
+   │  Code   │       tanpa perlu pihak ketiga
+   └─────────┘
+```
+
+### Contoh Praktis
+
+**Escrow Contract:**
+1. Buyer mengirim ETH ke smart contract
+2. Smart contract menahan dana
+3. Ketika Buyer mengkonfirmasi receipt, dana dirilis ke Seller
+4. Jika dispute, arbiter dapat memutuskan
+
+## Bahasa Pemrograman Smart Contract
+
+| Bahasa | Blockchain | Keterangan |
+|--------|------------|------------|
+| Solidity | Ethereum, EVM chains | Paling populer |
+| Vyper | Ethereum | Alternatif, lebih aman |
+| Rust | Solana, CosmWasm | Untuk chain high-performance |
+| Move | Aptos, Sui | Dirancang untuk aset digital |
+
+## Kelebihan Smart Contract
+
+- **Otomatisasi** — Tidak perlu mediator manusia
+- **Transparansi** — Kode dapat dibaca semua orang
+- **Keamanan** — Dilindungi oleh kriptografi blockchain
+- **Efisiensi biaya** — Mengurangi biaya intermediari
+
+## Keterbatasan
+
+- Tidak dapat mengakses data di luar blockchain (butuh oracle)
+- Bug di kode dapat dieksploitasi (DAO hack 2016)
+- Tidak fleksibel — sulit mengubah logika setelah deployed
+
+Smart contract adalah fondasi dari DeFi, NFT, dan seluruh ekosistem aplikasi terdesentralisasi (dApps) yang kita gunakan hari ini.

@@ -1,0 +1,153 @@
+---
+title: "AI Agents: Autonomous Systems yang Mengubah Workflow"
+date: "2025-06-09"
+author: "Admin"
+authors: ["admin"]
+category: "AI"
+tags: ["ai-agent", "autonomous", "automation", "llm"]
+excerpt: "Memahami AI agents: program AI yang dapat autonomously execute tasks, membuat keputusan, dan berinteraksi dengan tools dan environment."
+published: true
+---
+
+# AI Agents: Autonomous Systems yang Mengubah Workflow
+
+AI agent adalah sistem AI yang dapat independently merencanakan dan execute serangkaian actions untuk mencapai specific goals. Berbeda dari simple LLM calls, agents dapat menggunakan tools, remember context, dan adapt berdasarkan feedback.
+
+## Agent vs Basic LLM
+
+| Aspek | Basic LLM | AI Agent |
+|-------|-----------|----------|
+| Input | Single prompt | Goal statement |
+| Output | Text response | Completed task |
+| Actions | None | Can call tools |
+| Memory | None/short | Persistent across steps |
+| Adaptivity | None | Learns from feedback |
+
+## Architektur AI Agent
+
+```
+┌─────────────────────────────────────────────┐
+│              AGENT ORCHESTRATOR             │
+├─────────────────────────────────────────────┤
+│  ┌─────────┐  ┌──────────┐  ┌────────────┐ │
+│  │Planner  │  │ Memory   │  │ Tool       │ │
+│  │(Reason) │  │(Context) │  │(Actions)   │ │
+│  └────┬────┘  └────┬─────┘  └─────┬──────┘ │
+│       │            │              │        │
+│       └────────────┼──────────────┘        │
+│                    ▼                       │
+│             ┌────────────┐                 │
+│             │  Execute   │                 │
+│             │   Loop     │                 │
+│             └────────────┘                 │
+└─────────────────────────────────────────────┘
+```
+
+## Tools dalam AI Agents
+
+### 1. Web Search & Scraping
+```javascript
+const searchTool = {
+  name: 'web_search',
+  description: 'Search the web for information',
+  execute: async (query) => {
+    const results = await webSearch(query)
+    return results
+  }
+}
+```
+
+### 2. Code Execution
+```javascript
+const codeTool = {
+  name: 'execute_code',
+  description: 'Run Python/JavaScript code',
+  execute: async (code, language) => {
+    return await runCode(code, language)
+  }
+}
+```
+
+### 3. File Operations
+```javascript
+const fileTool = {
+  name: 'file_operations',
+  description: 'Read/write files',
+  execute: async (operation, path, content) => {
+    return await fileOps(operation, path, content)
+  }
+}
+```
+
+### 4. API Calls
+```javascript
+const apiTool = {
+  name: 'call_api',
+  description: 'Make HTTP requests',
+  execute: async (url, method, data) => {
+    return await fetch(url, { method, ...data })
+  }
+}
+```
+
+## ReAct Pattern (Reason + Act)
+
+```python
+def react_agent(query, tools, max_iterations=5):
+    memory = []
+    
+    for i in range(max_iterations):
+        # Reason
+        thought = llm.think(f"""
+        Task: {query}
+        Memory: {memory}
+        What should I do next?
+        """)
+        
+        # Decide action
+        if 'search' in thought:
+            result = tools['web_search'](extract_query(thought))
+        elif 'code' in thought:
+            result = tools['code'](extract_code(thought))
+        
+        # Observe
+        memory.append({'thought': thought, 'result': result})
+        
+        # Check if done
+        if is_complete(query, memory):
+            return format_response(memory)
+    
+    return summarize(memory)
+```
+
+## Use Cases AI Agents
+
+### 1. Research Assistant
+- Search and summarize papers
+- Extract and compare data
+- Generate reports
+
+### 2. Coding Assistant
+- Write and test code
+- Debug issues
+- Review PRs
+
+### 3. Data Analysis
+- Load and process datasets
+- Generate visualizations
+- Create insights
+
+### 4. Autonomous Workflows
+- Schedule and send emails
+- Manage calendars
+- Process documents
+
+## Best Practices
+
+1. **Start simple** — Jangan over-engineer dari awal
+2. **Clear goals** — Define success criteria dengan jelas
+3. **Tool design** — Buat tools yang focused dan composable
+4. **Error handling** — Plan untuk failure cases
+5. **Monitoring** — Always track agent actions dan decisions
+
+AI agents represents paradigma baru dalam computing: dari responsive tools ke autonomous collaborators. Это будущее AI.

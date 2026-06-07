@@ -1,0 +1,174 @@
+---
+title: "EIP-4844 dan Proto-Danksharding: Upgrade Ethereum yang改变游戏规则"
+date: "2025-06-19"
+author: "Admin"
+authors: ["admin"]
+category: "Web3"
+tags: ["eip-4844", "danksharding", "ethereum", "scaling"]
+excerpt: "Memahami EIP-4844 (Proto-Danksharding): blob-carrying transactions yang secara drastis mengurangi biaya Layer 2 dan meningkatkan scalability."
+published: true
+---
+
+# EIP-4844 dan Proto-Danksharding: Upgrade Ethereum yang改变游戏规则
+
+EIP-4844 adalah salah satu upgrade paling signifikan untuk Ethereum sejak The Merge. Juga dikenal sebagai Proto-Danksharding, upgrade ini secara fundamental mengubah bagaimana Layer 2 posting data ke Ethereum mainnet.
+
+## Kenapa EIP-4844 Diperlukan?
+
+### Masalah dengan Rollup Data
+
+Sebelum EIP-4844, rollups (Arbitrum, Optimism, dll) harus posting semua transaction data sebagai `calldata` — yang coûte expensive dan permanent.
+
+```
+Biaya Rollup sebelum EIP-4844:
+┌─────────────────────────────────────────────┐
+│ CALLDATA (expensive, stored forever)        │
+│ - ~16 gas per byte                          │
+│ - Menambah cost per transaction             │
+│ - Permanent storage di Ethereum             │
+└─────────────────────────────────────────────┘
+
+Rollup costs untuk 1000 tx:
+- ~$0.10-0.50 per tx di mainnet
+- Ini membatasi adoption dan usability
+```
+
+## Apa itu Blob?
+
+### Concept Baru: Blob Data
+
+EIP-4844 memperkenalkan **blob-carrying transactions** —一种 baru类型的交易 yang membawa data dalam "blobs" yang jauh lebih murah.
+
+```
+EIP-4844 solution:
+┌─────────────────────────────────────────────┐
+│ BLOB DATA (cheap, temporary)                │
+│ - Field elements dengan ~4096 bytes each    │
+│ - ~10-100x lebih murah dari calldata        │
+│ - Data tersedia ~18 days, lalu dihapus      │
+│ - Cukup untuk rollup verification           │
+└─────────────────────────────────────────────┘
+```
+
+### Perbandingan Biaya
+
+| Method | Gas per byte | Cost for 1KB | Savings |
+|--------|--------------|--------------|---------|
+| Calldata | ~16 gas | ~16,000 gas | baseline |
+| Blob | ~0.1 gas | ~100 gas | **99.4%** |
+
+## Cara Kerja
+
+### Blob Transaction Structure
+
+```solidity
+// Blob transaction memiliki额外字段:
+struct BlobTransaction {
+    // ... standard fields
+    uint256 maxFeePerBlobGas;    // Max fee untuk blob space
+    bytes32[] blobVersionedHashes; // Commitments ke blobs
+}
+
+// Blob commitment menggunakan KZG polynomial commitment
+// Allows efficient verification tanpa revealing seluruh data
+```
+
+### Data Availability
+
+```
+Blob lifecycle:
+Week 1-2: Data fully available di beacon nodes
+Week 3: Data tidak diperlukan lagi untuk consensus
+Week 4: Sidecar servers dapat delete data
+Month 2: Data expired dari network entirely
+```
+
+## Impact ke Layer 2
+
+### Perbandingan Sebelum/Sesudah
+
+```
+SEBELUM EIP-4844 (dengan 1000 TPS L2):
+├── Mainnet cost: $0.50 per L2 transaction
+├── Annual cost: ~$1.5M untuk 1000 TPS
+└── Economic ceiling: hanya high-value tx yang feasible
+
+SESUDAH EIP-4844:
+├── Mainnet cost: $0.01-0.05 per L2 transaction
+├── Annual cost: ~$150K untuk 1000 TPS  
+└── Economic ceiling: bahkan micro-transactions feasible
+```
+
+### Real-World Impact
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Arbitrum fees | $0.20-0.50 | $0.01-0.05 | 90%+ |
+| Optimism fees | $0.15-0.40 | $0.01-0.03 | 95%+ |
+| Base fees | $0.10-0.30 | $0.005-0.02 | 95%+ |
+
+## Implementasi
+
+### How to Use
+
+```typescript
+// Users tidak perlu change anything — automatically supported
+// Wallets dan protocols perlu update untuk support blob transactions
+
+// For developers integrating with L2s:
+// No changes needed — libraries handle EIP-4844 automatically
+
+// Gas estimation tetap sama
+const gasEstimate = await provider.estimateGas({
+  to: '0x...',
+  data: '0x...'
+})
+
+// Blob fees calculated separately
+const blobFee = await provider.estimateBlobFee()
+```
+
+### Verifikasi
+
+```typescript
+// Check jika network support EIP-4844
+import { getBlobs } from 'viem/chains'
+
+async function check4844Support() {
+  try {
+    const block = await provider.getBlock()
+    // EIP-4844 blocks memiliki blobGasUsed dan excessBlobGas
+    if (block.blobGasUsed !== undefined) {
+      console.log('EIP-4844 active on this network')
+    }
+  } catch (e) {
+    console.log('EIP-4844 not yet activated')
+  }
+}
+```
+
+## Full Danksharding (Future)
+
+Proto-Danksharding adalah langkah intermediate menuju Full Danksharding:
+
+```
+Roadmap:
+┌─────────────────┐     ┌─────────────────┐
+│  EIP-4844       │ ──► │  Full           │
+│  (Proto-Danksh) │     │  Danksharding   │
+└─────────────────┘     └─────────────────┘
+     │                        │
+     ▼                        ▼
+ Data availability      ~100x lebih banyak
+ di blobs temporary     blob capacity
+ ~18 days               permanent (more complex)
+```
+
+Full Danksharding akan memperkenalkan:
+- Distributed blob storage across nodes
+- Massive scalability improvement
+- Data availability sampling (DAS)
+
+## Kesimpulan
+
+EIP-4844 adalah upgrade yang secara langsung mengurangi biaya Layer 2 secara massive, membuat blockchain transactions accessible untuk lebih banyak use cases. Dengan cost reduction 90%+, kita akan melihat explosion dari new applications yang previously tidak economically feasible.
