@@ -36,6 +36,12 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 const ADMIN_ROUTES = ["/admin"]
 const ADMIN_LOGIN = "/admin/login"
 const API_ADMIN_ROUTES = ["/api/admin"]
+const ADMIN_ALLOWED_ROLES = ["ADMIN", "EDITOR"] as const
+const ADMIN_ALLOWED_ROLE_SET = new Set<string>(ADMIN_ALLOWED_ROLES)
+
+function hasAdminAccess(role: unknown): role is (typeof ADMIN_ALLOWED_ROLES)[number] {
+  return typeof role === "string" && ADMIN_ALLOWED_ROLE_SET.has(role)
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -49,14 +55,11 @@ export async function proxy(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     })
 
-    if (!token?.id || !token.role) {
+    if (!token?.id || !hasAdminAccess(token.role)) {
       const loginUrl = new URL(ADMIN_LOGIN, request.url)
-      loginUrl.searchParams.set("callbackUrl", pathname)
+      const callbackUrl = `${pathname}${request.nextUrl.search}`
+      loginUrl.searchParams.set("callbackUrl", callbackUrl)
       return applySecurityHeaders(NextResponse.redirect(loginUrl))
-    }
-
-    if (token.role === "VIEWER") {
-      return applySecurityHeaders(NextResponse.redirect(new URL("/", request.url)))
     }
   }
 
@@ -69,11 +72,11 @@ export async function proxy(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     })
 
-    if (!token?.id || !token.role) {
+    if (!token?.id) {
       return applySecurityHeaders(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
     }
 
-    if (token.role === "VIEWER") {
+    if (!hasAdminAccess(token.role)) {
       return applySecurityHeaders(NextResponse.json({ error: "Forbidden" }, { status: 403 }))
     }
   }
