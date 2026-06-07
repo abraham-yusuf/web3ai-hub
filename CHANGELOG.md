@@ -7,6 +7,30 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.10.1] — 2026-06-07
+
+### 📝 Blog Content Expansion
+
+> Commit: `360a587`
+
+**17 New Blog Posts Added:**
+
+| Category | Posts |
+|----------|-------|
+| Web3 Fundamentals | Apa itu Blockchain?, Layer 1 vs Layer 2, Cara Kerja Smart Contract, Apa itu DeFi?, Apa itu NFT? |
+| DeFi | Impermanent Loss Penjelasan, Liquidity Pool, Yield Farming, Apa itu AMM?, DeFi Pins |
+| AI & Web3 | Web3 AI Convergence, AI Agents in Crypto, Prompt Engineering for DeFi |
+| Airdrop Guides | Strategi Airdrop, Lens Protocol Airdrop, zkSync Airdrop Guide |
+| Technical | EIP-4844 Danksharding, Apa itu Gas Fees?, Cryptographic Basics |
+
+**Quality Fixes:**
+- Remove Chinese text from blog posts — replaced with Indonesian
+- Fixed mixed-language content in: `web3-ai-convergence.mdx`, `eip-4844-danksharding.mdx`, `impermanent-loss-penjelasan.mdx`, `apa-itu-blockchain.mdx`, `layer-1-vs-layer-2.mdx`
+
+> Commit: `0e8257d`
+
+---
+
 ## [0.10.0] — 2026-06-05
 
 ### 🛠️ AI Tools Directory
