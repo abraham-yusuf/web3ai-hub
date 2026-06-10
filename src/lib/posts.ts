@@ -41,16 +41,23 @@ function normalizePost(post: BlogPostData): BlogPostData {
   }
 }
 
-export async function getDbPosts(options?: { publishedOnly?: boolean }) {
+export async function getDbPosts(options?: { publishedOnly?: boolean; locale?: "EN" | "ID" | null }) {
   try {
     const now = new Date()
+    const whereClause = options?.publishedOnly
+      ? {
+          published: true,
+          OR: [{ scheduledFor: null }, { scheduledFor: { lte: now } }],
+        }
+      : undefined
+
+    // Add locale filter if provided
+    const where = options?.locale
+      ? { ...whereClause, language: options.locale }
+      : whereClause
+
     const posts = await prisma.post.findMany({
-      where: options?.publishedOnly
-        ? {
-            published: true,
-            OR: [{ scheduledFor: null }, { scheduledFor: { lte: now } }],
-          }
-        : undefined,
+      where,
       orderBy: [{ createdAt: "desc" }],
       include: {
         author: {
@@ -109,8 +116,8 @@ function getMdxPosts(): BlogPostData[] {
     )
 }
 
-export async function getPublicBlogPosts(): Promise<BlogPostData[]> {
-  const dbPosts = await getDbPosts({ publishedOnly: true })
+export async function getPublicBlogPosts(locale?: "EN" | "ID" | null): Promise<BlogPostData[]> {
+  const dbPosts = await getDbPosts({ publishedOnly: true, locale })
   const mdxPosts = getMdxPosts()
 
   const merged = [...dbPosts]
@@ -165,4 +172,41 @@ export function ensureSlug(raw: string): string {
     .trim()
     .replace(/[^\p{L}\p{N}\s-]/gu, "")
     .replace(/\s+/g, "-")
+}
+
+export async function getPostTranslationByLocale(
+  postId: string,
+  targetLocale: "EN" | "ID"
+): Promise<{ id: string; slug: string; title: string } | null> {
+  try {
+    const post = await prisma.post.findUnique({ where: { id: postId } })
+    if (!post) return null
+
+    const currentLocale = post.language === "EN" ? "EN" : "ID"
+
+    // If already in target locale, return null (no translation needed)
+    if (currentLocale === targetLocale) return null
+
+    let translated: { id: string; slug: string; title: string } | null = null
+
+    if (targetLocale === "EN" && post.englishVersion) {
+      // Find the English version by slug
+      const englishPost = await prisma.post.findUnique({
+        where: { slug: post.englishVersion },
+        select: { id: true, slug: true, title: true },
+      })
+      translated = englishPost
+    } else if (targetLocale === "ID" && currentLocale === "EN") {
+      // Find Indonesian version - look for post where englishVersion equals current post's slug
+      const indonesianPost = await prisma.post.findFirst({
+        where: { englishVersion: post.slug, language: "ID" },
+        select: { id: true, slug: true, title: true },
+      })
+      translated = indonesianPost
+    }
+
+    return translated
+  } catch {
+    return null
+  }
 }
