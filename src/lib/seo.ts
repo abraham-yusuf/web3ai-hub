@@ -19,6 +19,7 @@ export type SeoType =
   | "research"
   | "roadmap"
   | "search"
+  | "profile"
 
 interface GenerateSeoOptions {
   title?: string
@@ -133,6 +134,7 @@ function resolveUrl(type: SeoType, slug?: string): string {
     research: "/research",
     roadmap: slug ? `/learn/roadmap/${slug}` : "/learn",
     search: "/search",
+    profile: "/profile",
   }
   return `${APP_URL}${paths[type] ?? "/"}`
 }
@@ -232,6 +234,109 @@ function buildWebSiteJsonLd(): Record<string, string> {
   }
 
   return { "website-json-ld": JSON.stringify(jsonLd) }
+}
+
+/**
+ * Build Indonesian Organization structured data
+ * Used for local SEO targeting Indonesian audience
+ */
+export function buildIndonesianOrganizationJsonLd(): string {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${APP_URL}/#organization`,
+    name: "AI3 Hub",
+    alternateName: "Web3AI Hub",
+    description: "Platform belajar Web3 & AI dalam Bahasa Indonesia. Blog, dokumentasi, airdrop hub, dan direktori AI tools.",
+    url: APP_URL,
+    logo: {
+      "@type": "ImageObject",
+      url: `${APP_URL}/logo.png`,
+      width: 512,
+      height: 512,
+    },
+    sameAs: [
+      "https://twitter.com/ai3myid",
+      "https://github.com/ai3myid",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      availableLanguage: ["Indonesian", "English"],
+      url: `${APP_URL}/faq`,
+    },
+    audience: {
+      "@type": "Audience",
+      name: "Pengembang Web3 & AI Indonesia",
+      geographicArea: {
+        "@type": "Country",
+        name: "Indonesia",
+      },
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "Indonesia",
+    },
+    inLanguage: "id-ID",
+  }
+
+  return JSON.stringify(orgJsonLd)
+}
+
+/**
+ * Build LocalBusiness structured data for Indonesian audience
+ * Optional: Used for businesses targeting local Indonesian market
+ */
+export function buildLocalBusinessJsonLd(): string {
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": `${APP_URL}/#local-business`,
+    name: "AI3 Hub",
+    description: "Platform edukasi Web3 dan AI untuk komunitas Indonesia",
+    url: APP_URL,
+    telephone: "+62-xxx-xxxx-xxxx",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "ID",
+      addressRegion: "Indonesia",
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "00:00",
+      closes: "23:59",
+    },
+    sameAs: [
+      "https://twitter.com/ai3myid",
+    ],
+    priceRange: "Free",
+    inLanguage: "id-ID",
+  }
+
+  return JSON.stringify(localBusinessJsonLd)
+}
+
+/**
+ * Build Review aggregate for products/services
+ * Shows aggregate rating for the platform
+ */
+export function buildAggregateReviewJsonLd(reviewCount: number, ratingValue: number): string {
+  const reviewJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "AggregateRating",
+    itemReviewed: {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: APP_URL,
+    },
+    ratingCount: reviewCount,
+    ratingValue: ratingValue,
+    bestRating: 5,
+    worstRating: 1,
+  }
+
+  return JSON.stringify(reviewJsonLd)
 }
 
 function buildExtraMeta(

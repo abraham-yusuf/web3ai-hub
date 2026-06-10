@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { auditLog } from "@/lib/audit-log"
 
 async function requireAirdropAdmin() {
   const session = await auth()
@@ -11,6 +12,8 @@ async function requireAirdropAdmin() {
   if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
     throw new Error("Unauthorized")
   }
+
+  return session
 }
 
 function getString(formData: FormData, key: string): string {
@@ -43,12 +46,12 @@ function parseSteps(input: string) {
 }
 
 export async function createAirdropAction(formData: FormData) {
-  await requireAirdropAdmin()
+  const session = await requireAirdropAdmin()
 
   const name = getString(formData, "name")
   const slug = toSlug(getString(formData, "slug") || name)
 
-  await prisma.airdrop.create({
+  const airdrop = await prisma.airdrop.create({
     data: {
       name,
       slug,
@@ -67,13 +70,19 @@ export async function createAirdropAction(formData: FormData) {
     },
   })
 
+  await auditLog("airdrop.create", session.user.email ?? session.user.name ?? "unknown", "Airdrop", {
+    actorId: session.user.id,
+    resourceId: airdrop.id,
+    details: { name, slug },
+  })
+
   revalidatePath("/airdrop")
   revalidatePath("/admin/airdrops")
   redirect("/admin/airdrops")
 }
 
 export async function updateAirdropAction(formData: FormData) {
-  await requireAirdropAdmin()
+  const session = await requireAirdropAdmin()
 
   const id = getString(formData, "id")
   const name = getString(formData, "name")
@@ -99,6 +108,12 @@ export async function updateAirdropAction(formData: FormData) {
     },
   })
 
+  await auditLog("airdrop.update", session.user.email ?? session.user.name ?? "unknown", "Airdrop", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { name, slug },
+  })
+
   revalidatePath("/airdrop")
   revalidatePath(`/airdrop/${slug}`)
   revalidatePath("/admin/airdrops")
@@ -106,10 +121,17 @@ export async function updateAirdropAction(formData: FormData) {
 }
 
 export async function deleteAirdropAction(formData: FormData) {
-  await requireAirdropAdmin()
+  const session = await requireAirdropAdmin()
 
   const id = getString(formData, "id")
+  const airdrop = await prisma.airdrop.findUnique({ where: { id }, select: { name: true, slug: true } })
   await prisma.airdrop.delete({ where: { id } })
+
+  await auditLog("airdrop.delete", session.user.email ?? session.user.name ?? "unknown", "Airdrop", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { name: airdrop?.name, slug: airdrop?.slug },
+  })
 
   revalidatePath("/airdrop")
   revalidatePath("/admin/airdrops")
@@ -117,7 +139,7 @@ export async function deleteAirdropAction(formData: FormData) {
 
 
 export async function bulkUpdateAirdropStatusAction(formData: FormData) {
-  await requireAirdropAdmin()
+  const session = await requireAirdropAdmin()
 
   const ids = formData
     .getAll("ids")
@@ -137,6 +159,11 @@ export async function bulkUpdateAirdropStatusAction(formData: FormData) {
   await prisma.airdrop.updateMany({
     where: { id: { in: ids } },
     data: { status },
+  })
+
+  await auditLog("airdrop.bulk-update", session.user.email ?? session.user.name ?? "unknown", "Airdrop", {
+    actorId: session.user.id,
+    details: { count: ids.length, status },
   })
 
   revalidatePath("/airdrop")

@@ -17,9 +17,7 @@ export default async function NewPostPage({
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Create Post</h1>
-        <p className="text-muted-foreground">
-          Buat draft baru — bisa disubmit untuk review setelah selesai diedit.
-        </p>
+        <p className="text-muted-foreground">Buat draft post baru. Gunakan workflow untuk submit review, approve, dan publish.</p>
       </div>
 
       <form action={createPostAction} className="space-y-4 rounded-lg border p-6">
@@ -35,11 +33,7 @@ export default async function NewPostPage({
 
         <div className="space-y-2">
           <Label htmlFor="excerpt">Excerpt</Label>
-          <textarea
-            id="excerpt"
-            name="excerpt"
-            className="min-h-24 w-full rounded-md border bg-background p-3 text-sm"
-          />
+          <textarea id="excerpt" name="excerpt" className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -54,9 +48,25 @@ export default async function NewPostPage({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="scheduledFor">Schedule publish (optional)</Label>
-          <Input id="scheduledFor" name="scheduledFor" type="datetime-local" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="status">Initial Status</Label>
+            <select
+              id="status"
+              name="status"
+              defaultValue="DRAFT"
+              className="w-full rounded-md border bg-background p-2 text-sm"
+            >
+              <option value="DRAFT">Draft — Tidak terlihat publik</option>
+              <option value="PENDING_REVIEW">Pending Review — Sudah siap di-review</option>
+              <option value="APPROVED">Approved — Sudah disetujui, siap publish</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="scheduledFor">Schedule Publish (opsional)</Label>
+            <Input id="scheduledFor" name="scheduledFor" type="datetime-local" />
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -66,23 +76,20 @@ export default async function NewPostPage({
             name="content"
             required
             defaultValue={initialContent}
-            className="min-h-[320px] w-full rounded-md border bg-background p-3 font-mono text-sm"
+            className="min-h-[400px] w-full rounded-md border bg-background p-3 font-mono text-sm"
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" name="action" value="save">
-            💾 Save as Draft
-          </Button>
-          <Button
-            type="submit"
-            name="action"
-            value="submit_for_review"
-            variant="outline"
-            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300"
-          >
-            📤 Submit for Review
-          </Button>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="published" />
+          Publish sekarang (langsung terlihat publik)
+        </label>
+
+        <div className="flex gap-3">
+          <Button type="submit">Simpan Post</Button>
+          <p className="flex items-center text-xs text-muted-foreground">
+            Post akan dibuat sebagai Draft. Gunakan tombol &ldquo;Submit for Review&rdquo; di halaman edit untuk memulai workflow approval.
+          </p>
         </div>
       </form>
     </div>

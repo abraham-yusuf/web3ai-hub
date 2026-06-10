@@ -1,0 +1,145 @@
+---
+title: "Crypto Wallet Security: Best Practices untuk Protect Aset"
+date: "2025-06-14"
+author: "Admin"
+authors: ["admin"]
+category: "Security"
+tags: ["wallet", "security", "web3", "self-custody"]
+excerpt: "Best practices menjaga keamanan crypto wallet: cold storage, hardware wallets, multisig, dan menghindari scams."
+published: true
+---
+
+# Crypto Wallet Security: Best Practices untuk Protect Aset
+
+Self-custody crypto berarti kamu adalah bank dirimu sendiri. Dengan kontrol penuh datang tanggung jawab penuh. Mari kita bahas bagaimana mengamankan aset kripto dengan benar.
+
+## Jenis Wallet
+
+### Hot Wallet (Software)
+- MetaMask, Rabby, Coinbase Wallet
+- Connected ke internet
+- Convenient untuk daily use
+- Lebih vulnerable terhadap hacking
+
+### Cold Wallet (Hardware)
+- Ledger, Trezor, Coldcard
+- Offline storage
+- Gold standard untuk security
+- Perlu physical security
+
+### Multisig Wallet
+- Gnosis Safe, Casa
+- Membutuhkan multiple signatures untuk tx
+- Best untuk treasury management
+- Removes single point of failure
+
+## Security Best Practices
+
+### 1. Seed Phrase Protection
+
+```
+CRITICAL - Seed Phrase Rules:
+1. ✅ Write di paper + laminate
+2. ✅ Simpan di safe deposit box
+3. ✅ Buat multiple copies di lokasi berbeda
+4. ✅ Tulis dengan handwriting, bukan digital
+5. ❌ Jangan pernah screenshot
+6. ❌ Jangan simpan di cloud
+7. ❌ Jangan kirim via chat/email
+8. ❌ Jangan share dengan siapapun
+```
+
+### 2. Hardware Wallet Setup
+
+```typescript
+// Verify receive address di hardware device
+// SELALU verify di layar device, bukan di komputer
+const receiveAddress = await wallet.getAddress()
+
+// Jangan pernah masukkan seed phrase di komputer
+// Hardware wallet designed untuk tidak pernah expose seed phrase
+```
+
+### 3. Transaction Safety Checklist
+
+```
+Sebelum sign transaction:
+□ Verify contract address (check di explorer)
+□ Verify amount yang di-send
+□ Verify destination address
+□ Check gas fee (watch for spikes)
+□ Understand apa yang kamu approve
+□ Check permit/approval size (unlimited = bad)
+```
+
+### 4. Dangerous Approvals
+
+```typescript
+// APPROVAL MENANGKAP PENGGUNA PALING SERING
+
+// ❌ BAD: Unlimited approval
+tokenContract.approve(contract, MaxUint256)
+
+// ✅ GOOD: Specific amount
+tokenContract.approve(contract, amount)
+
+// ✅ BETTER: Use permit2 for limited approval
+import { Permit2 } from '@uniswap/permit2-sdk'
+```
+
+## Scam Types dan cara menghindari
+
+### 1. Phishing
+```
+Red flags:
+- URLs yang slightly off (un1swap.com vs uniswap.org)
+- DM dari "support" yang asking for seed phrase
+- Airdrop yang meminta approval untuk claim
+- Fake giveaways di YouTube/Twitter
+```
+
+### 2. drainer websites
+```
+Protection:
+- Jangan connect wallet ke unknown sites
+- Gunakan hardware wallet untuk approval
+- Review setiap transaction di hardware device
+- Gunakan RPC yang mem-block known bad sites
+```
+
+### 3. Social Engineering
+```
+Beware of:
+- "Investor" yang menjanjikan gains
+- Admin Telegram yang DM duluan
+- "Support" yang meminta screen share
+- Fake job offers yang minta deposit
+```
+
+## Emergency Recovery Plan
+
+### Jika wallet compromised:
+1. **IMMEDIATELY** transfer remaining assets ke wallet baru
+2. Jangan panic, act quickly
+3. Check transaction history untuk understand apa yang terjadi
+4. Report ke authorities (meski kemungkinan recover rendah)
+
+### Backup Strategy
+```
+3-2-1 Rule:
+- 3 copies of seed phrase
+- 2 different storage media (paper, metal)
+- 1 offsite location (safe deposit)
+```
+
+## Recommended Security Stack
+
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| Browser | Brave + uBlock | Reduced tracking + ads |
+| Wallet | MetaMask + Hardware | Daily + large holdings |
+| RPC | Cloudflare + Flashbots | MEV protection |
+| Password | Bitwarden | Secure notes untuk addresses |
+| 2FA | Hardware key (YubiKey) | Exchange accounts |
+
+Keamanan crypto adalah continuous process, bukan one-time setup. Stay vigilant dan selalu verify sebelum bertindak.

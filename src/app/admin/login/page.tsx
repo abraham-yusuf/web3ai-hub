@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,26 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const resolveCallbackUrl = () => {
+    const callbackUrlParam = searchParams.get("callbackUrl")
+    if (!callbackUrlParam) return "/admin"
+    if (!callbackUrlParam.startsWith("/") || callbackUrlParam.startsWith("//")) {
+      return "/admin"
+    }
+    // Reject backslashes to avoid browser normalization bypasses.
+    if (callbackUrlParam.includes("\\")) {
+      return "/admin"
+    }
+    try {
+      const parsedUrl = new URL(callbackUrlParam, "http://internal")
+      if (!parsedUrl.pathname.startsWith("/admin")) return "/admin"
+      return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+    } catch {
+      return "/admin"
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,16 +41,18 @@ export default function LoginPage() {
     setError("")
 
     try {
+      const callbackUrl = resolveCallbackUrl()
       const result = await signIn("credentials", {
         email,
         password,
+        callbackUrl,
         redirect: false,
       })
 
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        router.push("/admin")
+        router.push(result?.url || callbackUrl)
       }
     } catch {
       setError("An error occurred. Please try again.")

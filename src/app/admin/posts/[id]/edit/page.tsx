@@ -1,513 +1,318 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { SlugField } from "@/components/admin/slug-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import {
-  updatePostAction,
-  submitForReviewAction,
-  approvePostAction,
-  rejectPostAction,
-  publishPostAction,
-  revertToRevisionAction,
-} from "../../actions"
+import { updatePostAction, addCoAuthorAction, removeCoAuthorAction, submitForReviewAction, approvePostAction, publishPostAction, archivePostAction } from "../../actions"
 import { auth } from "@/auth"
-import { PostStatus } from "@prisma/client"
 
-const STATUS_LABELS: Record<PostStatus, string> = {
-  DRAFT: "Draft",
-  IN_REVIEW: "In Review",
-  APPROVED: "Approved",
-  PUBLISHED: "Published",
-}
-
-const STATUS_COLORS: Record<PostStatus, string> = {
-  DRAFT: "border border-muted text-muted-foreground",
-  IN_REVIEW: "border border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  APPROVED: "border border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
-  PUBLISHED: "border border-primary bg-primary/10 text-primary",
-}
-
-interface Props {
+interface EditPostPageProps {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ review?: string; status?: string }>
 }
 
-export default async function EditPostPage({ params, searchParams }: Props) {
-  const { id } = await params
-  const { review: showReview, status: urlStatus } = await searchParams
-  const session = await auth()
-  const isEditorOrAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "EDITOR"
+const STATUS_LABELS: Record<string, { label: string; variant: string }> = {
+  DRAFT: { label: "Draft", variant: "secondary" },
+  PENDING_REVIEW: { label: "Pending Review", variant: "outline" },
+  APPROVED: { label: "Approved", variant: "default" },
+  PUBLISHED: { label: "Published", variant: "default" },
+  ARCHIVED: { label: "Archived", variant: "destructive" },
+}
 
-  const post = await prisma.post.findUnique({
-    where: { id },
-    include: {
-      author: { select: { id: true, name: true, email: true } },
-      approvedBy: { select: { name: true } },
-      rejectedBy: { select: { name: true } },
-      coAuthors: { include: { user: { select: { id: true, name: true, email: true } } } },
-      revisions: {
-        orderBy: { version: "desc" },
-        select: { id: true, version: true, title: true, authorId: true, createdAt: true },
+export default async function EditPostPage({ params }: EditPostPageProps) {
+  const { id } = await params
+
+  const [post, session] = await Promise.all([
+    prisma.post.findUnique({
+      where: { id },
+      include: {
+        author: { select: { id: true, name: true, email: true, username: true } },
+        coAuthors: {
+          include: { user: { select: { id: true, name: true, email: true, username: true } } },
+        },
+        revisions: {
+          orderBy: { version: "desc" },
+          take: 3,
+          include: { author: { select: { name: true } } },
+        },
       },
-    },
-  })
+    }),
+    auth(),
+  ])
 
   if (!post) notFound()
 
-  const allUsers = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true },
-    orderBy: { name: "asc" },
-  })
+  const canModerate = session?.user?.role === "ADMIN" || session?.user?.role === "EDITOR"
+  const isOwner = session?.user?.id === post.authorId
+  const statusInfo = STATUS_LABELS[post.status] ?? { label: post.status, variant: "secondary" }
 
-  // Show review panel if ?review=1 or status param from redirect
-  const showReviewPanel = showReview === "1" || !!urlStatus
+  // Get all users for co-author selection (excluding owner and existing co-authors)
+  const existingUserIds = [post.authorId, ...post.coAuthors.map(c => c.userId)]
+  const availableUsers = await prisma.user.findMany({
+    where: { id: { notIn: existingUserIds } },
+    select: { id: true, name: true, email: true, username: true, role: true },
+    take: 20,
+  })
 
   return (
     <div className="space-y-6">
-      {/* ── Status Banner ───────────────────────────────────────── */}
-      <div className={`rounded-lg border p-4 ${STATUS_COLORS[post.status]}`}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-bold">{post.title}</h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1 text-sm">
-                <Badge variant="outline">{STATUS_LABELS[post.status]}</Badge>
-                <span className="text-xs opacity-70">v{post.version}</span>
-                <span className="text-xs opacity-70">·</span>
-                <span className="text-xs opacity-70">{post.category}</span>
-                <span className="text-xs opacity-70">·</span>
-                <span className="text-xs opacity-70">{post.viewCount} views</span>
-                <span className="text-xs opacity-70">·</span>
-                <span className="text-xs opacity-70">{post.readTimeMinutes ?? 0} min read</span>
-              </div>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/posts" className="text-muted-foreground hover:text-foreground text-sm">← Posts</Link>
+            <h1 className="text-2xl font-bold">Edit Post</h1>
+            <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {post.wordCount.toLocaleString()} words · ~{post.readingTime} min read ·{" "}
+            <Link href={`/admin/posts/${post.id}/revisions`} className="underline">
+              {post.revisions.length} revision{post.revisions.length !== 1 ? "s" : ""}
+            </Link>
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/admin/posts/preview/${post.id}`} className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium">
+            Preview
+          </Link>
+          <Link href={`/admin/posts/${post.id}/revisions`} className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium">
+            History
+          </Link>
+        </div>
+      </div>
+
+      {/* Status Action Bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
+        <span className="text-sm font-medium">Workflow:</span>
+        {post.status === "DRAFT" && (
+          <form action={submitForReviewAction}>
+            <input type="hidden" name="id" value={post.id} />
+            <Button type="submit" size="sm" variant="outline">Submit for Review</Button>
+          </form>
+        )}
+        {post.status === "PENDING_REVIEW" && canModerate && (
+          <form action={approvePostAction}>
+            <input type="hidden" name="id" value={post.id} />
+            <Button type="submit" size="sm">Approve</Button>
+          </form>
+        )}
+        {(post.status === "APPROVED" || post.status === "PENDING_REVIEW") && canModerate && (
+          <form action={publishPostAction}>
+            <input type="hidden" name="id" value={post.id} />
+            <Button type="submit" size="sm" variant="default">Publish Now</Button>
+          </form>
+        )}
+        {post.status !== "ARCHIVED" && (
+          <form action={archivePostAction}>
+            <input type="hidden" name="id" value={post.id} />
+            <Button type="submit" size="sm" variant="destructive" className="ml-auto">Archive</Button>
+          </form>
+        )}
+        {post.status === "ARCHIVED" && canModerate && (
+          <form action={publishPostAction}>
+            <input type="hidden" name="id" value={post.id} />
+            <Button type="submit" size="sm">Unarchive / Republish</Button>
+          </form>
+        )}
+      </div>
+
+      {/* Main Edit Form */}
+      <form action={updatePostAction} className="space-y-4 rounded-lg border p-6">
+        <input type="hidden" name="id" value={post.id} />
+
+        <div className="space-y-2">
+          <Label htmlFor="title">Title</Label>
+          <Input id="title" name="title" defaultValue={post.title} required />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Slug</Label>
+          <SlugField initialSlug={post.slug} postId={post.id} />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="excerpt">Excerpt</Label>
+          <textarea id="excerpt" name="excerpt" defaultValue={post.excerpt ?? ""} className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Input id="category" name="category" defaultValue={post.category} />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {urlStatus && (
-              <span className="text-sm font-medium animate-in fade-in">
-                ✓ Status updated to {urlStatus.replace("_", " ")}
-              </span>
-            )}
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (comma separated)</Label>
+            <Input id="tags" name="tags" defaultValue={post.tags.join(", ")} />
+          </div>
+        </div>
 
-            {!isEditorOrAdmin && post.status === "DRAFT" && (
-              <form action={submitForReviewAction}>
-                <input type="hidden" name="postId" value={post.id} />
-                <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  Submit for Review
-                </Button>
-              </form>
-            )}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <select
+              id="status"
+              name="status"
+              defaultValue={post.status}
+              className="w-full rounded-md border bg-background p-2 text-sm"
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="PENDING_REVIEW">Pending Review</option>
+              <option value="APPROVED">Approved</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
 
-            {isEditorOrAdmin && post.status === "IN_REVIEW" && (
-              <>
-                <form action={approvePostAction}>
+          <div className="space-y-2">
+            <Label htmlFor="scheduledFor">Schedule Publish</Label>
+            <Input
+              id="scheduledFor"
+              name="scheduledFor"
+              type="datetime-local"
+              defaultValue={post.scheduledFor ? post.scheduledFor.toISOString().slice(0, 16) : ""}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="content">MDX Content</Label>
+          <textarea
+            id="content"
+            name="content"
+            defaultValue={post.content}
+            required
+            className="min-h-[400px] w-full rounded-md border bg-background p-3 font-mono text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="revisionReason">Revision Note (what changed?)</Label>
+          <Input
+            id="revisionReason"
+            name="revisionReason"
+            placeholder="e.g. Fixed typo in intro, Added new section about DeFi..."
+            className="text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            This note will be saved in the revision history for tracking changes.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="published" defaultChecked={post.published} />
+            Publish
+          </label>
+          <span className="text-xs text-muted-foreground">
+            Primary author: {post.author.name ?? post.author.username ?? post.author.email?.split("@")[0] ?? "?"}
+          </span>
+        </div>
+
+        <Button type="submit">Save Changes</Button>
+      </form>
+
+      {/* Co-Authors Section */}
+      <div className="space-y-4 rounded-lg border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Co-Authors</h2>
+            <p className="text-sm text-muted-foreground">Add collaborators to this post</p>
+          </div>
+        </div>
+
+        {/* Current co-authors */}
+        {post.coAuthors.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Current:</p>
+            {post.coAuthors.map((ca) => (
+              <div key={ca.id} className="flex items-center justify-between rounded-md border p-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">
+                    {ca.user.name ?? ca.user.username ?? ca.user.email?.split("@")[0]}
+                  </span>
+                  <Badge variant="outline" className="text-xs">{ca.role}</Badge>
+                </div>
+                <form action={removeCoAuthorAction}>
                   <input type="hidden" name="postId" value={post.id} />
-                  <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700">
-                    ✓ Approve
+                  <input type="hidden" name="userId" value={ca.userId} />
+                  <Button type="submit" variant="ghost" size="sm" className="text-xs text-destructive">
+                    Remove
                   </Button>
                 </form>
-                <Link
-                  href={`/admin/posts/${post.id}/edit?review=1`}
-                  className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium"
-                >
-                  ✗ Review & Reject
-                </Link>
-              </>
-            )}
+              </div>
+            ))}
+          </div>
+        )}
 
-            {isEditorOrAdmin && post.status === "APPROVED" && (
-              <form action={publishPostAction}>
-                <input type="hidden" name="postId" value={post.id} />
-                <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700">
-                  🚀 Publish Now
-                </Button>
-              </form>
-            )}
+        {/* Add co-author */}
+        {canModerate && availableUsers.length > 0 && (
+          <form action={addCoAuthorAction} className="flex items-end gap-2">
+            <input type="hidden" name="postId" value={post.id} />
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="userId" className="text-xs">Add collaborator</Label>
+              <select
+                id="userId"
+                name="userId"
+                className="w-full rounded-md border bg-background p-2 text-sm"
+                defaultValue=""
+              >
+                <option value="">Select user...</option>
+                {availableUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name ?? u.username ?? u.email?.split("@")[0]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="coAuthorRole" className="text-xs">Role</Label>
+              <select
+                id="coAuthorRole"
+                name="coAuthorRole"
+                className="rounded-md border bg-background p-2 text-sm"
+                defaultValue="co-author"
+              >
+                <option value="co-author">Co-Author</option>
+                <option value="editor">Editor</option>
+                <option value="reviewer">Reviewer</option>
+              </select>
+            </div>
+            <Button type="submit" size="sm">Add</Button>
+          </form>
+        )}
 
-            <Link
-              href={`/admin/posts/preview/${post.id}`}
-              className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium"
-            >
-              Preview
+        {post.coAuthors.length === 0 && availableUsers.length === 0 && (
+          <p className="text-sm text-muted-foreground">No other users available to add as co-author.</p>
+        )}
+      </div>
+
+      {/* Recent Revisions */}
+      {post.revisions.length > 0 && (
+        <div className="space-y-3 rounded-lg border p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Recent Revisions</h2>
+            <Link href={`/admin/posts/${post.id}/revisions`} className="text-sm text-primary underline">
+              View all →
             </Link>
           </div>
-        </div>
-
-        {/* Reviewer notes banner */}
-        {post.reviewerNotes && (
-          <div className="mt-3 rounded-md bg-background/60 p-3 text-sm">
-            <span className="font-medium">
-              {post.approvedBy ? "✓ Approved" : post.rejectedBy ? "✗ Rejected" : "📝 Catatan Review"}:
-            </span>{" "}
-            {post.reviewerNotes}
-            {post.rejectedBy && post.rejectedBy.name && (
-              <span className="ml-1 text-xs opacity-70">— {post.rejectedBy.name}</span>
-            )}
-            {post.approvedBy && post.approvedBy.name && (
-              <span className="ml-1 text-xs opacity-70">— {post.approvedBy.name}</span>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* ── Main Form (2/3) ───────────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-6">
-          <form action={updatePostAction} className="space-y-4 rounded-lg border p-6">
-            <input type="hidden" name="id" value={post.id} />
-
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" name="title" defaultValue={post.title} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Slug</Label>
-              <SlugField initialSlug={post.slug} postId={post.id} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="excerpt">Excerpt</Label>
-              <textarea
-                id="excerpt"
-                name="excerpt"
-                defaultValue={post.excerpt ?? ""}
-                className="min-h-24 w-full rounded-md border bg-background p-3 text-sm"
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" defaultValue={post.category} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
-                <Input id="tags" name="tags" defaultValue={post.tags.join(", ")} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="scheduledFor">Schedule publish (optional)</Label>
-              <Input
-                id="scheduledFor"
-                name="scheduledFor"
-                type="datetime-local"
-                defaultValue={
-                  post.scheduledFor ? post.scheduledFor.toISOString().slice(0, 16) : ""
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="content">MDX Content</Label>
-              <textarea
-                id="content"
-                name="content"
-                defaultValue={post.content}
-                required
-                className="min-h-[320px] w-full rounded-md border bg-background p-3 font-mono text-sm"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" name="action" value="save">
-                💾 Save Changes
-              </Button>
-              {post.status === "DRAFT" && !isEditorOrAdmin && (
-                <Button type="submit" name="action" value="submit_for_review" className="bg-blue-600 hover:bg-blue-700">
-                  📤 Submit for Review
-                </Button>
-              )}
-              {isEditorOrAdmin && (
-                <Button type="submit" name="action" value="publish" className="bg-green-600 hover:bg-green-700">
-                  🚀 Publish
-                </Button>
-              )}
-            </div>
-          </form>
-
-          {/* ── Review Panel (for editors) ──────────────────────── */}
-          {showReviewPanel && isEditorOrAdmin && post.status === "IN_REVIEW" && (
-            <ReviewPanel postId={post.id} />
-          )}
-        </div>
-
-        {/* ── Sidebar (1/3) ────────────────────────────────────── */}
-        <div className="space-y-6">
-          {/* Meta info */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Author</span>
-                <span>{post.author.name ?? post.author.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Created</span>
-                <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Updated</span>
-                <span>{new Date(post.updatedAt).toLocaleDateString()}</span>
-              </div>
-              {post.publishedAt && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Published</span>
-                  <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
-                </div>
-              )}
-              {post.scheduledFor && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Scheduled</span>
-                  <span>{new Date(post.scheduledFor).toLocaleDateString()}</span>
-                </div>
-              )}
-              {post.submittedForReviewAt && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Submitted</span>
-                  <span>{new Date(post.submittedForReviewAt).toLocaleDateString()}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Co-authors */}
-          <CoAuthorCard
-            postId={post.id}
-            coAuthors={post.coAuthors}
-            allUsers={allUsers}
-            isEditorOrAdmin={isEditorOrAdmin}
-          />
-
-          {/* Revision history */}
-          <RevisionHistoryCard postId={post.id} revisions={post.revisions} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Review Panel (Client-ish Server Component) ──────────────────────────────
-
-function ReviewPanel({ postId }: { postId: string }) {
-  return (
-    <Card className="border-amber-300 dark:border-amber-700">
-      <CardHeader>
-        <CardTitle className="text-amber-600 dark:text-amber-400">📋 Review Panel</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Approve untuk mempublish langsung, atau reject dengan catatan untuk dikembalikan ke
-          author.
-        </p>
-
-        <form action={approvePostAction} className="space-y-3">
-          <input type="hidden" name="postId" value={postId} />
           <div className="space-y-2">
-            <Label htmlFor="approveNotes">Catatan (opsional)</Label>
-            <textarea
-              id="approveNotes"
-              name="notes"
-              className="w-full rounded-md border p-2 text-sm"
-              rows={2}
-              placeholder="Catatan opsional untuk approval..."
-            />
-          </div>
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
-            ✓ Approve
-          </Button>
-        </form>
-
-        <Separator />
-
-        <form action={rejectPostAction} className="space-y-3">
-          <input type="hidden" name="postId" value={postId} />
-          <div className="space-y-2">
-            <Label htmlFor="rejectNotes">
-              Catatan rejection <span className="text-destructive">*</span>
-            </Label>
-            <textarea
-              id="rejectNotes"
-              name="notes"
-              required
-              className="w-full rounded-md border p-2 text-sm"
-              rows={3}
-              placeholder="Jelaskan kenapa post ditolak dan apa yang perlu diperbaiki..."
-            />
-          </div>
-          <Button type="submit" variant="destructive" className="w-full">
-            ✗ Reject & Return to Author
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  )
-}
-
-// ── Co-author Card ───────────────────────────────────────────────────────────
-
-function CoAuthorCard({
-  postId,
-  coAuthors,
-  allUsers,
-  isEditorOrAdmin,
-}: {
-  postId: string
-  coAuthors: Array<{ id: string; userId: string; role: string; user: { id: string; name: string | null; email: string } }>
-  allUsers: Array<{ id: string; name: string | null; email: string; role: string }>
-  isEditorOrAdmin: boolean
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">👥 Co-Authors</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {coAuthors.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Belum ada co-author.</p>
-        ) : (
-          <ul className="space-y-2">
-            {coAuthors.map((ca) => (
-              <li key={ca.id} className="flex items-center justify-between text-sm">
-                <span>
-                  {ca.user.name ?? ca.user.email}
-                  <span className="ml-1 text-xs text-muted-foreground">({ca.role})</span>
-                </span>
-                {isEditorOrAdmin && (
-                  <form action={async () => {
-                    "use server"
-                    const { removeCoAuthorAction } = await import("../../actions")
-                    // This is a simplified approach — in real scenario, pass formData
-                  }}>
-                    <input type="hidden" name="postId" value={postId} />
-                    <input type="hidden" name="userId" value={ca.userId} />
-                    <Button type="submit" variant="ghost" size="sm" className="h-6 text-xs text-destructive">
-                      Remove
-                    </Button>
-                  </form>
-                )}
-              </li>
+            {post.revisions.map((rev) => (
+              <div key={rev.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
+                <div>
+                  <span className="font-medium">v{rev.version}</span>
+                  <span className="ml-2 text-muted-foreground">{rev.reason ?? "No description"}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {rev.author.name} · {new Date(rev.createdAt).toLocaleDateString()}
+                </div>
+              </div>
             ))}
-          </ul>
-        )}
-
-        {isEditorOrAdmin && (
-          <AddCoAuthorForm postId={postId} allUsers={allUsers} />
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function AddCoAuthorForm({
-  postId,
-  allUsers,
-}: {
-  postId: string
-  allUsers: Array<{ id: string; name: string | null; email: string; role: string }>
-}) {
-  // Note: simplified — in production, use a client component for the select
-  return (
-    <form
-      action={async (formData) => {
-        "use server"
-        const { addCoAuthorAction } = await import("../../actions")
-        const userId = formData.get("userId") as string
-        const role = formData.get("role") as string
-        await addCoAuthorAction(postId, userId, role)
-      }}
-      className="space-y-2"
-    >
-      <select
-        name="userId"
-        className="w-full rounded-md border p-2 text-sm"
-        required
-        defaultValue=""
-      >
-        <option value="" disabled>
-          Add co-author...
-        </option>
-        {allUsers.map((u) => (
-          <option key={u.id} value={u.id}>
-            {u.name ?? u.email} ({u.role})
-          </option>
-        ))}
-      </select>
-      <select name="role" className="w-full rounded-md border p-2 text-sm" defaultValue="CONTRIBUTOR">
-        <option value="PRIMARY">Primary</option>
-        <option value="CO_AUTHOR">Co-author</option>
-        <option value="CONTRIBUTOR">Contributor</option>
-      </select>
-      <Button type="submit" variant="outline" size="sm" className="w-full">
-        + Add
-      </Button>
-    </form>
-  )
-}
-
-// ── Revision History Card ────────────────────────────────────────────────────
-
-function RevisionHistoryCard({
-  postId,
-  revisions,
-}: {
-  postId: string
-  revisions: Array<{ id: string; version: number; title: string; authorId: string; createdAt: Date }>
-}) {
-  if (revisions.length === 0) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">📜 Revision History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-xs text-muted-foreground">Belum ada revisi.</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">📜 Revision History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-2">
-          {revisions.slice(0, 10).map((rev) => (
-            <li key={rev.id} className="flex items-start justify-between gap-2 text-sm">
-              <div className="min-w-0">
-                <p className="truncate font-medium">v{rev.version}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {new Date(rev.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <form action={revertToRevisionAction}>
-                <input type="hidden" name="postId" value={postId} />
-                <input type="hidden" name="version" value={rev.version} />
-                <Button type="submit" variant="ghost" size="sm" className="h-6 text-xs">
-                  Restore
-                </Button>
-              </form>
-            </li>
-          ))}
-        </ul>
-        {revisions.length > 10 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            +{revisions.length - 10} more revisions
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

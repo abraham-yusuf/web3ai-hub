@@ -1,0 +1,183 @@
+---
+title: "Persiapan Airdrop Hunting: Portfolio dan Checklist Lengkap"
+date: "2025-06-17"
+author: "Admin"
+authors: ["admin"]
+category: "Airdrop"
+tags: ["airdrop", "hunting", "web3", "portfolio"]
+excerpt: "Guide lengkap persiapan untuk airdrop hunting: wallet setup, multi-address strategy, on-chain activity patterns, dan risk management."
+published: true
+---
+
+# Persiapan Airdrop Hunting: Portfolio dan Checklist Lengkap
+
+Airdrop hunting adalah aktivitas mencari proyek kripto yang berpotensi memberikan free token rewards. Dengan preparation yang tepat, kamu bisa maximize potential rewards sambil minimizing risk.
+
+## Wallet Setup Strategy
+
+### Single vs Multiple Wallets
+
+```
+Wallet Hierarchy:
+├── CEX (Binance/Coinbase) ─── Purchase ETH
+│
+├── Main Wallet (Cold/Hardware) ─── Long-term storage
+│   └── 2-3 sub-wallets untuk different purposes
+│       ├── Wallet A: High-value DeFi positions
+│       ├── Wallet B: Active trading/speculation  
+│       └── Wallet C: Airdrop hunting (clean history)
+│
+└── Burner Wallets ─── Testnets, new protocols
+    └── High-risk, small amounts
+```
+
+### Wallet Generation Best Practices
+
+```typescript
+// ⚠️ CRITICAL: Generate wallets offline
+// Use air-gapped computer or hardware wallet
+
+// Recommended approach:
+// 1. Buy hardware wallet (Ledger/Trezor)
+// 2. Generate addresses di device
+// 3. Never import seed phrase ke hot wallet
+// 4. Tandai setiap wallet dengan purpose
+
+const wallets = [
+  { address: '0x...', purpose: 'main-savings', created: '2025-01' },
+  { address: '0x...', purpose: 'defi-blue-chip', created: '2025-01' },
+  { address: '0x...', purpose: 'airdrop-hunting', created: '2025-02' },
+  { address: '0x...', purpose: 'testnet-playground', created: '2025-02' },
+]
+```
+
+## Network Coverage
+
+### Core Networks untuk Airdrop
+
+| Network | Likely Airdrops | Status |
+|---------|-----------------|--------|
+| Ethereum L2s | zkSync, Starknet, Linea | Active |
+| EigenLayer | EigenPoints ongoing | Active |
+| LayerZero | ZRO airdrop | Claimed |
+| Hyperlane | Ongoing rewards | Active |
+| Cosmos | Multiple chains | Ongoing |
+| Solana | Jupiter, Tensor | Active |
+
+### Testnet Faucets
+
+```bash
+# Sepolia ETH (mainnet testnet)
+cast rpc eth_faucet <address> --rpc-url sepolia
+
+# Goerli (legacy, deprecated soon)
+npx hardhat faucet <address>
+
+# ZkSync Sepolia
+# Visit: https://faucet.zksync.io/
+
+# Scroll Sepolia
+# Visit: https://scroll.io/faucet
+```
+
+## Activity Patterns
+
+### Natural Looking Activity
+
+```
+Week 1-2: Light activity (just exploring)
+Week 3-4: Regular usage (swap, lend, bridge occasionally)
+Month 2: Consistent but not excessive
+Month 3: Vary interactions, try new features
+```
+
+### What To Do (Legitimate Activity)
+
+```typescript
+// Do:
+- Use protocols naturally
+- Interact dengan different features
+- Hold positions for meaningful periods
+- Provide liquidity (small amounts)
+- Vote in governance (if applicable)
+- Bridge assets between chains
+- Test withdrawals/deposits
+
+// Don't:
+- Wash trade (creates fake volume)
+- Transact with yourself repeatedly
+- Create hundreds of wallets (sybil detection)
+- Claim all at once (looks bot-like)
+- Flash loans for activity (detectable)
+```
+
+## Airdrop Checklist
+
+### Pre-Activity
+
+- [ ] Hardware wallet ready
+- [ ] Multiple wallets created (3-5 optimal)
+- [ ] ETH distributed across wallets
+- [ ] RPC endpoints configured per chain
+- [ ] Block explorer bookmarks ready
+
+### Per Protocol
+
+- [ ] Read documentation
+- [ ] Understand tokenomics
+- [ ] Check if testnet available
+- [ ] Identify all interaction points
+- [ ] Execute transactions spread over time
+- [ ] Document wallet addresses used
+- [ ] Save transaction hashes
+
+### Monthly Review
+
+- [ ] Review all protocols interacted
+- [ ] Check for new mainnet deployments
+- [ ] Update wallet balances
+- [ ] Verify claim eligibility
+- [ ] Monitor announcement channels
+
+## Risk Management
+
+### Budget Allocation
+
+```typescript
+const AIRDROP_BUDGET = {
+  totalCapital: '1 ETH equivalent',
+  
+  allocation: {
+    // Blue chip DeFi (safer, smaller rewards)
+    blueChip: '0.4 ETH', // 40%
+    
+    // New protocols (higher risk, higher potential)
+    newProtocols: '0.4 ETH', // 40%
+    
+    // Testnets + gas money
+    testing: '0.1 ETH', // 10%
+    
+    // Reserve for opportunities
+    reserve: '0.1 ETH', // 10%
+  }
+}
+```
+
+### Common Mistakes to Avoid
+
+1. **Over-diversification** — Lebih baik depth di beberapa protokol daripada thin spread di banyak
+2. **Ignoring gas costs** — Pastikan rewards > costs
+3. **Rushing at end** — Projects can detect sudden activity spikes
+4. **Same IP across wallets** — Use different RPC/configurations
+5. **Forgetting to claim** — Set reminders untuk claim deadlines
+
+## Tools untuk Tracking
+
+| Tool | Purpose |
+|------|---------|
+| **Layer3.xyz** | Earn rewards for on-chain tasks |
+| **Galxe** | Credential infrastructure |
+| **Quest3** | On-chain quest platform |
+| **CoinTool** | Batch operations |
+
+Airdrop hunting adalah long game. Consistency dan authenticity adalah kunci. Focus pada protocols yang kamu genuinely interested, bukan hanya chasing tokens.

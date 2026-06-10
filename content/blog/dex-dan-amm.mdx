@@ -1,0 +1,131 @@
+---
+title: "DEX dan AMM: Bagaimana Decentralized Exchange Bekerja"
+date: "2025-06-13"
+author: "Admin"
+authors: ["admin"]
+category: "DeFi"
+tags: ["dex", "amm", "defi", "uniswap", "trading"]
+excerpt: "Memahami cara kerja Decentralized Exchange (DEX) berbasis Automated Market Maker (AMM): dari constant product formula sampai concentrated liquidity."
+published: true
+---
+
+# DEX dan AMM: Bagaimana Decentralized Exchange Bekerja
+
+Decentralized Exchanges (DEX) adalah protokol yang memungkinkan trading token secara langsung dari wallet tanpa perlu perantara. Berbeda dengan CEX yang menggunakan order book, DEX menggunakan Automated Market Maker (AMM).
+
+## Apa itu AMM?
+
+AMM adalah smart contract yang menentukan harga berdasarkan mathematical formula, bukan order book. Liquidity providers (LPs) mendepositikan aset ke pool untuk memfasilitasi trading.
+
+### Constant Product Formula (x × y = k)
+
+Ini adalah formula paling fundamental, pertama kali digunakan oleh Uniswap:
+
+```solidity
+// Simplified AMM pricing
+function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) 
+    public pure returns (uint256) {
+    
+    uint256 amountInWithFee = amountIn * 997; // 0.3% fee
+    uint256 numerator = amountInWithFee * reserveOut;
+    uint256 denominator = reserveIn * 1000 + amountInWithFee;
+    
+    return numerator / denominator;
+}
+```
+
+**Prinsip:**
+- Total liquidity (k) tetap konstan
+- Ketika x naik, y harus turun
+- Ini menentukan harga secara matematis
+
+## Arsitektur DEX Ecosystem
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    USER                             │
+│  Wallet: MetaMask, WalletConnect, Coinbase Wallet   │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│                  DEX FRONTEND                       │
+│  Uniswap, SushiSwap, Curve, PancakeSwap             │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│               SMART CONTRACTS                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │Pool Contract│  │Router       │  │Factory      │ │
+│  │(Liquidity)  │  │(Trading)    │  │(Create Pool)│ │
+│  └─────────────┘  └─────────────┘  └─────────────┘ │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│                   BLOCKCHAIN                        │
+│  Ethereum, Arbitrum, Polygon, BSC, Solana...        │
+└─────────────────────────────────────────────────────┘
+```
+
+## Top DEX Protocols 2025
+
+| DEX | Chain | Daily Volume | Unique Feature |
+|-----|-------|--------------|----------------|
+| Uniswap V4 | Multi-chain | $1B+ | Hooks, custom pools |
+| Curve | Stablecoins | $500M+ | Low IL for stables |
+| dYdX | Cosmos | $200M+ | Order book, perpetual |
+| PancakeSwap | BSC | $300M+ | Multi-chain, CAKE token |
+
+## Uniswap V4: What's New
+
+### 1. Hooks
+Hooks adalah plugins yang memungkinkan custom logic di pool:
+
+```solidity
+// Example: Time-Weighted Average Market Maker (TWAMM)
+contract TWAMM {
+    function executeLongTermOrders(uint256 tokenIn, uint256 tokenOut, uint256 amountPerBlock) {
+        // Orders execute over time, reducing impact
+    }
+}
+```
+
+### 2. Concentrated Liquidity (V3 evolution)
+LPs dapat menyediakan liquidity di specific price ranges, meningkatkan capital efficiency.
+
+### 3. Native ETH
+Trading langsung dengan ETH tanpa WETH wrapping, saving gas.
+
+## DEX Trading Strategies
+
+### 1. Slippage Management
+```typescript
+// Set appropriate slippage
+const slippage = 0.5; // 0.5%
+const minAmountOut = amountOut * (1 - slippage)
+```
+
+### 2. MEV Protection
+- Gunakan protected RPC (Flashbots RPC)
+- Enable MEV protection di wallet settings
+- Consider batch auctions untuk large orders
+
+### 3. Route Optimization
+```typescript
+// Check multiple DEXes for best price
+const quoteUniswap = await router.getQuote(tokenIn, tokenOut, amount)
+const quoteSushi = await sushiRouter.getQuote(tokenIn, tokenOut, amount)
+const bestRoute = min(quoteUniswap, quoteSushi)
+```
+
+## DEX Security Considerations
+
+1. **Approve carefully** — Set approval only when needed
+2. **Verify contracts** — Selalu check contract address di explorer
+3. **Beware of phishing** — Bookmark official sites
+4. **Start small** — Test dengan amount kecil dulu
+5. **Check fees** — Gas + protocol fee + price impact
+
+DEX adalah foundation dari DeFi ecosystem, enabling permissionless trading 24/7 tanpa perlu membuat account atau KYC.

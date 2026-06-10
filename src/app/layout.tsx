@@ -5,6 +5,9 @@ import { Toaster } from "sonner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { Analytics } from "@vercel/analytics/next";
 import { BRAND } from "@/lib/brand";
+import { Providers } from "@/components/providers";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://ai3.my.id";
 
 export const metadata: Metadata = {
   title: `${BRAND.name} — Platform Blog & Learning Web3 + AI`,
@@ -20,6 +23,14 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
   },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-US": `${APP_URL}/en`,
+      "id-ID": `${APP_URL}/id`,
+      "x-default": APP_URL,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -32,17 +43,19 @@ export default function RootLayout({
       <body
         className="antialiased min-h-screen flex flex-col"
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster richColors position="top-right" />
-          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-          <Analytics />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster richColors position="top-right" />
+            <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+            <Analytics />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

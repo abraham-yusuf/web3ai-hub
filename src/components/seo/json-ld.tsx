@@ -1,6 +1,26 @@
 "use client"
 
+/**
+ * Client-safe JSON-LD components and re-exports of server-safe utilities.
+ * This file is marked "use client" because JsonLd uses React hooks.
+ *
+ * For server-safe utilities (builders, JsonLdScript), import from ./json-ld-data
+ * or from this file (it re-exports them).
+ */
+
 import { useEffect, useRef } from "react"
+
+// Re-export server-safe utilities
+export {
+  JsonLdScript,
+  buildWebsiteJsonLd,
+  buildArticleJsonLd,
+  buildItemListJsonLd,
+  buildFaqJsonLd,
+  buildBreadcrumbJsonLd,
+  buildGlossaryPageJsonLd,
+  buildGlossaryTermJsonLd,
+} from "./json-ld-data"
 
 type JsonLdProps = {
   json: object
@@ -8,13 +28,16 @@ type JsonLdProps = {
 }
 
 /**
- * Injects a JSON-LD structured data block into the <head>.
- * Usage: <JsonLd json={mySchema} />
+ * Client component — injects JSON-LD into <head> via useEffect.
+ * Use this when you need dynamic JSON-LD that updates with state.
+ * For static JSON-LD in server components, use JsonLdScript from json-ld-data.tsx.
  */
 export function JsonLd({ json, id }: JsonLdProps) {
   const ref = useRef<HTMLScriptElement | null>(null)
 
   useEffect(() => {
+    if (typeof document === "undefined") return
+
     if (!ref.current) {
       ref.current = document.createElement("script")
       ref.current.type = "application/ld+json"
@@ -33,137 +56,4 @@ export function JsonLd({ json, id }: JsonLdProps) {
   }, [json, id])
 
   return null
-}
-
-/**
- * Renders JSON-LD scripts from static objects.
- * Use this in page components for static JSON-LD (SSR-safe).
- */
-export function JsonLdScript({ json, id }: JsonLdProps) {
-  return (
-    <script
-      id={id}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
-    />
-  )
-}
-
-/**
- * Builds a BreadcrumbList JSON-LD from an array of items.
- */
-export function buildBreadcrumbJsonLd(
-  items: Array<{ label: string; href: string }>,
-  baseUrl: string
-) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.label,
-      item: `${baseUrl}${item.href}`,
-    })),
-  }
-}
-
-/**
- * Builds a WebSite JSON-LD with SearchAction.
- */
-export function buildWebsiteJsonLd(baseUrl: string, siteName: string) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: siteName,
-    url: baseUrl,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-    inLanguage: "id-ID",
-  }
-}
-
-/**
- * Builds an Article JSON-LD for blog posts.
- */
-export function buildArticleJsonLd(opts: {
-  title: string
-  description: string
-  url: string
-  publishedAt: string
-  authorName: string
-  authorUrl?: string
-  image?: string
-}) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: opts.title,
-    description: opts.description,
-    datePublished: opts.publishedAt,
-    url: opts.url,
-    author: {
-      "@type": "Person",
-      name: opts.authorName,
-      url: opts.authorUrl,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "AI3",
-      url: opts.url.replace(/\/[^/]+\/?$/, ""),
-    },
-    image: opts.image,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": opts.url,
-    },
-    inLanguage: "id-ID",
-  }
-}
-
-/**
- * Builds an ItemList JSON-LD for listing pages.
- */
-export function buildItemListJsonLd(
-  items: Array<{ name: string; url: string; description?: string }>,
-  baseUrl: string
-) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.name,
-      url: `${baseUrl}${item.url}`,
-      description: item.description,
-    })),
-    numberOfItems: items.length,
-  }
-}
-
-/**
- * Builds an FAQPage JSON-LD.
- */
-export function buildFaqJsonLd(
-  faqs: Array<{ question: string; answer: string }>
-) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
-      },
-    })),
-  }
 }

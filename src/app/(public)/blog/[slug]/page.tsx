@@ -1,4 +1,5 @@
 import { AdSlot } from "@/components/ads/ad-slot"
+import { PostViewTracker } from "@/components/analytics/post-view-tracker"
 import { ShareButtons } from "@/components/blog/share-buttons"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"
@@ -33,11 +34,35 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 
   const canonicalUrl = `/blog/${post.slug}`
+  const postLanguage = (post as { language?: string }).language ?? "id"
+
+  // Build alternate languages for hreflang
+  const alternates: Metadata["alternates"] = {
+    canonical: canonicalUrl,
+    languages: {
+      "id-ID": `${canonicalUrl}`,
+    },
+  }
+
+  // Add English version hreflang if available
+  const englishVersion = (post as { englishVersion?: string }).englishVersion
+  if (englishVersion) {
+    alternates.languages = {
+      ...alternates.languages,
+      "en-US": `/en/blog/${englishVersion}`,
+    }
+  } else if (postLanguage === "en") {
+    // This is an English post, link back to Indonesian version if exists
+    alternates.languages = {
+      ...alternates.languages,
+      "id-ID": `/blog/${slug}`,
+    }
+  }
 
   return {
     title: post.title,
     description: post.excerpt,
-    alternates: { canonical: canonicalUrl },
+    alternates,
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -98,6 +123,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 lg:grid-cols-[1fr_280px]">
       <article className="max-w-3xl">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+
+        {post.id && <PostViewTracker postId={post.id} />}
 
         <div className="mb-8 space-y-4">
           <div className="flex flex-wrap items-center gap-2">

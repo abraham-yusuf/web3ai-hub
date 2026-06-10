@@ -1,233 +1,357 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ExternalLink, TrendingUp, MousePointerClick, FileText, Users } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { auth } from "@/auth"
 
-type AnalyticsData = {
-  dateSeries: { date: string; clicks: number }[]
-  topTools: { toolId: string; name: string; slug: string; category: string; clicks: number }[]
-  stats: {
-    totalClicks: number
-    weeklyClicks: number
-    totalPosts: number
-    totalAirdrops: number
-    totalLearnPages: number
-    totalUsers: number
-  }
-}
+export const dynamic = "force-dynamic"
 
-function MiniBarChart({ data }: { data: { date: string; clicks: number }[] }) {
-  const max = Math.max(...data.map((d) => d.clicks), 1)
-  const recent = data.slice(-14)
-  const barWidth = Math.max(4, Math.floor(560 / recent.length) - 2)
-
-  return (
-    <svg viewBox={`0 0 ${recent.length * (barWidth + 2)} 80`} className="w-full h-20 overflow-visible">
-      {recent.map((d, i) => {
-        const height = Math.max(2, (d.clicks / max) * 72)
-        const x = i * (barWidth + 2)
-        const y = 76 - height
-        return (
-          <g key={d.date}>
-            <rect
-              x={x}
-              y={y}
-              width={barWidth}
-              height={height}
-              rx={2}
-              fill="hsl(var(--primary))"
-              opacity={d.clicks > 0 ? 0.7 + (d.clicks / max) * 0.3 : 0.15}
-            />
-            <title>{`${d.date}: ${d.clicks} clicks`}</title>
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  accent = "primary",
+export default async function AdminAnalyticsPage({
+  searchParams,
 }: {
-  title: string
-  value: string | number
-  subtitle?: string
-  icon: React.ElementType
-  accent?: string
+  searchParams: Promise<{ period?: string }>
 }) {
-  const colors: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    green: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-    blue: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-    orange: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
-  }
-
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
-            <p className="mt-1 text-3xl font-bold">{value}</p>
-            {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
-          </div>
-          <div className={`rounded-lg p-2.5 ${colors[accent] ?? colors.primary}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-export default function AdminAnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/admin/analytics")
-      .then((r) => r.json())
-      .then((d) => setData(d))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
-
-  if (loading) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl bg-muted" />
-          ))}
-        </div>
+      <div className="p-10 text-center">
+        <p className="text-muted-foreground">Access denied. Admin/Editor only.</p>
       </div>
     )
   }
 
-  if (!data) {
-    return <p className="text-muted-foreground">Failed to load analytics.</p>
-  }
+  const params = await searchParams
+  const days = Math.min(90, Math.max(1, parseInt(params.period ?? "7", 10)))
+  // eslint-disable-next-line react-hooks/purity -- server components run per-request, Date.now() is safe
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-  const { dateSeries, topTools, stats } = data
+  // Fetch all data in parallel
+  const [
+    totalViews,
+    totalPosts,
+    recentViews,
+    postsWithViews,
+    topPosts,
+    byDeviceRaw,
+    byDayRaw,
+    topAuthors,
+  ] = await Promise.all([
+    // Total views (all time)
+    prisma.postView.count(),
+    // Total published posts
+    prisma.post.count({ where: { published: true } }),
+    // Views in the period
+    prisma.postView.count({ where: { createdAt: { gte: since } } }),
+    // Posts with view counts
+    prisma.post.findMany({
+      where: { published: true },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        category: true,
+        wordCount: true,
+        readingTime: true,
+        publishedAt: true,
+        _count: { select: { views: true } },
+      },
+      orderBy: { views: { _count: "desc" } },
+      take: 20,
+    }),
+    // Top posts by views in period
+    prisma.postView.groupBy({
+      by: ["postId"],
+      where: { createdAt: { gte: since } },
+      _count: true,
+      orderBy: { _count: { createdAt: "desc" } },
+      take: 10,
+    }),
+    // Device breakdown
+    prisma.postView.groupBy({
+      by: ["device"],
+      where: { createdAt: { gte: since } },
+      _count: true,
+    }),
+    // Daily views (raw query)
+    prisma.$queryRaw<{ day: string; count: bigint }[]>`
+      SELECT DATE(created_at) as day, COUNT(*)::bigint as count
+      FROM "PostView"
+      WHERE created_at >= ${since}
+      GROUP BY DATE(created_at)
+      ORDER BY day ASC
+    `,
+    // Top authors by total views
+    prisma.postView.groupBy({
+      by: ["userId"],
+      where: { createdAt: { gte: since }, userId: { not: null } },
+      _count: true,
+      orderBy: { _count: { createdAt: "desc" } },
+      take: 5,
+    }),
+  ])
+
+  // Build top posts with titles
+  const topPostIds = topPosts.map(p => p.postId)
+  const topPostTitles = await prisma.post.findMany({
+    where: { id: { in: topPostIds } },
+    select: { id: true, title: true, slug: true },
+  })
+  const titleMap = new Map(topPostTitles.map(p => [p.id, p]))
+
+  const topPostsWithTitles = topPosts.map(p => ({
+    ...p,
+    post: titleMap.get(p.postId),
+    views: p._count,
+  }))
+
+  // Device totals
+  const deviceMap: Record<string, number> = {}
+  for (const d of byDeviceRaw) {
+    if (d.device) deviceMap[d.device] = d._count
+  }
+  const deviceTotal = Object.values(deviceMap).reduce((a, b) => a + b, 0)
+
+  // Avg reading time
+  const avgReadingTimeResult = await prisma.postView.aggregate({
+    where: { createdAt: { gte: since }, readingTime: { gt: 0 } },
+    _avg: { readingTime: true },
+    _count: true,
+  })
+
+  const avgReadingTime = avgReadingTimeResult._avg.readingTime
+    ? Math.round(avgReadingTimeResult._avg.readingTime / 60) // seconds → minutes
+    : 0
+
+  const uniqueReaders = await prisma.postView.groupBy({
+    by: ["sessionId"],
+    where: { createdAt: { gte: since }, sessionId: { not: null } },
+    _count: true,
+  })
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">Affiliate clicks, content stats, and platform overview.</p>
+        <h1 className="text-3xl font-bold">Content Analytics</h1>
+        <p className="text-muted-foreground">Track blog performance and reader engagement</p>
+      </div>
+
+      {/* Period selector */}
+      <div className="flex gap-2">
+        {[7, 14, 30, 60, 90].map((d) => (
+          <Link
+            key={d}
+            href={`/admin/analytics?period=${d}`}
+            className={`inline-flex h-8 items-center rounded-md px-3 text-xs font-medium transition-colors ${
+              days === d
+                ? "bg-primary text-primary-foreground"
+                : "border border-border bg-background hover:bg-muted"
+            }`}
+          >
+            {d}d
+          </Link>
+        ))}
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Affiliate Clicks"
-          value={stats.totalClicks.toLocaleString()}
-          subtitle={`${stats.weeklyClicks} in the last 7 days`}
-          icon={MousePointerClick}
-          accent="primary"
-        />
-        <StatCard
-          title="This Week"
-          value={stats.weeklyClicks}
-          subtitle="Affiliate link clicks"
-          icon={TrendingUp}
-          accent="green"
-        />
-        <StatCard
-          title="Published Posts"
-          value={stats.totalPosts}
-          subtitle="Blog articles"
-          icon={FileText}
-          accent="blue"
-        />
-        <StatCard
-          title="Registered Users"
-          value={stats.totalUsers}
-          subtitle={`${stats.totalLearnPages} learn pages`}
-          icon={Users}
-          accent="orange"
-        />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border bg-gradient-to-br from-blue-50 to-blue-100 p-5 dark:from-blue-950/30 dark:to-blue-900/20">
+          <p className="text-sm text-muted-foreground">Total Views (all time)</p>
+          <p className="text-3xl font-bold tabular-nums">{totalViews.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">{totalPosts} published posts</p>
+        </div>
+        <div className="rounded-lg border bg-gradient-to-br from-green-50 to-green-100 p-5 dark:from-green-950/30 dark:to-green-900/20">
+          <p className="text-sm text-muted-foreground">Views (last {days} days)</p>
+          <p className="text-3xl font-bold tabular-nums">{recentViews.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">
+            ~{Math.round(recentViews / days)}/day avg
+          </p>
+        </div>
+        <div className="rounded-lg border bg-gradient-to-br from-purple-50 to-purple-100 p-5 dark:from-purple-950/30 dark:to-purple-900/20">
+          <p className="text-sm text-muted-foreground">Unique Readers (est.)</p>
+          <p className="text-3xl font-bold tabular-nums">{uniqueReaders.length.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">Sessions in {days} days</p>
+        </div>
+        <div className="rounded-lg border bg-gradient-to-br from-amber-50 to-amber-100 p-5 dark:from-amber-950/30 dark:to-amber-900/20">
+          <p className="text-sm text-muted-foreground">Avg Reading Time</p>
+          <p className="text-3xl font-bold tabular-nums">{avgReadingTime}m</p>
+          <p className="text-xs text-muted-foreground">
+            {(avgReadingTimeResult._count ?? 0).toLocaleString()} tracked reads
+          </p>
+        </div>
       </div>
 
-      {/* Affiliate Click Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Affiliate Clicks — Last 14 Days</CardTitle>
-          <CardDescription>Daily affiliate link clicks across all AI tools.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {dateSeries.length > 0 ? (
-            <MiniBarChart data={dateSeries} />
-          ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No clicks recorded yet. Share affiliate links to see data here.
-            </p>
-          )}
-          <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-            <span>{dateSeries[0]?.date}</span>
-            <span>{dateSeries[dateSeries.length - 1]?.date}</span>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Top Content */}
+        <div className="lg:col-span-2 space-y-3">
+          <h2 className="text-lg font-semibold">Top Content ({days}d)</h2>
+          <div className="rounded-lg border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-4 py-2 text-left">#</th>
+                  <th className="px-4 py-2 text-left">Title</th>
+                  <th className="px-4 py-2 text-right">Views</th>
+                  <th className="px-4 py-2 text-right">Words</th>
+                  <th className="px-4 py-2 text-right">Read Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topPostsWithTitles.map((item, idx) => (
+                  <tr key={item.postId} className="border-t">
+                    <td className="px-4 py-2 text-muted-foreground">{idx + 1}</td>
+                    <td className="px-4 py-2">
+                      <p className="font-medium">{item.post?.title ?? "Unknown"}</p>
+                      <Link
+                        href={`/blog/${item.post?.slug}`}
+                        className="text-xs text-primary hover:underline"
+                        target="_blank"
+                      >
+                        /blog/{item.post?.slug}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 text-right font-bold tabular-nums">
+                      {item.views.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">
+                      {postsWithViews.find(p => p.id === item.postId)?.wordCount.toLocaleString() ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">
+                      {postsWithViews.find(p => p.id === item.postId)?.readingTime ?? "—"}m
+                    </td>
+                  </tr>
+                ))}
+                {topPostsWithTitles.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      No view data yet for this period.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Top Performing Tools */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Top AI Tools — Last 30 Days</CardTitle>
-          <CardDescription>Most clicked affiliate links from your audience.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {topTools.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              No clicks yet. Add affiliate links to your AI tools.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {topTools.map((tool, i) => {
-                const maxClicks = topTools[0]?.clicks ?? 1
-                const pct = Math.round((tool.clicks / maxClicks) * 100)
-                return (
-                  <div key={tool.toolId} className="flex items-center gap-3">
-                    <span className="w-5 text-right text-xs font-medium text-muted-foreground">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-sm truncate">{tool.name}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant="secondary" className="text-xs">{tool.category}</Badge>
-                          <span className="text-xs font-semibold tabular-nums">{tool.clicks} clicks</span>
-                          <Link
-                            href={`/ai-tools/${tool.slug}`}
-                            target="_blank"
-                            className="text-muted-foreground hover:text-primary"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        </div>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Device Breakdown */}
+          <div className="rounded-lg border p-4">
+            <h3 className="mb-3 text-sm font-semibold">Device Breakdown</h3>
+            {deviceTotal > 0 ? (
+              <div className="space-y-2">
+                {(["desktop", "mobile", "tablet"] as const).map((dev) => {
+                  const count = deviceMap[dev] ?? 0
+                  const pct = deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0
+                  return (
+                    <div key={dev}>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="capitalize">{dev}</span>
+                        <span className="tabular-nums">{count.toLocaleString()} ({pct}%)</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-2 rounded-full bg-muted">
                         <div
-                          className="h-full bg-primary rounded-full transition-all"
+                          className="h-2 rounded-full bg-primary transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No device data yet.</p>
+            )}
+          </div>
+
+          {/* Daily Traffic Chart (ASCII style) */}
+          <div className="rounded-lg border p-4">
+            <h3 className="mb-3 text-sm font-semibold">Daily Views (last {days}d)</h3>
+            {byDayRaw.length > 0 ? (
+              <div className="space-y-1">
+                {byDayRaw.slice(-14).map((row) => {
+                  const count = Number(row.count)
+                  const max = Math.max(...byDayRaw.map(r => Number(r.count)), 1)
+                  const pct = Math.round((count / max) * 20)
+                  const bar = "█".repeat(pct)
+                  return (
+                    <div key={row.day} className="flex items-center gap-2 text-xs">
+                      <span className="w-10 text-muted-foreground tabular-nums shrink-0">
+                        {row.day.slice(5)}
+                      </span>
+                      <span className="tabular-nums w-8 text-right shrink-0">
+                        {count}
+                      </span>
+                      <span className="text-primary font-mono">{bar}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No traffic data yet.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* All Posts with Views */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">All Posts by Total Views</h2>
+        <div className="rounded-lg border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-4 py-2 text-left">Title</th>
+                <th className="px-4 py-2 text-left">Category</th>
+                <th className="px-4 py-2 text-right">Total Views</th>
+                <th className="px-4 py-2 text-right">Words</th>
+                <th className="px-4 py-2 text-left">Published</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {postsWithViews.map((post) => (
+                <tr key={post.id} className="border-t">
+                  <td className="px-4 py-2">
+                    <p className="font-medium">{post.title}</p>
+                  </td>
+                  <td className="px-4 py-2 text-muted-foreground">{post.category}</td>
+                  <td className="px-4 py-2 text-right font-bold tabular-nums">
+                    {post._count.views.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {post.wordCount.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-muted-foreground">
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "—"}
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/posts/${post.id}/edit`}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Edit
+                      </Link>
+                      <Link
+                        href={`/admin/posts/${post.id}/revisions`}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        History
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {postsWithViews.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    No published posts yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

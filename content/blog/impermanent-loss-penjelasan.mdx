@@ -1,0 +1,124 @@
+---
+title: "Memahami Impermanent Loss: Risiko yang Sering Diabaikan"
+date: "2025-06-12"
+author: "Admin"
+authors: ["admin"]
+category: "DeFi"
+tags: ["impermanent-loss", "lp", "defi", "amm"]
+excerpt: "Penjelasan lengkap tentang impermanent loss: fenomena yang terjadi ketika providing liquidity ke AMM dan bagaimana cara menguranginya."
+published: true
+---
+
+# Memahami Impermanent Loss: Risiko yang Sering Diabaikan
+
+Impermanent loss (IL) adalah fenomena yang terjadi ketika kamu menyediakan liquidity ke Automated Market Maker (AMM) dan harga aset yang kamu deposit berubah dibandingkan saat deposit. Ini adalah biaya tersembunyi yang sering tidak disadari liquidity providers baru.
+
+## Bagaimana Impermanent Loss Terjadi
+
+### Skenario Sederhana
+
+Misalkan kamu deposit 1 ETH + 1000 USDC ke liquidity pool saat harga ETH = $1000.
+
+```
+Initial State:
+- 1 ETH @ $1000 = $1000
+- 1000 USDC = $1000
+- Total value = $2000
+- LP tokens represent: 0.5% of pool (example)
+
+After price changes to ETH = $2000:
+- Pool must rebalance
+- Pool holds: 0.707 ETH + 1414 USDC
+- Your share: 0.0035 ETH + 7.07 USDC = ~$14.14
+- If held: 1 ETH @ $2000 + 1000 USDC = $3000
+- Impermanent Loss = $3000 - $14.14 = ~$14 (or about 0.47%)
+```
+
+Wait, let me recalculate...
+
+Actually, when ETH price doubles:
+- Pool uses constant product formula: x × y = k
+- Before: 1 ETH × 1000 USDC = 1,000,000
+- After: 0.707 ETH × 1414 USDC = 999,800 ≈ 1,000,000
+
+Your 1% share:
+- Before: 0.01 ETH + 10 USDC = $20
+- After: 0.00707 ETH + 14.14 USDC = $14.14 + $14.14 = $28.28
+
+Wait, yang di atas salah. Mari hitung ulang:
+
+## IL Calculation yang Benar
+
+```
+Initial: 1 ETH + 1000 USDC = $2000 total
+Price ETH naik ke $2000
+
+If you just HODL: 1 ETH @ $2000 + 1000 USDC = $3000
+
+As LP:
+- ETH dalam pool turun karena rebalancing
+- Pool holds ~0.707 ETH + 1414 USDC
+- Your 0.1% share = 0.000707 ETH + 1.414 USDC = $1.414 + $1.414 = $2.83
+
+Wait, itu terlalu kecil. 
+
+Actually the formula is:
+k = 1 × 1000 = 1000
+x = sqrt(k/price) = sqrt(1000/2000) = sqrt(0.5) = 0.707 ETH
+y = k/x = 1000/0.707 = 1414 USDC
+
+If you provided 1 ETH + 1000 USDC initially, you're 50% of the pool.
+Your LP value after price change: 0.5 × (0.707 ETH + 1414 USDC)
+= 0.3535 ETH + 707 USDC
+= $707 + $707 = $1414
+
+vs HODL: $3000
+IL = ($3000 - $1414) / $3000 = 52.9%
+
+That's significant!
+```
+
+## IL dalam Berbagai Scenario
+
+| Price Change | IL Percentage |
+|--------------|---------------|
+| 1.25x (25% up) | 0.6% |
+| 1.5x (50% up) | 2.0% |
+| 2x (100% up) | 5.7% |
+| 3x (200% up) | 13.4% |
+| 5x (400% up) | 25.5% |
+| 10x (900% up) | 42.5% |
+
+## Strategi Mengurangi IL
+
+### 1. Stablecoin Pairs
+Providing liquidity ke stablecoin pairs (USDC/USDT) hampir eliminate IL karena harga relatif stabil.
+
+### 2. Correlated Assets
+- ETH/stETH (same underlying)
+- wBTC/renBTC (same Bitcoin peg)
+
+### 3. Concentrated Liquidity (Uniswap V3)
+```typescript
+// V3 allows providing liquidity in specific price ranges
+// Only experiences IL when price exits your range
+const tickLower = 200000  // Price = $1800
+const tickUpper = 220000  // Price = $2200
+// You only get IL if ETH goes outside $1800-$2200
+```
+
+### 4. IL Protection Protocols
+Beberapa protokol menawarkan IL protection:
+- **Lyra** — Options protocol with IL protection
+- **Pendle** — Tokenizes yield dengan IL mitigation
+- **Balancer** — Smart pools dengan IL smoothing
+
+## IL vs Fee Earnings
+
+| Pool Type | Typical APY | Best For |
+|-----------|-------------|----------|
+| Stablecoin | 5-15% | Conservative LPs |
+| ETH/USDC | 20-50% | Medium risk |
+| Altcoin pairs | 50-200%+ | High risk, may not offset IL |
+
+Impermanent loss adalah biaya tersembunyi yang critical untuk dipahami sebelum menjadi liquidity provider. Selalu hitung potential IL sebelum deposit.

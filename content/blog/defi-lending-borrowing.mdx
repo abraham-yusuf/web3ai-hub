@@ -1,0 +1,127 @@
+---
+title: "DeFi Deep Dive: Lending dan Borrowing Protocol"
+date: "2025-06-11"
+author: "Admin"
+authors: ["admin"]
+category: "DeFi"
+tags: ["defi", "lending", "borrowing", "aave", "compound"]
+excerpt: "Memahami bagaimana lending protocol seperti Aave dan Compound bekerja: model collateral, interest rates, dan liquidation mechanisms."
+published: true
+---
+
+# DeFi Deep Dive: Lending dan Borrowing Protocol
+
+DeFi lending protocols memungkinkan pengguna untuk earn interest pada aset mereka (sebagai lender) atau meminjam aset dengan collateral (sebagai borrower). Mari kita dalami cara kerja protokol ini.
+
+## Konsep Dasar
+
+```
+LENDER                    BORROWER
+   │                          │
+   ├── Deposit USDT ──────────►│
+   │                          │
+   │     ◄─── Earn Interest ──┤
+   │                          │
+   │                          ├── Provide ETH as collateral ──►│
+   │                          │
+   │                          │◄─── Borrow USDT
+   │                          │
+   │                          ├── Pay interest + principal ──►│
+   │                          │
+```
+
+## Cara Kerja Protocol
+
+### 1. Collateral Management
+
+**Over-collateralization:**
+- Minimum collateral ratio: 110-150% tergantung protokol
+- Contoh: Pinjam $100 USDT → stake $150 ETH
+
+**Collateral types:**
+- Stablecoins (USDC, USDT)
+- ETH dan wrapper (wBTC)
+- Liquid staking tokens (stETH, cbETH)
+
+### 2. Interest Rate Model
+
+```solidity
+// Compound-style interest rate model
+function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) pure returns (uint256) {
+    uint256 utilization = borrows * 1e18 / cash;
+    
+    // Base rate + slope based on utilization
+    uint256 borrowRate =/utilization * borrowRateMultiplier / 1e18;
+    return borrowRate;
+}
+```
+
+**Interest rate formula:**
+```
+Interest Rate = Utilization × Interest Rate Slope
+```
+
+Tingkat bunga meningkat seiring utilisation meningkat untuk menarik lebih banyak lender.
+
+### 3. Liquidation
+
+Ketika collateral value turun dan health factor < 1:
+
+```typescript
+// Health Factor calculation
+const healthFactor = (collateralValue × liquidationThreshold) / borrowedValue
+
+// If healthFactor < 1, position can be liquidated
+if (healthFactor < 1) {
+  // Liquidator can repay borrowed asset
+  // and claim collateral at bonus (typically 5-10%)
+}
+```
+
+## Major Protocols
+
+| Protocol | TVL | Unique Feature |
+|----------|-----|----------------|
+| Aave | $20B+ | Multi-chain, credit delegation |
+| Compound | $8B+ | Simple, governance token |
+| Morpho | $5B+ | Peer-to-peer optimization |
+| Euler | $2B+ | Uncollateralized lending |
+
+## Aave V3 Features
+
+### 1. High Efficiency Mode (eMode)
+```typescript
+// Stablecoins with same peg can be borrowed
+// Allows 98% collateral factor for correlated assets
+const eModeParams = {
+  category: 1, // Stablecoins
+  collateralFactor: 0.98,
+  liquidationThreshold: 0.98
+}
+```
+
+### 2. Isolation Mode
+- New assets isolated dari existing pools
+- Limits contamination risk dari problematic assets
+
+### 3. Supply/Withdraw Caps
+- Prevents market manipulation
+- Protects against infinite mint exploits
+
+## Risks dan Mitigations
+
+### Smart Contract Risk
+- Audits dari multiple firms
+- Protocol has insurance (Aave Guardian)
+- Time locks pada critical actions
+
+### Liquidation Risk
+- Maintain high health factor (>2.0)
+- Jangan max leverage
+- Monitor position secara regular
+
+### Oracle Risk
+- Use Chainlink/multiple oracles
+- Circuit breakers untuk price manipulation
+
+DeFi lending protocols adalah fundamental building block yang enable financial inclusivity dan capital efficiency. Selalu do your own research sebelum participate.

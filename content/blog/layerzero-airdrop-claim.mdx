@@ -1,0 +1,188 @@
+---
+title: "Tutorial LayerZero Airdrop: Complete Claim Guide"
+date: "2025-06-18"
+author: "Admin"
+authors: ["admin"]
+category: "Airdrop"
+tags: ["layerzero", "airdrop", "claim", "zro"]
+excerpt: "Step-by-step guide claim LayerZero airdrop (ZRO token): eligibility check, claim process, dan apa yang perlu diperhatikan."
+published: true
+---
+
+# Tutorial LayerZero Airdrop: Complete Claim Guide
+
+LayerZero adalah omnichain interoperability protocol yang memfasilitasi cross-chain messaging. Airdrop ZRO mereka adalah salah satu yang paling anticipated di 2024-2025.
+
+## Eligibility Criteria (based on historical data)
+
+### Qualifying Activities
+
+```
+Bridge transactions:
+✅ Stargate (LayerZero's bridge product)
+✅ Other LayerZero-enabled bridges
+✅ Cross-chain swaps
+✅ Multi-chain DeFi positions
+
+Interaction patterns:
+✅ First interaction sebelum snapshot
+✅ Consistent activity over months
+✅ Multiple chains usage
+✅ Volume-based allocation
+```
+
+### Check Eligibility
+
+```typescript
+// Via LayerZeroscan (official checker)
+import axios from 'axios'
+
+async function checkEligibility(address: string) {
+  const response = await axios.get(
+    `https://api.layerzerolabs.io/v1/claim/eligibility/${address}`
+  )
+  
+  if (response.data.eligible) {
+    console.log(`Eligible for ${response.data.allocation} ZRO`)
+    console.log(`Claim window: ${response.data.claimStart} - ${response.data.claimEnd}`)
+  } else {
+    console.log('Not eligible')
+  }
+}
+```
+
+## Claim Process
+
+### Step 1: Persiapan
+
+```typescript
+// Yang kamu butuhkan:
+// 1. Wallet yang eligible (check di LayerZeroscan)
+// 2. ETH untuk gas di Ethereum
+// 3. Small amount token untuk bridge fee (optional)
+
+const CLAIM_CONFIG = {
+  network: 'ethereum',
+  token: 'ZRO',
+  contractAddress: '0x...', // Official ZRO contract
+  claimPortal: 'https://claim.layerzero.foundation'
+}
+```
+
+### Step 2: Connect dan Verify
+
+```
+1. Buka https://claim.layerzero.foundation
+2. Connect wallet (MetaMask, WalletConnect)
+3. Verify address eligibility
+4. Review allocation dan terms
+```
+
+### Step 3: Execute Claim
+
+```typescript
+// Contract interaction untuk claim
+// Simplified version
+
+const zroToken = '0x...'
+const claimAmount = '1000000000000000000' // 1 ZRO (18 decimals)
+
+async function claimZRO() {
+  // Approve ZRO contract (if needed)
+  const approveTx = await tokenContract.approve(
+    claimContract,
+    claimAmount
+  )
+  await approveTx.wait()
+  
+  // Execute claim
+  const claimTx = await claimContract.claim(claimAmount)
+  await claimTx.wait()
+  
+  console.log('Claimed ZRO successfully!')
+}
+```
+
+### Step 4: Post-Claim
+
+```typescript
+// Verify claim
+const balance = await zroContract.balanceOf(walletAddress)
+console.log(`New ZRO balance: ${balance}`)
+
+// Consider:
+- Staking options
+- Adding to liquidity
+- Holding for governance
+```
+
+## Important Warnings
+
+```
+⚠️  WARNING - Scam Prevention:
+
+❌ Official team TIDAK akan DM kamu first
+❌ TIDAK ada "urgent" claim deadline (scammers use this)
+❌ Verify URL SEBELUM connect wallet
+❌ TIDAK pernah share seed phrase
+❌ TIDAK approve contracts dari unofficial links
+
+Official links:
+- https://claim.layerzero.foundation
+- https://layerzero.foundation/
+```
+
+## ZRO Token Details
+
+| Detail | Info |
+|--------|------|
+| Token Address | Check official announcement |
+| Total Supply | 1,000,000,000 (1B) |
+| Airdrop Allocation | ~11% of total supply |
+| Initial Circulating | ~6-8% of supply |
+| Use Case | Protocol governance + utility |
+
+## After Claiming
+
+### Things to Consider
+
+```typescript
+// 1. Tax implications
+// Airdrop dianggap income di banyak jurisdictions
+// Document claim date dan value untuk tax purposes
+
+// 2. Lock-up periods
+// Check apakah ada vesting schedule
+//Beberapa allocations unlock over time
+
+// 3. Governance participation
+// ZRO holders dapat vote on protocol decisions
+// Consider participate untuk influence
+
+// 4. Security
+// Jangan hold semua di hot wallet
+// Consider hardware wallet untuk significant amounts
+```
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| "Not eligible" | Check different wallets, might be on L2s |
+| Gas too high | Wait for lower gas or claim from L2 |
+| Claim not loading | Clear cache, try different browser |
+| Transaction stuck | Speed up/cancel di MetaMask |
+| "Already claimed" | Check transaction history |
+
+### Contact Support
+
+```
+Official channels ONLY:
+- support@layerzero.network
+- Discord #support channel (official)
+- Twitter @LayerZero_Labs
+```
+
+LayerZero airdrop adalah significant event untuk omnichain ecosystem. Execute claim dengan hati-hati dan stay alert untuk scams.

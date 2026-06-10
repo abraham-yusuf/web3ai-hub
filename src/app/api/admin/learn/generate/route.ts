@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getAISettings } from "@/lib/ai/settings";
 import { streamWithProviderFallback } from "@/lib/ai/providers";
 import { AI_PROVIDERS, type AIProvider, type AISettings } from "@/lib/ai/types";
+import { rateLimit, RATE_LIMIT_TIERS, rateLimitHeaders, getClientIdentity } from "@/lib/rate-limiter";
 
 // --- Schemas ---
 
@@ -63,6 +64,15 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 403 });
+    }
+
+    const identity = session.user.email || getClientIdentity(req);
+    const limiter = rateLimit(identity, RATE_LIMIT_TIERS.strict, "learn-gen");
+    if (!limiter.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded", resetAt: limiter.resetAt },
+        { status: 429, headers: rateLimitHeaders(limiter) },
+      );
     }
 
     const body = await req.json();

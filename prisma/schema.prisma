@@ -25,10 +25,15 @@ model User {
   learnProgress LearnProgress[]
   posts         Post[]
   roadmaps      UserRoadmap[]
-  approvedPosts Post[]          @relation("PostApprovedBy")
-  rejectedPosts Post[]          @relation("PostRejectedBy")
-  revisions     PostRevision[]
-  coAuthoredPosts PostCoAuthor[]
+  postRevisions PostRevision[]
+  postViews     PostView[]
+  postAuthors   PostAuthor[]
+  xp            UserXP?
+  achievements  UserAchievement[]
+  streak        Streak?
+  referralsGiven Referral[]      @relation("Referrer")
+  referralsUsed Referral[]       @relation("Referee")
+  dailyActivity DailyActivity[]
 }
 
 model UserRoadmap {
@@ -65,82 +70,90 @@ model RoadmapStep {
 }
 
 model Post {
-  id           String    @id @default(cuid())
-  title        String
-  slug         String    @unique
-  content      String
-  excerpt      String?
-  coverImage   String?
-  category     String
-  tags         String[]
-  published    Boolean   @default(false)  // Legacy toggle — use status for workflow
-  featured     Boolean   @default(false)
-  publishedAt  DateTime?
-  scheduledFor DateTime?
-
-  // ── Content Workflow ──────────────────────────────
-  status       PostStatus @default(DRAFT)
-  version      Int        @default(1)      // Auto-increment on each save
-  viewCount    Int        @default(0)      // Reading analytics
-  readTimeMinutes Int?    @default(0)      // Estimated reading time (minutes)
-
-  // Review / Approval
-  submittedForReviewAt DateTime?
-  reviewedAt           DateTime?
-  reviewerNotes        String?             // Feedback from editor/reviewer
-  approvedById         String?
-  rejectedById         String?
-
-  // Multi-author
-  authorId     String
-  coAuthors    PostCoAuthor[]
-  revisions    PostRevision[]
-
-  // Timestamps
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  // Relations
-  author       User      @relation(fields: [authorId], references: [id])
-  approvedBy   User?     @relation("PostApprovedBy", fields: [approvedById], references: [id])
-  rejectedBy   User?     @relation("PostRejectedBy", fields: [rejectedById], references: [id])
+  id             String      @id @default(cuid())
+  title          String
+  slug           String      @unique
+  content        String
+  excerpt        String?
+  coverImage     String?
+  category       String
+  tags           String[]
+  wordCount      Int         @default(0)
+  readingTime    Int         @default(0) // minutes
+  status         PostStatus  @default(DRAFT)
+  published      Boolean     @default(false)
+  featured       Boolean     @default(false)
+  publishedAt    DateTime?
+  scheduledFor   DateTime?
+  authorId       String
+  approvedBy     String?
+  approvedAt     DateTime?
+  language       String      @default("id") // "id" | "en" for bilingual content
+  englishVersion String?     // slug of the English version (if this is Indonesian)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  author         User        @relation(fields: [authorId], references: [id])
+  revisions      PostRevision[]
+  views          PostView[]
+  coAuthors      PostAuthor[]
 
   @@index([slug])
   @@index([category])
   @@index([status])
+  @@index([scheduledFor])
+  @@index([language])
 }
 
-// Tracks every content revision for history / rollback
 model PostRevision {
   id        String   @id @default(cuid())
   postId    String
-  version   Int
   title     String
   content   String
   excerpt   String?
-  authorId  String   // Who made this revision
+  category  String
+  tags      String[]
+  wordCount Int      @default(0)
+  version   Int      @default(1) // auto-increment per post
+  reason    String?  // e.g. "Initial draft", "Content update", "Grammar fix"
+  authorId  String
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
 
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author User @relation(fields: [authorId], references: [id])
-
-  @@unique([postId, version])
-  @@index([postId])
+  @@index([postId, version])
+  @@index([postId, createdAt])
 }
 
-// Multi-author support (PRIMARY author + co-authors)
-model PostCoAuthor {
+model PostView {
+  id         String   @id @default(cuid())
+  postId     String
+  slug       String
+  userId     String?
+  sessionId  String?  // anonymous session
+  referrer   String?
+  userAgent  String?
+  country    String?
+  device     String?  // "desktop" | "mobile" | "tablet"
+  readingTime Int     @default(0) // seconds spent on page
+  createdAt  DateTime @default(now())
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+  @@index([slug, createdAt])
+  @@index([createdAt])
+}
+
+model PostAuthor {
   id        String   @id @default(cuid())
   postId    String
   userId    String
-  role      String   @default("CONTRIBUTOR") // PRIMARY | CO_AUTHOR | CONTRIBUTOR
-  addedAt   DateTime @default(now())
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  role      String   @default("co-author") // "co-author" | "editor" | "reviewer"
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
-  @@index([postId])
   @@index([userId])
 }
 
@@ -158,11 +171,61 @@ model Airdrop {
   steps           Json?
   requirements    String[]
   links           Json?
+  priceUsd        String?
+  marketCap       String?
+  launchDate      DateTime?
+  telegramUrl     String?
+  twitterUrl      String?
+  websiteUrl      String?
+  whitepaperUrl   String?
+  riskLevel       String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  alerts          AirdropAlert[]
+  reviews         AirdropReview[]
+  riskScore       AirdropRiskScore?
 
   @@index([slug])
   @@index([status])
+}
+
+model AirdropAlert {
+  id        String          @id @default(cuid())
+  airdropId String
+  type      AirdropAlertType
+  message   String
+  isRead    Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  airdrop   Airdrop         @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
+}
+
+model AirdropReview {
+  id        String   @id @default(cuid())
+  airdropId String
+  userId    String
+  rating    Int
+  comment   String?
+  riskScore Int?
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  airdrop   Airdrop  @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@unique([airdropId, userId])
+  @@index([airdropId])
+}
+
+model AirdropRiskScore {
+  id         String   @id @default(cuid())
+  airdropId  String   @unique
+  score      Int
+  factors    Json?
+  analyzedAt DateTime @default(now())
+  airdrop    Airdrop  @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
 }
 
 model AITool {
@@ -173,16 +236,105 @@ model AITool {
   logo          String?
   description   String
   category      String
-  pricing       String
+  pricing       String           // display string e.g. "From $12/mo"
+  pricingType   PricingType      @default(FREE)
+  pricingMin    Float?           // minimum price for paid tools
+  websiteUrl    String?
+  features      String[]         // key features list
+  integrations  String[]         // API, webhooks, Zapier, etc.
+  languages     String[]         // supported languages
+  platforms     String[]         // web, ios, android, desktop, api
+  hasFreeTrial  Boolean          @default(false)
+  hasApiAccess  Boolean          @default(false)
+  hasMobileApp  Boolean          @default(false)
+  viewCount     Int              @default(0)
   rating        Float            @default(0)
-  affiliateLink String?
+  ratingCount   Int              @default(0)
   featured      Boolean          @default(false)
+  sponsored     Boolean          @default(false) // paid placement
+  affiliateLink String?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   clicks        AffiliateClick[]
+  reviews       ToolReview[]
+  bookmarks     ToolBookmark[]
+  collectionItems ToolCollectionItem[]
 
   @@index([slug])
   @@index([category])
+  @@index([rating])
+  @@index([viewCount])
+}
+
+enum PricingType {
+  FREE
+  FREEMIUM
+  PAID
+  SUBSCRIPTION
+}
+
+model ToolReview {
+  id        String   @id @default(cuid())
+  toolId    String
+  userId    String?
+  userName  String   @default("Anonymous")
+  rating    Int      // 1-5
+  title     String?
+  content   String?
+  helpful   Int      @default(0)  // helpful vote count
+  verified  Boolean  @default(false) // verified user/purchase
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, rating])
+  @@index([toolId, status])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ToolBookmark {
+  id        String   @id @default(cuid())
+  toolId    String
+  userId    String   // no relation needed, anonymous bookmarks by session
+  createdAt DateTime @default(now())
+  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([toolId, userId])
+  @@index([userId])
+}
+
+model ToolCollection {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isPublic    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  color       String?  // accent color hex
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       ToolCollectionItem[]
+
+  @@index([slug])
+}
+
+model ToolCollectionItem {
+  id          String   @id @default(cuid())
+  collectionId String
+  toolId      String
+  order       Int      @default(0)
+  addedAt     DateTime @default(now())
+  collection  ToolCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  tool        AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, toolId])
+  @@index([collectionId])
 }
 
 model AffiliateClick {
@@ -275,17 +427,36 @@ model SiteSettings {
   updatedAt     DateTime @updatedAt
 }
 
+model AdminActivity {
+  id          String   @id @default(cuid())
+  action      String   // "post.create", "airdrop.update", "tool.delete", etc.
+  resource    String   // "Post", "Airdrop", "Tool", "Faq", "Glossary", etc.
+  resourceId  String?  // ID of the affected resource
+  actorId     String   // User ID
+  actorEmail  String?  // User email
+  ip          String?
+  userAgent   String?
+  metadata    Json?    // Additional context (old values, changes, etc.)
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+}
+
 enum Role {
   ADMIN
   EDITOR
+  AUTHOR
   VIEWER
 }
 
 enum PostStatus {
-  DRAFT       // Initial state, not submitted for review
-  IN_REVIEW   // Submitted for editorial review
-  APPROVED    // Approved, ready to publish (auto or manual)
-  PUBLISHED   // Live on the site
+  DRAFT         // Baru dibuat, belum dikirim review
+  PENDING_REVIEW // Sudah dikirim, menunggu persetujuan editor/admin
+  APPROVED      // Disetujui editor/admin, siap publish
+  PUBLISHED     // Sudah terbit
+  ARCHIVED      // Diarsipkan
 }
 
 enum AirdropStatus {
@@ -298,6 +469,14 @@ enum Difficulty {
   EASY
   MEDIUM
   HARD
+  SCAM
+}
+
+enum AirdropAlertType {
+  DEADLINE
+  STATUS_CHANGE
+  NEW_INFO
+  REMINDER
 }
 
 enum TrackType {
@@ -322,9 +501,27 @@ model TopicCluster {
   @@index([topic])
 }
 
+model GlossaryEntry {
+  id          String   @id @default(cuid())
+  term        String
+  slug        String   @unique
+  definition  String
+  example     String?
+  category    String?  // e.g. "DeFi", "NFT", "Layer 2", "Security"
+  tags        String[] // e.g. ["defi", "yield", "lending"]
+  language    String   @default("id") // "id" | "en"
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([language])
+  @@index([category])
+}
+
 model SeoScore {
   id          String   @id @default(cuid())
-  entityType  String   // "post" | "airdrop" | "tool" | "learn"
+  entityType  String   // "post" | "airdrop" | "tool" | "learn" | "glossary"
   entitySlug  String
   score       Int      @default(0)  // 0-100
   factors     Json?    // { title: int, meta: int, content: int, links: int, technical: int }
@@ -334,4 +531,175 @@ model SeoScore {
 
   @@unique([entityType, entitySlug])
   @@index([entityType])
+}
+
+model Faq {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  slug        String   @unique
+  category    String?  // e.g. "general", "billing", "technical", "web3", "ai-tools"
+  language    String   @default("id") // "id" | "en"
+  isPublished Boolean  @default(false)
+  order       Int      @default(0)   // display order within category
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([language])
+  @@index([category])
+}
+
+model AirdropTask {
+  id          String    @id @default(cuid())
+  airdropId   String
+  title       String    // e.g. "Follow Twitter", "Join Discord", "Bridge funds"
+  description String?
+  type        String    // "social", "defi", "testnet", "bridge", "swap"
+  xpReward    Int       @default(10)
+  isCompleted Boolean   @default(false)
+  userId      String?   // null = not started yet
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([airdropId])
+  @@index([userId])
+}
+
+model UserXP {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  totalXp   Int      @default(0)
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([totalXp])
+}
+
+model UserAirdropProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  airdropId  String
+  xpEarned   Int      @default(0)
+  tasksDone  Int      @default(0)
+  lastActive DateTime @default(now())
+
+  @@unique([userId, airdropId])
+  @@index([userId])
+  @@index([airdropId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String?
+  title     String
+  message   String
+  type      String   // "deadline" | "reminder" | "update" | "xp_earned"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, isRead])
+}
+
+model NotificationSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String
+  type      String   // "deadline" | "status_change" | "new_task"
+  email     String?
+  telegram  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, airdropId, type])
+  @@index([userId])
+  @@index([airdropId])
+}
+
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  name        String
+  description String
+  icon        String            // emoji or icon name
+  tier        AchievementTier   @default(BRONZE)
+  xpReward    Int               @default(10)
+  trigger     String            // "post.publish" | "streak.7" | "xp.1000" | "learn.complete" | "referral.use"
+  threshold   Int               @default(1)     // how many times trigger must fire
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  users       UserAchievement[]
+
+  @@index([slug])
+  @@index([trigger])
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  earnedAt      DateTime    @default(now())
+  xpAwarded     Int         @default(0)
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+model Streak {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  currentStreak Int     @default(0)
+  longestStreak Int     @default(0)
+  lastActiveDate DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([currentStreak])
+}
+
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String
+  refereeId   String?  // filled when referee signs up
+  code        String   @unique
+  usedAt      DateTime?
+  xpBonusAwarded Int   @default(0)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee     User?    @relation("Referee", fields: [refereeId], references: [id], onDelete: SetNull)
+
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([code])
+}
+
+model DailyActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  xpEarned  Int      @default(0)
+  actions   Int      @default(0)  // number of tracked actions that day
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
 }

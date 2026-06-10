@@ -5,7 +5,7 @@ import { ensureSlug, parseTagsInput } from "@/lib/posts"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
-import { PostStatus } from "@prisma/client"
+import { auditLog } from "@/lib/audit-log"
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -15,42 +15,56 @@ function getString(formData: FormData, key: string): string {
 function getOptionalDate(formData: FormData, key: string): Date | null {
   const value = getString(formData, key)
   if (!value) return null
-
   // Treat input as Asia/Jakarta (WIB)
-  // Input from datetime-local is YYYY-MM-DDTHH:mm
   const wibValue = value.includes("T") ? `${value}:00.000+07:00` : value
   const parsed = new Date(wibValue)
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-/**
- * Estimate read time from word count (avg 200 wpm).
- */
-function estimateReadTime(content: string): number {
-  const wordCount = content.trim().split(/\s+/).length
+function calculateReadingTime(wordCount: number): number {
+  // Average reading speed: 200 words/minute
   return Math.max(1, Math.ceil(wordCount / 200))
 }
 
-/**
- * Create a revision snapshot before updating a post.
- */
-async function createRevision(postId: string, authorId: string) {
-  const post = await prisma.post.findUnique({ where: { id: postId } })
+function countWords(text: string): number {
+  return text
+    .replace(/<[^>]*>/g, " ") // strip HTML tags
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean).length
+}
+
+/** Create a new revision snapshot before updating a post */
+async function snapshotRevision(postId: string, authorId: string, reason: string) {
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { title: true, content: true, excerpt: true, category: true, tags: true, wordCount: true },
+  })
   if (!post) return
+
+  // Get current max version for this post
+  const maxVersion = await prisma.postRevision.findFirst({
+    where: { postId },
+    orderBy: { version: "desc" },
+    select: { version: true },
+  })
 
   await prisma.postRevision.create({
     data: {
       postId,
-      version: post.version,
       title: post.title,
       content: post.content,
-      excerpt: post.excerpt,
+      excerpt: post.excerpt ?? "",
+      category: post.category,
+      tags: post.tags,
+      wordCount: post.wordCount,
+      version: (maxVersion?.version ?? 0) + 1,
+      reason,
       authorId,
     },
   })
 }
-
-// ── CREATE ─────────────────────────────────────────────────────────────────
 
 export async function createPostAction(formData: FormData) {
   const session = await auth()
@@ -62,24 +76,19 @@ export async function createPostAction(formData: FormData) {
   const excerpt = getString(formData, "excerpt")
   const category = getString(formData, "category") || "General"
   const tags = parseTagsInput(formData.get("tags")?.toString() ?? "")
+  const status = formData.get("status")?.toString() as string || "DRAFT"
+  const published = formData.get("published") === "on"
   const scheduledFor = getOptionalDate(formData, "scheduledFor")
+  const wordCount = countWords(content)
+  const readingTime = calculateReadingTime(wordCount)
 
   const slug = ensureSlug(slugInput || title)
+  const authorId = session.user.id
 
   const existing = await prisma.post.findUnique({ where: { slug }, select: { id: true } })
   if (existing) throw new Error("Slug sudah digunakan. Gunakan slug lain.")
 
-  // Determine initial status
-  const action = formData.get("action") as string | null
-  let status: PostStatus = "DRAFT"
-  if (action === "submit_for_review") {
-    status = "IN_REVIEW"
-  }
-
-  const authorId = session.user.id
-  const readTimeMinutes = estimateReadTime(content)
-
-  await prisma.post.create({
+  const post = await prisma.post.create({
     data: {
       title,
       slug,
@@ -87,22 +96,42 @@ export async function createPostAction(formData: FormData) {
       excerpt,
       category,
       tags,
-      published: false,
-      publishedAt: null,
+      wordCount,
+      readingTime,
+      status: (status as any) || "DRAFT",
+      published,
+      publishedAt: published ? new Date() : null,
       scheduledFor,
-      status,
-      submittedForReviewAt: status === "IN_REVIEW" ? new Date() : null,
-      readTimeMinutes,
       authorId,
     },
+  })
+
+  // Create initial revision
+  await prisma.postRevision.create({
+    data: {
+      postId: post.id,
+      title,
+      content,
+      excerpt: excerpt ?? "",
+      category,
+      tags,
+      wordCount,
+      version: 1,
+      reason: "Initial draft",
+      authorId,
+    },
+  })
+
+  await auditLog("post.create", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: post.id,
+    details: { title, slug, category, status },
   })
 
   revalidatePath("/blog")
   revalidatePath("/admin/posts")
   redirect("/admin/posts")
 }
-
-// ── UPDATE ──────────────────────────────────────────────────────────────────
 
 export async function updatePostAction(formData: FormData) {
   const session = await auth()
@@ -115,39 +144,26 @@ export async function updatePostAction(formData: FormData) {
   const excerpt = getString(formData, "excerpt")
   const category = getString(formData, "category") || "General"
   const tags = parseTagsInput(formData.get("tags")?.toString() ?? "")
+  const status = formData.get("status")?.toString() as string
+  const published = formData.get("published") === "on"
   const scheduledFor = getOptionalDate(formData, "scheduledFor")
-  const authorId = session.user.id
+  const reason = getString(formData, "revisionReason") || "Content update"
+  const wordCount = countWords(content)
+  const readingTime = calculateReadingTime(wordCount)
 
   const existing = await prisma.post.findUnique({ where: { slug }, select: { id: true } })
   if (existing && existing.id !== id) throw new Error("Slug sudah digunakan. Gunakan slug lain.")
 
-  const post = await prisma.post.findUnique({ where: { id } })
-  if (!post) throw new Error("Post tidak ditemukan")
-
-  // Snapshot current version before overwriting
-  await createRevision(id, authorId)
-
-  const action = formData.get("action") as string | null
-  const readTimeMinutes = estimateReadTime(content)
-
-  // Status transition logic
-  let status = post.status
-  let published = post.published
-  let publishedAt = post.publishedAt
-
-  if (action === "submit_for_review") {
-    // Only submit if currently a draft
-    if (post.status === "DRAFT") {
-      status = "IN_REVIEW"
-    }
-  } else if (action === "publish") {
-    // Direct publish (editor/admin bypass)
-    status = "PUBLISHED"
-    published = true
-    publishedAt = new Date()
+  // Snapshot before saving (only if content changed)
+  const oldPost = await prisma.post.findUnique({ where: { id }, select: { content: true } })
+  if (oldPost && oldPost.content !== content) {
+    await snapshotRevision(id, session.user.id, reason)
   }
 
-  const updated = await prisma.post.update({
+  const now = new Date()
+  const isPublishing = published && status === "PUBLISHED"
+
+  await prisma.post.update({
     where: { id },
     data: {
       title,
@@ -156,137 +172,88 @@ export async function updatePostAction(formData: FormData) {
       excerpt,
       category,
       tags,
-      scheduledFor,
-      status,
+      wordCount,
+      readingTime,
+      status: (status as any) || undefined,
       published,
-      publishedAt,
-      readTimeMinutes,
-      version: { increment: 1 },
+      publishedAt: isPublishing ? now : undefined,
+      scheduledFor,
     },
+  })
+
+  await auditLog("post.update", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { title, slug, category, status },
   })
 
   revalidatePath("/blog")
   revalidatePath(`/blog/${slug}`)
   revalidatePath("/admin/posts")
-
-  // If status changed, stay on edit page to show feedback
-  if (action === "submit_for_review" || action === "publish") {
-    redirect(`/admin/posts/${id}/edit?status=${status.toLowerCase()}`)
-  }
-
   redirect("/admin/posts")
 }
 
-// ── DELETE ──────────────────────────────────────────────────────────────────
-
-export async function deletePostAction(formData: FormData) {
-  const id = getString(formData, "id")
-  await prisma.post.delete({ where: { id } })
-  revalidatePath("/blog")
-  revalidatePath("/admin/posts")
-}
-
-// ── SUBMIT FOR REVIEW ────────────────────────────────────────────────────────
-
-export async function submitForReviewAction(postId: string) {
+export async function submitForReviewAction(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post) throw new Error("Post tidak ditemukan")
-  if (post.status !== "DRAFT") throw new Error("Hanya post berstatus DRAFT yang bisa disubmit")
+  const id = getString(formData, "id")
+  await snapshotRevision(id, session.user.id, "Submitted for review")
 
   await prisma.post.update({
-    where: { id: postId },
-    data: {
-      status: "IN_REVIEW",
-      submittedForReviewAt: new Date(),
-      reviewedAt: null,
-      reviewerNotes: null,
-      approvedById: null,
-      rejectedById: null,
-    },
+    where: { id },
+    data: { status: "PENDING_REVIEW" },
+  })
+
+  await auditLog("post.submit-review", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
   })
 
   revalidatePath("/admin/posts")
-  revalidatePath(`/admin/posts/${postId}/edit`)
+  redirect("/admin/posts")
 }
 
-// ── APPROVE ─────────────────────────────────────────────────────────────────
-
-export async function approvePostAction(postId: string, notes?: string) {
+export async function approvePostAction(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") {
-    throw new Error("Hanya Admin atau Editor yang bisa approve post")
+    throw new Error("Unauthorized — hanya admin/editor yang bisa approve")
   }
 
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post) throw new Error("Post tidak ditemukan")
-  if (post.status !== "IN_REVIEW") throw new Error("Hanya post berstatus IN_REVIEW yang bisa diapprove")
+  const id = getString(formData, "id")
+  await snapshotRevision(id, session.user.id, "Approved for publication")
 
   await prisma.post.update({
-    where: { id: postId },
+    where: { id },
     data: {
       status: "APPROVED",
-      approvedById: session.user.id,
-      reviewedAt: new Date(),
-      reviewerNotes: notes ?? null,
-      rejectedById: null,
+      approvedBy: session.user.id,
+      approvedAt: new Date(),
     },
   })
 
-  revalidatePath("/admin/posts")
-  revalidatePath(`/admin/posts/${postId}/edit`)
-}
-
-// ── REJECT ──────────────────────────────────────────────────────────────────
-
-export async function rejectPostAction(postId: string, notes: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
-  if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") {
-    throw new Error("Hanya Admin atau Editor yang bisa reject post")
-  }
-
-  if (!notes?.trim()) throw new Error("Catatan reviewer wajib diisi saat menolak post")
-
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post) throw new Error("Post tidak ditemukan")
-  if (post.status !== "IN_REVIEW") throw new Error("Hanya post berstatus IN_REVIEW yang bisa ditolak")
-
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      status: "DRAFT", // Send back to author for revision
-      rejectedById: session.user.id,
-      reviewedAt: new Date(),
-      reviewerNotes: notes,
-      approvedById: null,
-    },
+  await auditLog("post.approve", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
   })
 
   revalidatePath("/admin/posts")
-  revalidatePath(`/admin/posts/${postId}/edit`)
+  redirect("/admin/posts")
 }
 
-// ── PUBLISH APPROVED POST ────────────────────────────────────────────────────
-
-export async function publishPostAction(postId: string) {
+export async function publishPostAction(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") {
-    throw new Error("Hanya Admin atau Editor yang bisa publish post")
+    throw new Error("Unauthorized")
   }
 
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post) throw new Error("Post tidak ditemukan")
-  if (post.status !== "APPROVED" && post.status !== "IN_REVIEW") {
-    throw new Error("Post harus berstatus APPROVED atau IN_REVIEW untuk dipublish")
-  }
+  const id = getString(formData, "id")
+  await snapshotRevision(id, session.user.id, "Published")
 
   await prisma.post.update({
-    where: { id: postId },
+    where: { id },
     data: {
       status: "PUBLISHED",
       published: true,
@@ -294,23 +261,53 @@ export async function publishPostAction(postId: string) {
     },
   })
 
+  await auditLog("post.publish", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+  })
+
   revalidatePath("/blog")
   revalidatePath("/admin/posts")
-  revalidatePath(`/admin/posts/${postId}/edit`)
+  redirect("/admin/posts")
 }
 
-// ── REVERT TO REVISION ───────────────────────────────────────────────────────
-
-export async function revertToRevisionAction(postId: string, version: number) {
+export async function archivePostAction(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  const revision = await prisma.postRevision.findUnique({
-    where: { postId_version: { postId, version } },
-  })
-  if (!revision) throw new Error("Revision tidak ditemukan")
+  const id = getString(formData, "id")
+  await snapshotRevision(id, session.user.id, "Archived")
 
-  await createRevision(postId, session.user.id) // snapshot current before revert
+  await prisma.post.update({
+    where: { id },
+    data: { status: "ARCHIVED", published: false },
+  })
+
+  await auditLog("post.archive", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+  })
+
+  revalidatePath("/admin/posts")
+  redirect("/admin/posts")
+}
+
+export async function restoreRevisionAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const postId = getString(formData, "postId")
+  const revisionId = getString(formData, "revisionId")
+  const reason = getString(formData, "reason") || "Restored from revision"
+
+  // Snapshot current state before restoring
+  await snapshotRevision(postId, session.user.id, `Before restore to v${revisionId}`)
+
+  const revision = await prisma.postRevision.findUnique({ where: { id: revisionId } })
+  if (!revision) throw new Error("Revision not found")
+
+  const wordCount = countWords(revision.content)
+  const readingTime = calculateReadingTime(wordCount)
 
   await prisma.post.update({
     where: { id: postId },
@@ -318,42 +315,87 @@ export async function revertToRevisionAction(postId: string, version: number) {
       title: revision.title,
       content: revision.content,
       excerpt: revision.excerpt,
-      version: { increment: 1 },
+      category: revision.category,
+      tags: revision.tags,
+      wordCount,
+      readingTime,
     },
   })
 
+  await auditLog("post.restore-revision", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { revisionId },
+  })
+
+  revalidatePath("/admin/posts")
   revalidatePath("/blog")
-  revalidatePath(`/admin/posts/${postId}/edit`)
+  redirect("/admin/posts")
 }
 
-// ── ADD / REMOVE CO-AUTHOR ───────────────────────────────────────────────────
-
-export async function addCoAuthorAction(postId: string, userId: string, role: string = "CONTRIBUTOR") {
+export async function addCoAuthorAction(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") {
-    throw new Error("Hanya Admin atau Editor yang bisa mengelola co-author")
+    throw new Error("Unauthorized")
   }
 
-  await prisma.postCoAuthor.upsert({
+  const postId = getString(formData, "postId")
+  const userId = getString(formData, "userId")
+  const role = getString(formData, "coAuthorRole") || "co-author"
+
+  if (!userId) throw new Error("User ID diperlukan")
+
+  await prisma.postAuthor.upsert({
     where: { postId_userId: { postId, userId } },
     create: { postId, userId, role },
     update: { role },
   })
 
-  revalidatePath(`/admin/posts/${postId}/edit`)
-}
-
-export async function removeCoAuthorAction(postId: string, userId: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
-  if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") {
-    throw new Error("Hanya Admin atau Editor yang bisa mengelola co-author")
-  }
-
-  await prisma.postCoAuthor.deleteMany({
-    where: { postId, userId },
+  await auditLog("post.add-coauthor", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { coAuthorId: userId, role },
   })
 
-  revalidatePath(`/admin/posts/${postId}/edit`)
+  revalidatePath("/admin/posts")
+  redirect(`/admin/posts/${postId}/edit`)
+}
+
+export async function removeCoAuthorAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const postId = getString(formData, "postId")
+  const userId = getString(formData, "userId")
+
+  await prisma.postAuthor.deleteMany({ where: { postId, userId } })
+
+  await auditLog("post.remove-coauthor", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: postId,
+    details: { coAuthorId: userId },
+  })
+
+  revalidatePath("/admin/posts")
+  redirect(`/admin/posts/${postId}/edit`)
+}
+
+export async function deletePostAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const id = getString(formData, "id")
+  const post = await prisma.post.findUnique({ where: { id }, select: { title: true, slug: true } })
+
+  await prisma.post.delete({ where: { id } })
+
+  await auditLog("post.delete", session.user.email ?? session.user.name ?? "unknown", "Post", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { title: post?.title, slug: post?.slug },
+  })
+
+  revalidatePath("/blog")
+  revalidatePath("/admin/posts")
 }

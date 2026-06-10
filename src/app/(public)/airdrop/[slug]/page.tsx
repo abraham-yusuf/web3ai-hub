@@ -9,6 +9,9 @@ import Link from "next/link"
 import { StepTracker } from "./step-tracker"
 import { RequirementsChecklist } from "@/components/airdrop/requirements-checklist"
 import { ReportIssueForm } from "@/components/airdrop/report-issue-form"
+import { PriceDisplay } from "@/components/airdrop/price-display"
+import { RiskAnalysisPanel } from "@/components/airdrop/risk-analysis-panel"
+import { ReviewsSection } from "@/components/airdrop/reviews-section"
 
 export const dynamic = "force-dynamic"
 
@@ -24,6 +27,13 @@ interface AirdropStep {
   isOptional?: boolean
 }
 
+interface RiskScoreData {
+  score: number
+  level: "LOW" | "MEDIUM" | "HIGH" | "SCAM"
+  factors: Record<string, any>
+  analyzedAt: string
+}
+
 export async function generateStaticParams() {
   return []
 }
@@ -37,6 +47,9 @@ export default async function AirdropDetailPage({
 
   const airdrop = await prisma.airdrop.findUnique({
     where: { slug },
+    include: {
+      riskScore: true,
+    },
   })
 
   if (!airdrop) {
@@ -57,6 +70,16 @@ export default async function AirdropDetailPage({
   const steps = ((airdrop.steps ?? []) as unknown) as AirdropStep[]
   const statusVariant = airdrop.status === "ACTIVE" ? "default" : "secondary"
 
+  // Convert riskScore to a format suitable for the client component
+  const existingRiskScore: RiskScoreData | null = airdrop.riskScore
+    ? {
+        score: airdrop.riskScore.score,
+        level: (airdrop.riskLevel as "LOW" | "MEDIUM" | "HIGH" | "SCAM") || "LOW",
+        factors: airdrop.riskScore.factors as Record<string, any>,
+        analyzedAt: airdrop.riskScore.analyzedAt.toISOString(),
+      }
+    : null
+
   return (
     <div className="mx-auto max-w-4xl space-y-10 py-8">
       <div className="flex flex-col items-start gap-8 md:flex-row">
@@ -68,22 +91,52 @@ export default async function AirdropDetailPage({
             <Badge variant="outline">{airdrop.network}</Badge>
             <Badge variant={statusVariant}>{airdrop.status}</Badge>
             <Badge variant="outline">Difficulty: {airdrop.difficulty}</Badge>
+            {airdrop.riskLevel && (
+              <Badge
+                variant={
+                  airdrop.riskLevel === "LOW"
+                    ? "default"
+                    : airdrop.riskLevel === "MEDIUM"
+                      ? "secondary"
+                      : "destructive"
+                }
+              >
+                {airdrop.riskLevel} Risk
+              </Badge>
+            )}
           </div>
           <h1 className="text-4xl font-bold">{airdrop.name}</h1>
-          <p className="text-xl font-semibold text-primary">Est. Reward: {airdrop.estimatedReward ?? "TBA"}</p>
+          <p className="text-xl font-semibold text-primary">
+            Est. Reward: {airdrop.estimatedReward ?? "TBA"}
+          </p>
           <div className="flex gap-4">
             {socialLinks.website && (
-              <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+              <a
+                href={socialLinks.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary"
+              >
                 <Globe className="h-5 w-5" />
               </a>
             )}
             {socialLinks.twitter && (
-              <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+              <a
+                href={socialLinks.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary"
+              >
                 <X className="h-5 w-5" />
               </a>
             )}
             {socialLinks.discord && (
-              <a href={socialLinks.discord} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+              <a
+                href={socialLinks.discord}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary"
+              >
                 <Discord className="h-5 w-5" />
               </a>
             )}
@@ -106,14 +159,26 @@ export default async function AirdropDetailPage({
             </div>
           )}
 
+          {/* Reviews Section */}
+          <ReviewsSection
+            airdropId={airdrop.id}
+            isLoggedIn={false}
+          />
+
           {related.length > 0 && (
             <div className="space-y-4 rounded-xl border p-6">
               <h3 className="font-bold">Related Airdrops</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {related.map((item) => (
-                  <Link key={item.slug} href={`/airdrop/${item.slug}`} className="rounded-md border p-3 transition-colors hover:border-primary">
+                  <Link
+                    key={item.slug}
+                    href={`/airdrop/${item.slug}`}
+                    className="rounded-md border p-3 transition-colors hover:border-primary"
+                  >
                     <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.network} · {item.status}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.network} · {item.status}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -122,9 +187,22 @@ export default async function AirdropDetailPage({
         </div>
 
         <div className="space-y-6">
+          {/* Live Price Section */}
+          <PriceDisplay network={airdrop.network} airdropId={airdrop.id} />
+
+          {/* Risk Analysis Panel */}
+          <RiskAnalysisPanel
+            airdropId={airdrop.id}
+            initialRiskLevel={airdrop.riskLevel}
+            existingScore={existingRiskScore}
+          />
+
           <div className="space-y-4 rounded-xl border p-6">
             <h3 className="font-bold">Requirements Checklist</h3>
-            <RequirementsChecklist slug={airdrop.slug} requirements={airdrop.requirements} />
+            <RequirementsChecklist
+              slug={airdrop.slug}
+              requirements={airdrop.requirements}
+            />
           </div>
           <ReportIssueForm slug={airdrop.slug} />
         </div>
