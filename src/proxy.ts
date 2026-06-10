@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
+import { locales, defaultLocale } from "@/lib/i18n/config"
+
+type Locale = string
 
 /** Security headers applied to every response */
 const SECURITY_HEADERS = {
@@ -28,10 +31,34 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     newResponse.headers.set(key, value)
   }
-  // Prevent MIME type sniffing
   newResponse.headers.set("X-Content-Type-Options", "nosniff")
   return newResponse
 }
+
+// ── i18n helpers ────────────────────────────────────────────────────────────
+
+const PUBLIC_PATHS = ["/blog", "/faq", "/glossary", "/learn", "/airdrop", "/ai-tools", "/search", "/topics"]
+
+function getLocaleFromPath(pathname: string): Locale | null {
+  const segments = pathname.split("/").filter(Boolean)
+  const first = segments[0]
+  if (first && locales.includes(first)) return first
+  return null
+}
+
+function getLocaleFromHeaders(req: NextRequest): Locale {
+  const acceptLang = req.headers.get("accept-language")
+  if (!acceptLang) return defaultLocale
+  const langs = acceptLang
+    .split(",")
+    .map((l) => l.split(";")[0].trim().substring(0, 2).toLowerCase())
+  for (const lang of langs) {
+    if (locales.includes(lang)) return lang
+  }
+  return defaultLocale
+}
+
+// ── Combined proxy/middleware handler ───────────────────────────────────────
 
 const ADMIN_ROUTES = ["/admin"]
 const ADMIN_LOGIN = "/admin/login"
@@ -46,42 +73,57 @@ function hasAdminAccess(role: unknown): role is (typeof ADMIN_ALLOWED_ROLES)[num
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // ── Admin page routes ──────────────────────────────────────
+  // ── i18n routing ─────────────────────────────────────────────────────────
+
+  const pathLocale = getLocaleFromPath(pathname)
+
+  if (pathLocale) {
+    // URL already has locale prefix
+    const res = NextResponse.next()
+    res.cookies.set("NEXT_LOCALE", pathLocale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" })
+    res.headers.set("x-locale", pathLocale)
+    return applySecurityHeaders(res)
+  }
+
+  // Detect locale from cookie or Accept-Language header
+  const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value
+  const locale = cookieLocale && locales.includes(cookieLocale) ? cookieLocale : getLocaleFromHeaders(request)
+
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
+
+  if (isPublicPath) {
+    // Redirect to locale-prefixed path
+    const url = request.nextUrl.clone()
+    url.pathname = `/${locale}${pathname}`
+    return applySecurityHeaders(NextResponse.redirect(url))
+  }
+
+  // Non-public: set locale header and continue
+  const res = NextResponse.next()
+  res.headers.set("x-locale", locale)
+  res.cookies.set("NEXT_LOCALE", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" })
+
+  // ── Admin page routes ───────────────────────────────────────────────────
   const isAdminPage = ADMIN_ROUTES.some((route) => pathname.startsWith(route))
 
   if (isAdminPage && !pathname.startsWith(ADMIN_LOGIN)) {
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    })
-
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
     if (!token?.id || !hasAdminAccess(token.role)) {
       const loginUrl = new URL(ADMIN_LOGIN, request.url)
-      const callbackUrl = `${pathname}${request.nextUrl.search}`
-      loginUrl.searchParams.set("callbackUrl", callbackUrl)
+      loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`)
       return applySecurityHeaders(NextResponse.redirect(loginUrl))
     }
   }
 
-  // ── Admin API routes — auth check ───────────────────────────
+  // ── Admin API routes — auth check ───────────────────────────────────────
   const isAdminApi = API_ADMIN_ROUTES.some((route) => pathname.startsWith(route))
-
   if (isAdminApi) {
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    })
-
-    if (!token?.id) {
-      return applySecurityHeaders(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
-    }
-
-    if (!hasAdminAccess(token.role)) {
-      return applySecurityHeaders(NextResponse.json({ error: "Forbidden" }, { status: 403 }))
-    }
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+    if (!token?.id) return applySecurityHeaders(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
+    if (!hasAdminAccess(token.role)) return applySecurityHeaders(NextResponse.json({ error: "Forbidden" }, { status: 403 }))
   }
 
-  return applySecurityHeaders(NextResponse.next())
+  return applySecurityHeaders(res)
 }
 
 export const config = {
