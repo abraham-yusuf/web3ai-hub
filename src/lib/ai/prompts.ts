@@ -553,3 +553,84 @@ export function createNewsSummarizerPrompt(
     "Tambahkan disclaimer: 'Bukan nasihat keuangan.'",
   ].join("\n")
 }
+
+// ─── AI Translation, FAQ & Glossary Prompts ───────────────────────────────────
+
+/**
+ * FAQ Generator Prompt
+ */
+export function createFaqGeneratorPrompt(topic: string, count: number, language: string): string {
+  const langLabel = language === "en" ? "English" : "Bahasa Indonesia"
+  return [
+    `You are an expert content creator for AI3 platform (Web3 + AI education).`,
+    `Generate ${count} FAQ items about: "${topic}".`,
+    `Language: ${langLabel}.`,
+    "",
+    "For each FAQ item, provide:",
+    "1. A clear, specific question that users would actually ask",
+    "2. A comprehensive, accurate answer (3-5 sentences)",
+    "3. A category: Web3, AI Tools, DeFi, Airdrop, Technical, or General",
+    "",
+    "Format as JSON array:",
+    "[",
+    '  { "question": "...", "answer": "...", "category": "..." },',
+    "  ...",
+    "]",
+    "",
+    "Only output the JSON array. No explanation.",
+  ].join("\n")
+}
+
+/**
+ * Glossary Term Extractor Prompt
+ */
+export function createGlossaryTermExtractPrompt(topic: string, count: number, language: string): string {
+  const langLabel = language === "en" ? "English" : "Bahasa Indonesia"
+  return [
+    `You are a Web3 and crypto expert educator for AI3 platform.`,
+    `Generate ${count} glossary terms and definitions related to: "${topic}".`,
+    `Language: ${langLabel}.`,
+    "",
+    "For each term provide:",
+    "1. term: The technical term (properly capitalized)",
+    "2. definition: Clear explanation (2-4 sentences, in context of Web3/AI)",
+    "3. category: DeFi / NFT / Layer1 / Layer2 / AI / Security / General",
+    "",
+    "Format as JSON array:",
+    "[",
+    '  { "term": "...", "definition": "...", "category": "..." },',
+    "  ...",
+    "]",
+    "",
+    "Only output the JSON array. No explanation.",
+  ].join("\n")
+}
+
+/**
+ * AI Content Translation Prompt (for AI Translate API)
+ */
+export function createAiTranslateContentPrompt(
+  content: string,
+  targetLocale: "id" | "en",
+  sourceLocale?: "id" | "en"
+): string {
+  const targetLang = targetLocale === "en" ? "English" : "Bahasa Indonesia"
+  const sourceNote = sourceLocale ? `Translate from ${sourceLocale === "en" ? "English" : "Bahasa Indonesia"}` : "Detect the language and translate"
+  return [
+    `You are a professional translator for AI3 platform (Web3 + AI education).`,
+    `${sourceNote} to ${targetLang}.`,
+    "",
+    "Preserve ALL formatting:",
+    "- MDX/Markdown syntax (headings ##, lists -, code blocks ```, links, tables)",
+    "- Bold **text** and italic *text*",
+    "- Line breaks and paragraph structure",
+    "- Technical terms, code snippets, and proper nouns",
+    "",
+    "Content to translate:",
+    "---",
+    content,
+    "---",
+    "",
+    "Only output the translated content. No quotes, no explanations, no [translation] markers.",
+  ].join("\n")
+}
