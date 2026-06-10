@@ -12,6 +12,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+
+export async function POST() {
+  try {
     const now = new Date()
 
     // Find all scheduled posts that are due
