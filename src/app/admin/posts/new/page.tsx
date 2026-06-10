@@ -17,7 +17,9 @@ export default async function NewPostPage({
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Create Post</h1>
-        <p className="text-muted-foreground">Buat draft/publish post baru dari dashboard.</p>
+        <p className="text-muted-foreground">
+          Buat draft baru — bisa disubmit untuk review setelah selesai diedit.
+        </p>
       </div>
 
       <form action={createPostAction} className="space-y-4 rounded-lg border p-6">
@@ -33,7 +35,11 @@ export default async function NewPostPage({
 
         <div className="space-y-2">
           <Label htmlFor="excerpt">Excerpt</Label>
-          <textarea id="excerpt" name="excerpt" className="min-h-24 w-full rounded-md border bg-background p-3 text-sm" />
+          <textarea
+            id="excerpt"
+            name="excerpt"
+            className="min-h-24 w-full rounded-md border bg-background p-3 text-sm"
+          />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -49,7 +55,7 @@ export default async function NewPostPage({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="scheduledFor">Schedule publish</Label>
+          <Label htmlFor="scheduledFor">Schedule publish (optional)</Label>
           <Input id="scheduledFor" name="scheduledFor" type="datetime-local" />
         </div>
 
@@ -64,12 +70,20 @@ export default async function NewPostPage({
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="published" />
-          Publish sekarang
-        </label>
-
-        <Button type="submit">Simpan Post</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" name="action" value="save">
+            💾 Save as Draft
+          </Button>
+          <Button
+            type="submit"
+            name="action"
+            value="submit_for_review"
+            variant="outline"
+            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300"
+          >
+            📤 Submit for Review
+          </Button>
+        </div>
       </form>
     </div>
   )

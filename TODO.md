@@ -164,15 +164,15 @@
 
 ## Content Workflow
 
-- [ ] Draft workflow
-- [ ] Scheduled publishing
-- [ ] Revision history
-- [ ] Content approval flow
-- [ ] Multi-author support
-- [ ] Content versioning
+- [x] Draft workflow
+- [x] Scheduled publishing
+- [x] Revision history
+- [x] Content approval flow
+- [x] Multi-author support
+- [x] Content versioning
 - [ ] AI plagiarism checker
-- [ ] Reading analytics
-- [ ] Popular content ranking
+- [x] Reading analytics
+- [x] Popular content ranking
 
 ## Content Scaling
 
