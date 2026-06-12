@@ -634,3 +634,54 @@ export function createAiTranslateContentPrompt(
     "Only output the translated content. No quotes, no explanations, no [translation] markers.",
   ].join("\n")
 }
+
+// ─── Blog Content Expansion Prompts ──────────────────────────────────────────
+
+export type BlogCategory = "web3-fundamentals" | "ai-tutorials" | "airdrop-guides" | "opinion-news"
+
+const categoryGuide: Record<BlogCategory, string> = {
+  "web3-fundamentals": "Artikel edukatif tentang dasar-dasar Web3 dan blockchain. Gunakan analogi sehari-hari. Target audience: pemula yang belum punya pengalaman crypto. Sertakan langkah praktis jika relevan.",
+  "ai-tutorials": "Tutorial praktis tentang AI tools dan teknik. Sertakan contoh kode atau prompt. Target audience: developer dan tech enthusiast. Tambahkan difficulty indicator (beginner/intermediate/advanced).",
+  "airdrop-guides": "Panduan airdrop dengan langkah-langkah klaim. Sertakan checklist keamanan dan red flags scam. Target audience: crypto enthusiast. Link ke Airdrop Hub jika relevan.",
+  "opinion-news": "Artikel opini atau berita tentang tren Web3/AI. Sertakan analisis mendalam dan perspektif lokal Indonesia. Target audience: pembaca yang sudah familiar dengan Web3/AI.",
+}
+
+export function createBlogContentPrompt(
+  category: BlogCategory,
+  topic: string,
+  language: string,
+  customPrompt?: string,
+): string {
+  return [
+    "Kamu adalah content writer senior AI3 — platform Web3 & AI #1 di Indonesia.",
+    `Bahasa: ${language === "en" ? "English" : "Bahasa Indonesia"}.`,
+    `Kategori: ${category}.`,
+    categoryGuide[category],
+    `Topik: ${topic}.`,
+    "",
+    "Buat artikel blog lengkap dengan format JSON:",
+    "{",
+    '  "title": "Judul artikel (menarik, SEO-friendly)",',
+    '  "slug": "url-friendly-slug",',
+    '  "excerpt": "Ringkasan 1-2 kalimat untuk meta description",',
+    '  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],',
+    '  "readingTime": 8,',
+    '  "seo": {',
+    '    "titleTag": "Title tag untuk SEO (maks 60 karakter, | AI3)",',
+    '    "metaDescription": "Meta description (maks 160 karakter)"',
+    "  },",
+    '  "content": "Konten artikel dalam format Markdown"',
+    "}",
+    "",
+    "Ketentuan konten:",
+    "1. Gunakan heading H1 untuk judul utama, H2/H3 untuk sub-section",
+    "2. Panjang target: 1200-1800 kata",
+    "3. Sertakan Key Takeaways dalam bullet list di akhir",
+    "4. Untuk kripto: tambahkan disclaimer risiko",
+    "5. Hindari klaim pasti soal profit",
+    "6. Gunakan bahasa yang mudah dipahami",
+    customPrompt ? `7. ${customPrompt}` : "",
+    "",
+    "Output hanya JSON, tanpa penjelasan tambahan.",
+  ].filter(Boolean).join("\n")
+}

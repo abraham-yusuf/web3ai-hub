@@ -96,6 +96,8 @@ model Post {
   revisions      PostRevision[]
   views          PostView[]
   coAuthors      PostAuthor[]
+  archivedAt              DateTime?   // When auto-archived (opinion/news after 90 days)
+  similarityOverrideReason String?    // Admin reason when overriding similarity block
 
   @@index([slug])
   @@index([category])
