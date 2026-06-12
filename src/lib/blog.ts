@@ -66,8 +66,24 @@ export function getReadingStats(content: string): ReadingStats {
 }
 
 export function getPublishedBlogPosts(): PostMetadata[] {
+  const now = new Date()
+  const ARCHIVE_DAYS = 90
+
   return getAllFilesMetadata("blog")
-    .filter((post) => post.published !== false)
+    .filter((post) => {
+      if (post.published === false) return false
+
+      // Auto-archive opinion/news posts older than 90 days
+      if (post.category === "opinion-news" && post.date) {
+        const publishedDate = new Date(post.date)
+        const daysSincePublished = Math.floor(
+          (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60 * 24)
+        )
+        if (daysSincePublished > ARCHIVE_DAYS) return false
+      }
+
+      return true
+    })
     .sort((a, b) => {
       const aTime = a.date ? new Date(a.date).getTime() : 0
       const bTime = b.date ? new Date(b.date).getTime() : 0

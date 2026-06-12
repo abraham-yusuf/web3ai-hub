@@ -120,6 +120,17 @@ export default async function AdminPostsPage({
                     {post.scheduledFor && post.scheduledFor > new Date() && !post.published && (
                       <p className="text-xs text-amber-600">Scheduled: {post.scheduledFor.toLocaleString()}</p>
                     )}
+                    {post.category === "opinion-news" && post.publishedAt && !post.archivedAt && (() => {
+                      const daysSince = Math.floor((Date.now() - new Date(post.publishedAt).getTime()) / (1000 * 60 * 60 * 24))
+                      const daysLeft = 90 - daysSince
+                      if (daysLeft <= 30 && daysLeft > 0) {
+                        return <p className="text-xs text-orange-500">Auto-archive in {daysLeft} days</p>
+                      }
+                      return null
+                    })()}
+                    {post.archivedAt && (
+                      <p className="text-xs text-muted-foreground">Archived: {new Date(post.archivedAt).toLocaleDateString()}</p>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={status.variant as any}>{status.label}</Badge>
