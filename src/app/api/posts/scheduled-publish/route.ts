@@ -8,13 +8,10 @@ export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("authorization")
     const cronSecret = process.env.CRON_SECRET
-    if (cronSecret && authHeader !== `****** {
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-
-export async function POST() {
-  try {
     const now = new Date()
 
     // Find all scheduled posts that are due

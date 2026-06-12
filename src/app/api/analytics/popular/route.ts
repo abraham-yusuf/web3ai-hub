@@ -24,14 +24,13 @@ export async function GET(request: Request) {
 
     const posts = await prisma.post.findMany({
       where,
-      orderBy: { viewCount: "desc" },
+      orderBy: { publishedAt: "desc" },
       take: limit,
       select: {
         id: true,
         title: true,
         slug: true,
         category: true,
-        viewCount: true,
         publishedAt: true,
       },
     })

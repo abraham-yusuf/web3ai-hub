@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const { locale, slug } = await params
   const post = await getPublicBlogPostBySlug(slug)
 
+
+
   if (!post) {
     return { title: "Post Not Found" }
   }
@@ -98,7 +100,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   // If not found, try searching in DB directly
   if (!post) {
-    post = await getPublicBlogPostBySlug(slug)
+    const dbPost = await getPublicBlogPostBySlug(slug)
+    if (dbPost) post = dbPost
   }
 
   if (!post) {
@@ -114,7 +117,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const nextPost = currentIndex >= 0 ? allPosts[currentIndex - 1] ?? null : null
   const relatedPosts = allPosts
     .filter((entry) => entry.slug !== post!.slug)
-    .filter((entry) => entry.category === post!.category || entry.tags.some((tag) => post!.tags.includes(tag)))
+    .filter((entry) => entry.category === post!.category || (entry.tags ?? []).some((tag) => (post!.tags ?? []).includes(tag)))
     .slice(0, 3)
 
   const readingStats = getReadingStats(post.content)
@@ -188,7 +191,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <Badge variant="outline">{post.category}</Badge>
               </Link>
             )}
-            {post.tags.map((tag) => (
+            {(post.tags ?? []).map((tag) => (
               <Link key={tag} href={`/${locale}/blog/tag/${slugifyHeading(tag)}`}>
                 <Badge variant="secondary">#{tag}</Badge>
               </Link>
@@ -324,7 +327,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mt-12 space-y-4 border-t pt-8">
             <h2 className="text-2xl font-bold">Related posts</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {relatedPosts.map((relatedPost) => (
+              {(relatedPosts ?? []).map((relatedPost) => (
                 <Link key={relatedPost.slug} href={`/${locale}/blog/${relatedPost.slug}`} className="rounded-lg border p-4 transition-colors hover:border-primary">
                   <p className="text-sm text-muted-foreground">{relatedPost.category ?? "General"}</p>
                   <p className="mt-1 font-semibold">{relatedPost.title}</p>
@@ -344,7 +347,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <p className="mb-3 text-sm font-semibold">Table of contents</p>
           {toc.length > 0 ? (
             <ul className="space-y-2 text-sm">
-              {toc.map((item) => (
+              {(toc ?? []).map((item) => (
                 <li key={item.id} className={item.level === 3 ? "ml-4" : ""}>
                   <a href={`#${item.id}`} className="text-muted-foreground transition-colors hover:text-primary">
                     {item.text}

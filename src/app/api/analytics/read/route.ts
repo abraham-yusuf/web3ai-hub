@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 
 /**
  * POST /api/analytics/read
- * Track a post read / increment view count.
+ * Track a post read / view count.
  * Body: { postId: string }
  */
 export async function POST(request: Request) {
@@ -14,13 +14,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "postId required" }, { status: 400 })
     }
 
-    const post = await prisma.post.update({
+    // Get post slug for the view record
+    const post = await prisma.post.findUnique({
       where: { id: postId },
-      data: { viewCount: { increment: 1 } },
-      select: { id: true, viewCount: true },
+      select: { id: true, slug: true },
     })
 
-    return NextResponse.json({ postId: post.id, viewCount: post.viewCount })
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 })
+    }
+
+    // Create a view record
+    await prisma.postView.create({
+      data: { postId: post.id, slug: post.slug },
+    })
+
+    // Get total view count
+    const viewCount = await prisma.postView.count({
+      where: { postId },
+    })
+
+    return NextResponse.json({ postId, viewCount })
   } catch (err) {
     console.error("[analytics/read]", err)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
