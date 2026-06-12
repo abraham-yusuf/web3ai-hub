@@ -1,0 +1,343 @@
+---
+title: "Events dan Error Handling di Solidity"
+slug: "solidity-events-dan-errors"
+order: 14
+---
+
+## Events di Solidity
+
+Events adalah cara smart contract untuk mencatat (log) aktivitas di blockchain. Events tidak bisa dibaca oleh contract lain, tapi bisa dipantau oleh aplikasi off-chain (frontend, backend, bot).
+
+Events sangat penting karena:
+- Menyimpan data di **transaction logs** (lebih murah dari storage)
+- Memudahkan **tracking** aktivitas contract
+- Dibutuhkan frontend untuk **update UI** secara real-time
+- Digunakan oleh **block explorer** seperti Etherscan
+
+## Mendefinisikan dan Emit Event
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract EventDemo {
+    // Definisi event
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    event Approval(address indexed owner, address indexed spender, uint256 amount);
+
+    mapping(address => uint256) public balances;
+
+    // Indexed parameter bisa di-filter
+    // Maksimal 3 indexed parameters per event
+    function transfer(address _to, uint256 _amount) public {
+        require(balances[msg.sender] >= _amount, "Saldo kurang");
+        balances[msg.sender] -= _amount;
+        balances[_to] += _amount;
+
+        // Emit event
+        emit Transfer(msg.sender, _to, _amount);
+    }
+
+    function mint(address _to, uint256 _amount) public {
+        balances[_to] += _amount;
+        emit Transfer(address(0), _to, _amount);
+    }
+}
+```
+
+## Indexed Parameters
+
+Parameter yang di-mark `indexed` bisa digunakan untuk filtering di blockchain:
+
+```solidity
+contract IndexedEventDemo {
+    // indexed memungkinkan filter per address
+    event OrderCreated(
+        address indexed buyer,
+        address indexed seller,
+        uint256 indexed orderId,
+        uint256 amount
+    );
+
+    uint256 public orderCount;
+
+    function createOrder(address _seller, uint256 _amount) public returns (uint256) {
+        orderCount++;
+        emit OrderCreated(msg.sender, _seller, orderCount, _amount);
+        return orderCount;
+    }
+}
+```
+
+## Membaca Event dari JavaScript
+
+```javascript
+// Menggunakan ethers.js
+const contract = new ethers.Contract(address, abi, provider);
+
+// Listen ke event secara real-time
+contract.on("Transfer", (from, to, amount, event) => {
+    console.log(`${from} mengirim ${amount} ke ${to}`);
+});
+
+// Query event historis
+const filter = contract.filters.Transfer(null, myAddress);
+const events = await contract.queryFilter(filter, 0, "latest");
+```
+
+## Error Handling: require, revert, assert
+
+Solidity menyediakan tiga cara untuk menangani error:
+
+### require()
+
+Digunakan untuk validasi input dan kondisi. Mengembalikan sisa gas ke caller.
+
+```solidity
+contract RequireDemo {
+    address public owner;
+    uint256 public minValue = 1 ether;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function deposit() public payable {
+        // Validasi condition
+        require(msg.value >= minValue, "Deposit minimal 1 ETH");
+        require(msg.sender != address(0), "Address tidak valid");
+    }
+
+    function onlyOwnerAction() public view {
+        require(msg.sender == owner, "Hanya owner");
+    }
+}
+```
+
+### revert()
+
+Digunakan untuk membatalkan transaksi dengan pesan error:
+
+```solidity
+contract RevertDemo {
+    enum Role { Admin, User }
+    mapping(address => Role) public roles;
+
+    function adminAction() public {
+        if (roles[msg.sender] != Role.Admin) {
+            revert("Hanya admin yang bisa melakukan ini");
+        }
+        // logic admin
+    }
+
+    function complexValidation(uint256 _value) public pure returns (uint256) {
+        if (_value == 0) {
+            revert("Value tidak boleh 0");
+        }
+        if (_value > 1000) {
+            revert("Value terlalu besar");
+        }
+        return _value * 2;
+    }
+}
+```
+
+### assert()
+
+Digunakan untuk invariant checks — kondisi yang seharusnya selalu true. Menghabiskan semua gas jika gagal.
+
+```solidity
+contract AssertDemo {
+    uint256 public totalSupply;
+    mapping(address => uint256) public balances;
+
+    function totalInvariant() public view {
+        uint256 total;
+        // assert hanya untuk kondisi yang TIDAK MUNGKIN false
+        assert(totalSupply >= total);
+    }
+
+    function withdraw(uint256 _amount) public {
+        require(balances[msg.sender] >= _amount, "Saldo kurang");
+        balances[msg.sender] -= _amount;
+        totalSupply -= _amount;
+        // Pastikan totalSupply tidak underflow (sudah dicegah oleh Solidity 0.8+)
+        assert(totalSupply >= 0);
+        payable(msg.sender).transfer(_amount);
+    }
+}
+```
+
+## Custom Errors (Solidity 0.8.4+)
+
+Custom errors lebih hemat gas dibanding string error message:
+
+```solidity
+contract CustomErrorDemo {
+    // Definisi custom errors
+    error InsufficientBalance(uint256 available, uint256 required);
+    error Unauthorized(address caller);
+    error InvalidAmount(uint256 amount);
+    error TransferFailed();
+
+    mapping(address => uint256) public balances;
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function deposit() public payable {
+        if (msg.value == 0) revert InvalidAmount(0);
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 _amount) public {
+        uint256 balance = balances[msg.sender];
+        if (balance < _amount) {
+            revert InsufficientBalance(balance, _amount);
+        }
+        balances[msg.sender] -= _amount;
+
+        (bool success, ) = payable(msg.sender).call{value: _amount}("");
+        if (!success) revert TransferFailed();
+    }
+
+    function ownerOnly() public view {
+        if (msg.sender != owner) revert Unauthorized(msg.sender);
+    }
+}
+```
+
+## Custom Errors di Modifier
+
+```solidity
+contract AccessControlErrors {
+    error NotOwner();
+    error NotWhitelisted();
+    error ContractPaused();
+
+    address public owner;
+    bool public paused;
+    mapping(address => bool) public whitelist;
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
+
+    modifier onlyWhitelisted() {
+        if (!whitelist[msg.sender]) revert NotWhitelisted();
+        _;
+    }
+
+    modifier whenNotPaused() {
+        if (paused) revert ContractPaused();
+        _;
+    }
+
+    function whitelistedAction() public onlyOwner onlyWhitelisted whenNotPaused {
+        // logic
+    }
+}
+```
+
+## try/catch
+
+Digunakan untuk menangani error dari external call:
+
+```solidity
+interface IExternalContract {
+    function riskyFunction() external returns (uint256);
+}
+
+contract TryCatchDemo {
+    event Success(uint256 result);
+    event CatchError(string reason);
+    event CatchCustomError(uint256 errorCode);
+
+    function safeCall(address _target) public {
+        IExternalContract ext = IExternalContract(_target);
+
+        try ext.riskyFunction() returns (uint256 result) {
+            emit Success(result);
+        } catch Error(string memory reason) {
+            // Menangani require/revert dengan string
+            emit CatchError(reason);
+        } catch (bytes memory) {
+            // Menangani error lainnya
+        }
+    }
+}
+```
+
+## Best Practices Error Handling
+
+1. **Gunakan require** untuk validasi input di awal function
+2. **Gunakan custom errors** untuk menghemat gas
+3. **Gunakan assert** hanya untuk invariant yang benar-benar tidak mungkin false
+4. **Selalu emit event** setelah state change penting
+5. **Gunakan indexed** pada parameter yang sering di-filter
+
+## Contoh: Contract dengan Error Handling Lengkap
+
+```solidity
+contract TokenSale {
+    error SoldOut();
+    error InsufficientPayment(uint256 required, uint256 sent);
+    error NotOwner();
+    error SaleNotActive();
+
+    address public owner;
+    uint256 public tokenPrice = 0.01 ether;
+    uint256 public maxSupply = 10000;
+    uint256 public sold;
+    bool public active;
+
+    event Purchase(address indexed buyer, uint256 amount);
+    event SaleStatusChanged(bool active);
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
+
+    modifier whenActive() {
+        if (!active) revert SaleNotActive();
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        active = true;
+    }
+
+    function buy(uint256 _amount) public payable whenActive {
+        uint256 totalCost = _amount * tokenPrice;
+        if (msg.value < totalCost) {
+            revert InsufficientPayment(totalCost, msg.value);
+        }
+        if (sold + _amount > maxSupply) {
+            revert SoldOut();
+        }
+
+        sold += _amount;
+
+        // Refund kelebihan
+        if (msg.value > totalCost) {
+            payable(msg.sender).transfer(msg.value - totalCost);
+        }
+
+        emit Purchase(msg.sender, _amount);
+    }
+
+    function toggleSale() public onlyOwner {
+        active = !active;
+        emit SaleStatusChanged(active);
+    }
+}
+```
+
+## Kesimpulan
+
+Events dan error handling adalah komponen penting untuk smart contract yang robust. Events memungkinkan tracking aktivitas, sementara error handling memastikan contract berperilaku aman. Selanjutnya kita akan belajar tentang **inheritance dan interface**.

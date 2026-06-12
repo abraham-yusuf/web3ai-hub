@@ -1,0 +1,189 @@
+---
+title: "Evaluasi AI Agent"
+order: 31
+authors: ["admin"]
+excerpt: "Cara mengukur kualitas AI Agent: task completion, efficiency, safety, dan benchmark framework."
+---
+
+# Evaluasi AI Agent
+
+Evaluasi agent lebih kompleks dari evaluasi model biasa. Agent melakukan multi-step actions — perlu metrik yang menangkap keseluruhan performa.
+
+## Metrik Evaluasi Agent
+
+### 1. Task Completion Rate
+
+```typescript
+interface TaskResult {
+  goal: string;
+  completed: boolean;
+  steps: number;
+  timeMs: number;
+  cost: number;
+}
+
+function evaluateTaskCompletion(results: TaskResult[]) {
+  const completed = results.filter((r) => r.completed).length;
+  return {
+    completionRate: completed / results.length,
+    avgSteps: mean(results.map((r) => r.steps)),
+    avgTime: mean(results.map((r) => r.timeMs)),
+    avgCost: mean(results.map((r) => r.cost)),
+  };
+}
+```
+
+### 2. Efficiency Metrics
+
+```typescript
+interface EfficiencyMetrics {
+  stepsPerTask: number;      // Lebih sedikit = lebih efisien
+  tokensPerTask: number;     // Cost proxy
+  toolCallsPerTask: number;  // Lebih sedikit = lebih efisien
+  errorRate: number;         // Tool call failures
+  retryRate: number;         // Berapa banyak retry
+}
+```
+
+### 3. Quality Metrics
+
+```typescript
+interface QualityMetrics {
+  accuracy: number;     // Apakah hasilnya benar?
+  completeness: number; // Apakah semua requirement terpenuhi?
+  relevance: number;    // Apakah sesuai goal?
+  safety: number;       // Apakah aman?
+}
+```
+
+## Agent Benchmark
+
+### SWE-bench (Software Engineering)
+
+```typescript
+// Benchmark: Agent harus fix GitHub issues
+const sweBenchTasks = [
+  {
+    repo: "django/django",
+    issue: "#12345",
+    description: "Fix queryset bug with nested prefetch",
+    testPatch: "tests/prefetch/test_nested.py",
+  },
+  // ... 300 tasks
+];
+
+async function runSWEBench(agent: Agent) {
+  const results = [];
+
+  for (const task of sweBenchTasks) {
+    const start = Date.now();
+    const result = await agent.fixIssue(task);
+    const time = Date.now() - start;
+
+    // Verify fix
+    const testsPass = await runTests(task.repo, task.testPatch);
+
+    results.push({
+      task: task.issue,
+      fixed: testsPass,
+      time,
+      steps: result.steps,
+    });
+  }
+
+  return summarizeResults(results);
+}
+```
+
+### WebArena (Web Browsing)
+
+```typescript
+// Benchmark: Agent harus menyelesaikan tugas di website
+const webArenaTasks = [
+  {
+    goal: "Find the cheapest flight from Jakarta to Tokyo on Dec 15",
+    website: "flight-booking.example.com",
+    evaluation: "Check if selected flight is indeed cheapest",
+  },
+];
+```
+
+### Custom Evaluation Set
+
+```typescript
+const customEval = [
+  {
+    goal: "Buat ringkasan 3 artikel terbaru tentang blockchain",
+    expected: {
+      hasSummary: true,
+      summaryLength: "200-500 words",
+      coversRecentArticles: true,
+    },
+    evaluation: async (result: string) => {
+      const scores = {
+        hasSummary: result.length > 200,
+        correctLength: result.split(" ").length >= 200 && result.split(" ").length <= 500,
+      };
+      return Object.values(scores).filter(Boolean).length / Object.values(scores).length;
+    },
+  },
+];
+```
+
+## Automated Evaluation Pipeline
+
+```typescript
+class AgentEvaluator {
+  async evaluate(agent: Agent, testSet: TestCase[]): Promise<EvalReport> {
+    const results = [];
+
+    for (const test of testSet) {
+      const start = Date.now();
+      const output = await agent.run(test.goal);
+      const time = Date.now() - start;
+
+      const quality = await this.evaluateQuality(output, test.expected);
+      const efficiency = this.evaluateEfficiency(output, time);
+
+      results.push({ test: test.goal, quality, efficiency, output });
+    }
+
+    return {
+      avgQuality: mean(results.map((r) => r.quality.score)),
+      avgEfficiency: mean(results.map((r) => r.efficiency.score)),
+      passRate: results.filter((r) => r.quality.score > 0.7).length / results.length,
+      details: results,
+    };
+  }
+}
+```
+
+## Continuous Monitoring
+
+```typescript
+// Log setiap agent run
+interface AgentRunLog {
+  runId: string;
+  goal: string;
+  steps: Step[];
+  totalTokens: number;
+  totalTime: number;
+  toolsUsed: string[];
+  errors: string[];
+  result: "success" | "failure" | "partial";
+  userFeedback?: "positive" | "negative";
+}
+
+// Dashboard metrics
+const dashboard = {
+  successRate: "85%",
+  avgSteps: "4.2",
+  avgCost: "$0.12",
+  avgTime: "15s",
+  topFailureReasons: ["Tool timeout", "Invalid JSON", "Rate limit"],
+};
+```
+
+## Latihan
+
+Buat evaluasi untuk research agent: 10 test cases, automated scoring, dan dashboard yang menampilkan completion rate dan avg cost.

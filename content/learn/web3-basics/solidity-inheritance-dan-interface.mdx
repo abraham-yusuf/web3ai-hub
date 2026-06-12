@@ -1,0 +1,381 @@
+---
+title: "Inheritance dan Interface di Solidity"
+slug: "solidity-inheritance-dan-interface"
+order: 15
+---
+
+## Inheritance di Solidity
+
+Inheritance memungkinkan sebuah contract mewarisi fitur dari contract lain. Ini mempromosikan code reuse dan organisasi kode yang lebih baik.
+
+## Basic Inheritance
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+// Parent contract (base contract)
+contract Ownable {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Bukan owner");
+        _;
+    }
+
+    function transferOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0), "Address tidak valid");
+        owner = _newOwner;
+    }
+}
+
+// Child contract mewarisi Ownable
+contract MyToken is Ownable {
+    string public name;
+    mapping(address => uint256) public balances;
+
+    constructor(string memory _name) {
+        name = _name;
+    }
+
+    function mint(address _to, uint256 _amount) public onlyOwner {
+        balances[_to] += _amount;
+    }
+}
+```
+
+Keyword `is` digunakan untuk mewarisi contract. `MyToken` sekarang memiliki semua function dan variable dari `Ownable`.
+
+## Multiple Inheritance
+
+Solidity mendukung multiple inheritance:
+
+```solidity
+contract ERC20 {
+    mapping(address => uint256) public balanceOf;
+
+    function _transfer(address from, address to, uint256 amount) internal {
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+    }
+}
+
+contract ERC20Burnable is ERC20 {
+    function _burn(address from, uint256 amount) internal {
+        balanceOf[from] -= amount;
+    }
+}
+
+contract ERC20Mintable is ERC20 {
+    function _mint(address to, uint256 amount) internal {
+        balanceOf[to] += amount;
+    }
+}
+
+// Multiple inheritance
+contract MyFullToken is ERC20Burnable, ERC20Mintable {
+    string public name;
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
+
+    function burn(address from, uint256 amount) external {
+        _burn(from, amount);
+    }
+}
+```
+
+## Constructor Inheritance
+
+```solidity
+contract Base {
+    uint256 public value;
+
+    constructor(uint256 _value) {
+        value = _value;
+    }
+}
+
+// Cara 1: di inheritance
+contract Child1 is Base(100) {
+    // value = 100
+}
+
+// Cara 2: di constructor
+contract Child2 is Base {
+    constructor(uint256 _val) Base(_val) {
+        // value = _val
+    }
+}
+```
+
+## Virtual dan Override
+
+Function harus di-mark `virtual` agar bisa di-override oleh child contract:
+
+```solidity
+contract Shape {
+    // virtual: bisa di-override
+    function area() public pure virtual returns (uint256) {
+        return 0;
+    }
+
+    function description() public pure virtual returns (string memory) {
+        return "Shape";
+    }
+}
+
+contract Circle is Shape {
+    uint256 public radius;
+
+    constructor(uint256 _radius) {
+        radius = _radius;
+    }
+
+    // override: mengganti implementasi parent
+    function area() public pure override returns (uint256) {
+        // Perkiraan: π * r² ≈ 3 * r²
+        return 3 * radius * radius;
+    }
+
+    function description() public pure override returns (string memory) {
+        return "Circle";
+    }
+}
+
+contract Rectangle is Shape {
+    uint256 public width;
+    uint256 public height;
+
+    constructor(uint256 _w, uint256 _h) {
+        width = _w;
+        height = _h;
+    }
+
+    function area() public pure override returns (uint256) {
+        return width * height;
+    }
+}
+```
+
+## Override di Multiple Inheritance
+
+```solidity
+contract A {
+    function foo() public pure virtual returns (string memory) {
+        return "A";
+    }
+}
+
+contract B is A {
+    function foo() public pure virtual override returns (string memory) {
+        return "B";
+    }
+}
+
+contract C is A {
+    function foo() public pure virtual override returns (string memory) {
+        return "C";
+    }
+}
+
+// Harus specify semua parent yang di-override
+contract D is B, C {
+    function foo() public pure override(B, C) returns (string memory) {
+        return "D";
+    }
+}
+```
+
+## Abstract Contract
+
+Abstract contract tidak bisa di-deploy sendiri. Harus di-herit oleh contract lain:
+
+```solidity
+// Keyword 'abstract' menandakan contract tidak lengkap
+abstract contract BaseStorage {
+    mapping(address => uint256) internal _data;
+
+    // Function tanpa implementasi = harus di-override
+    function store(address user, uint256 value) public virtual;
+
+    function retrieve(address user) public view virtual returns (uint256);
+}
+
+contract SimpleStorage is BaseStorage {
+    function store(address user, uint256 value) public override {
+        _data[user] = value;
+    }
+
+    function retrieve(address user) public view override returns (uint256) {
+        return _data[user];
+    }
+}
+```
+
+## Interface
+
+Interface mendefinisikan function yang HARUS diimplementasikan oleh contract. Interface tidak memiliki implementasi dan tidak bisa memiliki state variables.
+
+```solidity
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    // Events
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract MyERC20 is IERC20 {
+    string public name;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    constructor(string memory _name, uint256 _supply) {
+        name = _name;
+        totalSupply = _supply;
+        balanceOf[msg.sender] = _supply;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Saldo kurang");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(balanceOf[from] >= amount, "Saldo kurang");
+        require(allowance[from][msg.sender] >= amount, "Allowance kurang");
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        allowance[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+}
+```
+
+## Menggunakan Interface untuk Memanggil Contract Lain
+
+```solidity
+interface IUniswapRouter {
+    function swapExactETHForTokens(
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+}
+
+contract SwapHelper {
+    IUniswapRouter public router;
+
+    constructor(address _router) {
+        router = IUniswapRouter(_router);
+    }
+
+    function swapETHForTokens(
+        address token,
+        uint256 minAmount
+    ) external payable {
+        address[] memory path = new address[](2);
+        path[0] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; // WETH
+        path[1] = token;
+
+        router.swapExactETHForTokens{value: msg.value}(
+            minAmount,
+            path,
+            msg.sender,
+            block.timestamp + 300
+        );
+    }
+}
+```
+
+## Abstract Contract vs Interface
+
+| Fitur | Abstract Contract | Interface |
+|---|---|---|
+| State variables | ✅ | ❌ |
+| Constructor | ✅ | ❌ |
+| Implemented functions | ✅ | ❌ (hanya di Solidity 0.8.8+) |
+| Multiple inheritance | ✅ | ✅ |
+| Gas cost | Lebih murah | Lebih mahal |
+| Use case | Base contract | Standar/API |
+
+## Contoh Praktis: Access Control System
+
+```solidity
+interface IAccessControl {
+    function hasRole(bytes32 role, address account) external view returns (bool);
+    function grantRole(bytes32 role, address account) external;
+    function revokeRole(bytes32 role, address account) external;
+}
+
+abstract contract AccessControl is IAccessControl {
+    mapping(bytes32 => mapping(address => bool)) private _roles;
+
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+    modifier onlyRole(bytes32 role) {
+        require(_roles[role][msg.sender], "Missing role");
+        _;
+    }
+
+    function hasRole(bytes32 role, address account)
+        public view override returns (bool)
+    {
+        return _roles[role][account];
+    }
+
+    function grantRole(bytes32 role, address account)
+        public override onlyRole(ADMIN_ROLE)
+    {
+        _roles[role][account] = true;
+    }
+
+    function revokeRole(bytes32 role, address account)
+        public override onlyRole(ADMIN_ROLE)
+    {
+        _roles[role][account] = false;
+    }
+
+    function _setupRole(bytes32 role, address account) internal {
+        _roles[role][account] = true;
+    }
+}
+
+contract MyDAO is AccessControl {
+    constructor() {
+        _setupRole(ADMIN_ROLE, msg.sender);
+    }
+
+    function executeProposal(string calldata proposal)
+        external onlyRole(ADMIN_ROLE)
+    {
+        // Execute proposal logic
+    }
+}
+```
+
+## Kesimpulan
+
+Inheritance dan interface memungkinkan kode yang reusable dan terstruktur. Interface mendefinisikan standar, sementara inheritance mempromosisi code reuse. Selanjutnya kita akan belajar tentang **testing dan deployment** smart contract.

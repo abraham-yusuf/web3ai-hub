@@ -1,0 +1,287 @@
+---
+title: "Variables dan Types di Solidity"
+slug: "solidity-variables-dan-types"
+order: 12
+---
+
+## Tipe Data di Solidity
+
+Solidity memiliki sistem tipe data yang kuat dan statically typed. Memahami tipe data adalah fondasi penting untuk menulis smart contract yang efisien dan aman.
+
+## Integer: `uint` dan `int`
+
+Solidity menyediakan tipe integer signed (`int`) dan unsigned (`uint`). Angka di belakang menunjukkan jumlah bit.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract IntegerDemo {
+    uint8 public smallNum = 255;       // 0 sampai 255
+    uint256 public bigNum = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
+    int256 public signedNum = -100;
+    uint public defaultUint;            // default uint256, nilai default 0
+
+    function increment() public pure returns (uint256) {
+        uint256 x = 10;
+        uint256 y = 20;
+        return x + y;  // 30
+    }
+
+    function decrement() public pure returns (int256) {
+        int256 a = 5;
+        int256 b = 10;
+        return a - b;  // -5
+    }
+}
+```
+
+**Tips:** Gunakan `uint256` sebagai default karena paling gas-efficient. Gunakan ukuran lebih kecil hanya jika benar-benar perlu menghemat storage (misalnya dalam struct).
+
+## Address
+
+Tipe `address` digunakan untuk menyimpan alamat Ethereum (20 byte / 160 bit).
+
+```solidity
+contract AddressDemo {
+    address public owner;
+    address payable public payee;
+
+    constructor() {
+        owner = msg.sender;  // alamat yang deploy contract
+        payee = payable(msg.sender);
+    }
+
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function sendETH(address payable _to) public payable {
+        _to.transfer(msg.value);
+    }
+}
+```
+
+Tipe `address` biasa hanya bisa menyimpan alamat. Tipe `address payable` bisa digunakan untuk mengirim ETH.
+
+## Boolean
+
+Tipe `bool` bernilai `true` atau `false`.
+
+```solidity
+contract BoolDemo {
+    bool public isActive = true;
+
+    function toggle() public {
+        isActive = !isActive;
+    }
+
+    function andOperation(bool a, bool b) public pure returns (bool) {
+        return a && b;
+    }
+}
+```
+
+## String dan Bytes
+
+```solidity
+contract StringBytesDemo {
+    string public name = "Solidity";
+    bytes32 public hash;  // fixed-size byte array
+
+    constructor() {
+        hash = keccak256(abi.encodePacked("hello"));
+    }
+
+    function concatenate(string memory a, string memory b)
+        public pure returns (string memory)
+    {
+        return string(abi.encodePacked(a, " ", b));
+    }
+
+    function getLength(string memory s) public pure returns (uint256) {
+        return bytes(s).length;
+    }
+}
+```
+
+`bytes32` lebih murah secara gas dibanding `string` untuk data pendek dan fixed-size.
+
+## Array
+
+Array bisa fixed-size atau dynamic:
+
+```solidity
+contract ArrayDemo {
+    // Dynamic array
+    uint256[] public numbers;
+    string[] public names;
+
+    // Fixed-size array
+    uint256[5] public fixedArray;
+
+    function addNumber(uint256 _num) public {
+        numbers.push(_num);
+    }
+
+    function removeLast() public {
+        numbers.pop();
+    }
+
+    function getLength() public view returns (uint256) {
+        return numbers.length;
+    }
+
+    function getFirst() public view returns (uint256) {
+        require(numbers.length > 0, "Array kosong");
+        return numbers[0];
+    }
+
+    function getAll() public view returns (uint256[] memory) {
+        return numbers;
+    }
+}
+```
+
+## Mapping
+
+Mapping adalah tipe data key-value, mirip dengan hash map atau dictionary:
+
+```solidity
+contract MappingDemo {
+    // mapping dari address ke balance
+    mapping(address => uint256) public balances;
+
+    // mapping dari address ke nama
+    mapping(address => string) public names;
+
+    // nested mapping
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function setName(string memory _name) public {
+        names[msg.sender] = _name;
+    }
+
+    function getBalance(address _user) public view returns (uint256) {
+        return balances[_user];
+    }
+}
+```
+
+Mapping tidak bisa di-iterate. Jika perlu iterasi, gunakan array tambahan untuk menyimpan keys.
+
+## Struct
+
+Struct digunakan untuk membuat tipe data custom yang mengelompokkan beberapa variabel:
+
+```solidity
+contract StructDemo {
+    struct Student {
+        string name;
+        uint256 age;
+        uint256 grade;
+        bool isActive;
+    }
+
+    Student[] public students;
+    mapping(uint256 => Student) public studentById;
+
+    function addStudent(
+        string memory _name,
+        uint256 _age,
+        uint256 _grade
+    ) public {
+        students.push(Student(_name, _age, _grade, true));
+    }
+
+    function getStudent(uint256 _index)
+        public view returns (
+            string memory name,
+            uint256 age,
+            uint256 grade,
+            bool isActive
+        )
+    {
+        Student storage s = students[_index];
+        return (s.name, s.age, s.grade, s.isActive);
+    }
+}
+```
+
+## Enum
+
+Enum digunakan untuk mendefinisikan kumpulan nilai konstan:
+
+```solidity
+contract EnumDemo {
+    enum Status { Pending, Active, Paused, Closed }
+
+    Status public currentStatus;
+
+    constructor() {
+        currentStatus = Status.Pending;
+    }
+
+    function activate() public {
+        currentStatus = Status.Active;
+    }
+
+    function pause() public {
+        require(currentStatus == Status.Active, "Harus aktif");
+        currentStatus = Status.Paused;
+    }
+
+    function getStatus() public view returns (Status) {
+        return currentStatus;
+    }
+}
+```
+
+## Data Location: Storage, Memory, Calldata
+
+Di Solidity, referensi types (string, array, struct) memiliki tiga lokasi penyimpanan:
+
+- **storage** — Data permanen di blockchain
+- **memory** — Temporary, hanya selama eksekusi function
+- **calldata** — Read-only, untuk parameter function yang tidak dimodifikasi
+
+```solidity
+contract DataLocationDemo {
+    string[] public names;
+
+    // calldata: paling murah, read-only
+    function processName(string calldata _name) public pure returns (bytes memory) {
+        return bytes(_name);
+    }
+
+    // memory: bisa dimodifikasi di dalam function
+    function modifyName(string memory _name) public pure returns (string memory) {
+        _name = _name; // bisa dimodifikasi
+        return _name;
+    }
+}
+```
+
+## Konstanta dan Immutable
+
+```solidity
+contract ConstantsDemo {
+    uint256 public constant MAX_SUPPLY = 10000;
+    string public constant NAME = "MyToken";
+    address public immutable deployer;
+
+    constructor() {
+        deployer = msg.sender;
+    }
+}
+```
+
+`constant` harus diketahui saat compile time. `immutable` bisa ditetapkan di constructor.
+
+## Kesimpulan
+
+Pemahaman yang baik tentang tipe data Solidity sangat penting untuk menulis smart contract yang efisien. Selanjutnya kita akan belajar tentang **functions dan modifiers**.

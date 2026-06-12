@@ -1,0 +1,201 @@
+---
+title: "Tool Use untuk AI Agent"
+order: 28
+authors: ["admin"]
+excerpt: "Mengimplementasikan tool use: function calling, tool registry, dan execution safety."
+---
+
+# Tool Use untuk AI Agent
+
+Tools membuat agent bisa berinteraksi dengan dunia nyata: mencari web, mengirim email, mengupdate database, menjalankan code.
+
+## Function Calling (OpenAI)
+
+```typescript
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "search_web",
+      description: "Cari informasi di web",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query" },
+          num_results: { type: "number", description: "Jumlah hasil (default 5)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_file",
+      description: "Baca isi file",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Path ke file" },
+        },
+        required: ["path"],
+      },
+    },
+  },
+];
+
+const response = await openai.chat.completions.create({
+  model: "gpt-4o",
+  messages,
+  tools,
+  tool_choice: "auto",
+});
+```
+
+## Tool Execution
+
+```typescript
+async function handleToolCalls(response: any) {
+  const toolCalls = response.choices[0].message.tool_calls;
+  if (!toolCalls) return null;
+
+  const results = [];
+
+  for (const call of toolCalls) {
+    const { name, arguments: args } = call.function;
+    const parsed = JSON.parse(args);
+
+    let result;
+    switch (name) {
+      case "search_web":
+        result = await webSearch(parsed.query, parsed.num_results);
+        break;
+      case "read_file":
+        result = await readFile(parsed.path);
+        break;
+      default:
+        result = { error: "Unknown tool: " + name };
+    }
+
+    results.push({
+      tool_call_id: call.id,
+      role: "tool",
+      content: JSON.stringify(result),
+    });
+  }
+
+  return results;
+}
+```
+
+## Tool Registry Pattern
+
+```typescript
+class ToolRegistry {
+  private tools = new Map<string, Tool>();
+
+  register(tool: Tool) {
+    this.tools.set(tool.name, tool);
+  }
+
+  async execute(name: string, params: any): Promise<any> {
+    const tool = this.tools.get(name);
+    if (!tool) throw new Error("Tool not found: " + name);
+
+    // Safety check
+    if (!tool.isAllowed(params)) {
+      throw new Error("Tool call not allowed: " + name);
+    }
+
+    return await tool.execute(params);
+  }
+
+  getDefinitions() {
+    return Array.from(this.tools.values()).map((t) => t.toFunctionDef());
+  }
+}
+
+// Register tools
+const registry = new ToolRegistry();
+registry.register(new WebSearchTool());
+registry.register(new ReadFileTool());
+registry.register(new SendEmailTool({ allowedRecipients: ["@company.com"] }));
+```
+
+## Safety Guardrails
+
+```typescript
+class SafeTool implements Tool {
+  constructor(
+    private inner: Tool,
+    private rules: SafetyRules
+  ) {}
+
+  async execute(params: any): Promise<any> {
+    // 1. Rate limiting
+    await this.checkRateLimit();
+
+    // 2. Parameter validation
+    this.validateParams(params);
+
+    // 3. Dry run check
+    if (this.rules.dryRun) {
+      return { dryRun: true, wouldExecute: this.inner.name, params };
+    }
+
+    // 4. Human approval (untuk destructive actions)
+    if (this.rules.requiresApproval) {
+      const approved = await requestHumanApproval(this.inner.name, params);
+      if (!approved) return { rejected: "User rejected action" };
+    }
+
+    // 5. Execute
+    const result = await this.inner.execute(params);
+
+    // 6. Log
+    await this.log(this.inner.name, params, result);
+
+    return result;
+  }
+}
+```
+
+## Common Tools
+
+| Tool | Function | Safety Level |
+|------|----------|-------------|
+| web_search | Cari di internet | Low risk |
+| read_file | Baca file | Low risk |
+| write_file | Tulis file | Medium risk |
+| execute_code | Jalankan kode | High risk |
+| send_email | Kirim email | High risk |
+| database_write | Update database | Critical |
+
+## Vercel AI SDK Tool Use
+
+```typescript
+import { tool } from "ai";
+import { z } from "zod";
+
+const weatherTool = tool({
+  description: "Get weather for a location",
+  parameters: z.object({
+    location: z.string().describe("City name"),
+  }),
+  execute: async ({ location }) => {
+    const response = await fetch("https://api.weather.com/" + location);
+    return response.json();
+  },
+});
+
+const result = await generateText({
+  model: openai("gpt-4o"),
+  messages,
+  tools: { weather: weatherTool },
+  maxSteps: 5, // Allow multi-step tool use
+});
+```
+
+## Latihan
+
+Buat 3 tools (search, read, summarize) dan implementasikan agent yang bisa menggunakannya untuk meriset topik.

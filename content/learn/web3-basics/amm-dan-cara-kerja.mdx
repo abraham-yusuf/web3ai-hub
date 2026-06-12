@@ -1,0 +1,109 @@
+---
+title: "AMM dan Cara Kerjanya"
+slug: "amm-dan-cara-kerja"
+order: 17
+---
+
+# AMM (Automated Market Maker) dan Cara Kerjanya
+
+## Apa Itu AMM?
+
+Automated Market Maker (AMM) adalah protokol DeFi yang memungkinkan perdagangan aset kripto tanpa perlu order book tradisional. Alih-alih mempertemukan pembeli dan penjual secara langsung, AMM menggunakan **liquidity pool** dan **formula matematis** untuk menentukan harga secara otomatis.
+
+Bayangkan sebuah vending machine: kamu tidak perlu menunggu penjual, cukup masukkan aset dan dapatkan aset lain sesuai harga yang sudah ditentukan oleh algoritma.
+
+## Liquidity Pool
+
+Liquidity pool adalah kumpulan dua (atau lebih) token yang dikunci dalam smart contract. Siapa pun bisa menjadi **liquidity provider (LP)** dengan menyimpan pasangan token ke dalam pool.
+
+**Contoh Pool ETH/USDC:**
+```
+Pool ETH/USDC:
+  - 100 ETH
+  - 200.000 USDC
+  - Harga ETH = 2.000 USDC (200.000 / 100)
+```
+
+LP mendapat **LP token** sebagai bukti kepemilikan mereka atas pool tersebut. Setiap kali ada swap, LP mendapat fee dari trader.
+
+## Constant Product Formula: x × y = k
+
+AMM paling populer (seperti Uniswap V2) menggunakan formula **x × y = k**, di mana:
+
+- **x** = jumlah token A dalam pool
+- **y** = jumlah token B dalam pool
+- **k** = konstanta (selalu tetap kecuali ada deposit/withdrawal)
+
+### Contoh Perhitungan Swap
+
+Pool awal: 100 ETH × 200.000 USDC = 20.000.000 (k)
+
+Trader ingin membeli 10 ETH:
+
+```
+(100 - 10) × (200.000 + y) = 20.000.000
+90 × (200.000 + y) = 20.000.000
+200.000 + y = 222.222,22
+y = 22.222,22 USDC
+```
+
+Trader membayar **22.222,22 USDC** untuk mendapatkan 10 ETH. Harga rata-rata per ETH: 2.222,22 USDC — lebih mahal dari harga awal 2.000 USDC. Ini yang disebut **price impact**.
+
+## Price Impact
+
+Price impact adalah perbedaan antara harga pasar dan harga aktual yang diterima trader. Semakin besar order relatif terhadap ukuran pool, semakin besar price impact.
+
+```
+Price Impact = (Harga Eksekusi - Harga Pasar) / Harga Pasar × 100%
+```
+
+**Rule of thumb:**
+- Pool besar + order kecil = price impact rendah
+- Pool kecil + order besar = price impact tinggi
+
+## Slippage
+
+Slippage adalah perbedaan antara harga yang kamu lihat saat mengklik "Swap" dan harga yang benar-benar terjadi saat transaksi dieksekusi di blockchain.
+
+**Penyebab slippage:**
+1. **Price impact** dari transaksi kamu sendiri
+2. **Transaksi lain** yang dieksekusi sebelum transaksi kamu (terutama di block yang sama)
+3. **Latency** antara pengiriman dan konfirmasi transaksi
+
+**Slippage tolerance** adalah batas maksimal slippage yang kamu terima. Jika slippage aktual melebihi toleransi, transaksi dibatalkan.
+
+```
+Contoh:
+- Kamu lihat harga: 1 ETH = 2.000 USDC
+- Slippage tolerance: 0,5%
+- Harga minimum diterima: 1.990 USDC
+- Jika harga aktual < 1.990 → transaksi gagal
+```
+
+## Jenis AMM Lainnya
+
+### Constant Sum (x + y = k)
+- Harga selalu tetap, tidak ada slippage
+- Tidak cocok untuk aset dengan harga berbeda
+- Digunakan untuk stablecoin pairing
+
+### StableSwap (Curve)
+- Menggabungkan constant product dan constant sum
+- Cocok untuk aset dengan harga mirip (USDC/USDT)
+- Slippage sangat rendah di sekitar harga 1:1
+
+### Concentrated Liquidity (Uniswap V3)
+- LP bisa memilih **range harga** tertentu
+- Modal lebih efisien — fee lebih tinggi per unit modal
+- Lebih kompleks, butuh active management
+
+## Risiko Menjadi Liquidity Provider
+
+1. **Impermanent Loss** — kerugian dibandingkan hold (akan dibahas di halaman terpisah)
+2. **Smart contract risk** — bug dalam kode bisa menghabiskan dana
+3. **Rug pull** — developer menghapus likuiditas
+4. **Fee volatility** — fee tidak tetap, tergantung volume trading
+
+## Ringkasan
+
+AMM adalah inovasi inti DeFi yang menggantikan order book dengan formula matematis. Memahami cara kerja AMM — dari liquidity pool hingga price impact — adalah fondasi untuk memahami seluruh ekosistem DeFi. Di halaman berikutnya, kita akan membahas protokol lending yang juga memanfaatkan pool dan algoritma untuk menentukan suku bunga.

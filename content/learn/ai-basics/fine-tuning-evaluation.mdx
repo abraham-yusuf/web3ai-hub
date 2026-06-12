@@ -1,0 +1,124 @@
+---
+title: "Evaluasi Model Fine-tuned"
+order: 20
+authors: ["admin"]
+excerpt: "Cara mengukur kualitas model fine-tuned: metrics, benchmark, dan evaluasi manual."
+---
+
+# Evaluasi Model Fine-tuned
+
+Fine-tuning selesai — tapi apakah hasilnya lebih baik? Evaluasi yang ketat memastikan model benar-benar improve, bukan hanya overfit.
+
+## Metrik Evaluasi
+
+### 1. Loss (Training & Validation)
+
+```
+Training loss turun, validation loss turun → Good, model belajar
+Training loss turun, validation loss naik → Overfitting!
+Training loss tidak turun → Underfitting, butuh lebih banyak epoch/data
+```
+
+### 2. Human Evaluation
+
+Metrik otomatis tidak cukup — perlu evaluasi manusia:
+
+```typescript
+interface EvalResult {
+  question: string;
+  baseModelAnswer: string;
+  fineTunedAnswer: string;
+  winner: "base" | "fine-tuned" | "tie";
+  scores: {
+    accuracy: number;     // 1-5: Apakah jawaban benar?
+    relevance: number;    // 1-5: Apakah relevan dengan pertanyaan?
+    consistency: number;  // 1-5: Apakah konsisten dengan gaya yang diinginkan?
+    safety: number;       // 1-5: Apakah aman dan tidak berbahaya?
+  };
+}
+```
+
+### 3. Automated Evaluation
+
+```typescript
+async function evaluateWithLLM(question: string, answer: string) {
+  const evalPrompt = `Evaluasi jawaban berikut pada skala 1-5:
+  - Accuracy: Apakah informasi benar?
+  - Completeness: Apakah jawaban lengkap?
+  - Clarity: Apakah mudah dipahami?
+
+  Pertanyaan: ${question}
+  Jawaban: ${answer}
+
+  Berikan JSON: {"accuracy": N, "completeness": N, "clarity": N, "reasoning": "..."}`;
+
+  return await llm.call([{ role: "user", content: evalPrompt }]);
+}
+```
+
+## Benchmark Process
+
+### Step 1: Siapkan Test Set
+
+```python
+# Pisahkan 10-20% data untuk testing (JANGAN pakai training data!)
+test_data = load_jsonl("test_data.jsonl")
+```
+
+### Step 2: Run Both Models
+
+```python
+results = []
+for example in test_data:
+    base_answer = base_model.chat(example["question"])
+    ft_answer = fine_tuned_model.chat(example["question"])
+
+    results.append({
+        "question": example["question"],
+        "expected": example["expected_answer"],
+        "base": base_answer,
+        "fine_tuned": ft_answer,
+    })
+```
+
+### Step 3: Compare
+
+```python
+# Automated comparison
+base_scores = [score(r["expected"], r["base"]) for r in results]
+ft_scores = [score(r["expected"], r["fine_tuned"]) for r in results]
+
+print(f"Base model avg score: {mean(base_scores):.2f}")
+print(f"Fine-tuned avg score: {mean(ft_scores):.2f}")
+print(f"Improvement: {mean(ft_scores) - mean(base_scores):.2f}")
+```
+
+## Red Flags
+
+- **Fine-tuned model lebih konsisten tapi kurang akurat** → Overfitting ke gaya
+- **Jawaban terlalu mirip antar pertanyaan** → Model menghafal, bukan belajar
+- **Degradasi pada pertanyaan umum** → Catastrophic forgetting
+- **Hallucination bertambah** → Fine-tuning pada data noise
+
+## A/B Testing di Produksi
+
+```typescript
+async function getResponse(question: string, userId: string) {
+  // 50/50 split
+  const useFineTuned = hash(userId) % 2 === 0;
+  const model = useFineTuned ? "ft:gpt-4o-mini:..." : "gpt-4o-mini";
+
+  const response = await llm.call([{ role: "user", content: question }], { model });
+
+  // Log untuk analisis
+  await db.evalLog.create({
+    data: { userId, model, question, response: response.content },
+  });
+
+  return response;
+}
+```
+
+## Latihan
+
+Buat evaluasi sederhana: siapkan 10 pertanyaan test, bandingkan base model vs fine-tuned model, dan hitung skor rata-rata.

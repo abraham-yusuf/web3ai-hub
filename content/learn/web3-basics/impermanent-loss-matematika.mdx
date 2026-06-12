@@ -1,0 +1,185 @@
+---
+title: "Impermanent Loss dan Matematikanya"
+slug: "impermanent-loss-matematika"
+order: 21
+---
+
+# Impermanent Loss dan Matematikanya
+
+## Apa Itu Impermanent Loss?
+
+Impermanent Loss (IL) adalah kerugian yang dialami liquidity provider (LP) dibandingkan jika mereka hanya menyimpan (hold) aset mereka. Disebut "impermanent" karena kerugian ini baru menjadi nyata saat LP menarik likuiditas dari pool.
+
+**Intuisi sederhana:** Saat harga berubah, AMM secara otomatis menjual aset yang harganya naik dan membeli aset yang harganya turun. Ini berarti LP "kehabisan" aset yang performanya bagus.
+
+## Formula Dasar
+
+Untuk AMM constant product (x × y = k), impermanent loss bisa dihitung dari rasio harga.
+
+Definisikan **r** sebagai rasio harga saat ini terhadap harga awal:
+
+```
+r = Harga sekarang / Harga awal
+```
+
+Formula IL (sebagai persentase terhadap hold):
+
+```
+IL = (2 × √r) / (1 + r) - 1
+```
+
+## Contoh Perhitungan Langkah demi Langkah
+
+### Setup Awal
+
+```
+Pool ETH/USDC:
+- Harga ETH awal: $1.000
+- LP deposit: 1 ETH + 1.000 USDC (total $2.000)
+- Pool: 10 ETH + 10.000 USDC (k = 100.000)
+- Share LP: 10% dari pool
+```
+
+### Skenario: Harga ETH naik ke $4.000
+
+**Tanpa IL (hanya hold):**
+```
+1 ETH × $4.000 + 1.000 USDC = $5.000
+```
+
+**Dengan IL (posisi di AMM):**
+
+Harga baru di pool mencerminkan rasio baru:
+```
+x × y = 100.000
+Harga = y/x = $4.000
+→ x = 5 ETH, y = 20.000 USDC (pool baru)
+```
+
+Posisi LP (10% share):
+```
+0,5 ETH × $4.000 + 2.000 USDC = $4.000
+```
+
+**Impermanent Loss:**
+```
+IL = $4.000 - $5.000 = -$1.000
+IL% = -1.000/5.000 = -20%
+```
+
+Dengan formula:
+```
+r = 4000/1000 = 4
+IL = (2 × √4) / (1 + 4) - 1 = (2 × 2) / 5 - 1 = 4/5 - 1 = -0,2 = -20%
+```
+
+### Tabel IL untuk Berbagai Rasio Harga
+
+```
+Rasio Harga (r) │ Impermanent Loss
+─────────────────┼──────────────────
+1,25 (25% naik)  │ -0,6%
+1,50 (50% naik)  │ -2,0%
+2,00 (2x)        │ -5,7%
+3,00 (3x)        │ -13,4%
+4,00 (4x)        │ -20,0%
+5,00 (5x)        │ -25,5%
+10,0 (10x)       │ -42,6%
+```
+
+Perhatikan: IL berlaku **simetris**. Jika harga turun 75% (r = 0,25), IL-nya sama dengan jika harga naik 300% (r = 4).
+
+## Mengapa Disebut "Impermanent"?
+
+Kerugian ini "impermanent" (sementara) karena:
+
+1. Jika harga kembali ke awal, IL = 0
+2. Kerugian baru "terealisasi" saat LP withdraw
+3. Selama masih di pool, kerugian hanya di atas kertas
+
+**Tapi:** istilah ini menyesatkan. Jika harga tidak kembali, kerugian itu permanen. Banyak yang lebih suka menyebutnya **"divergence loss"** karena kerugian berasal dari divergensi harga.
+
+## IL vs Fee: Kapan LP Untung?
+
+LP mendapat fee dari setiap swap. IL hanya masalah jika fee yang dikumpulkan **lebih kecil** dari IL.
+
+```
+Profit LP = Fee terkumpul - Impermanent Loss
+
+Contoh:
+- IL dari pergerakan harga: -5,7% (harga 2x)
+- Fee terkumpul selama 6 bulan: +8%
+- Profit bersih: +2,3% → LP UNTUNG
+
+Contoh lain:
+- IL dari pergerakan harga: -20% (harga 4x)
+- Fee terkumpul selama 1 bulan: +2%
+- Profit bersih: -18% → LP RUGI
+```
+
+**Kapan IL paling menyakitkan:**
+- Harga bergerak sangat jauh (2x, 5x, 10x)
+- Pool kecil sehingga fee rendah
+- Periode waktu pendek (belum kumpul banyak fee)
+
+## Strategi Mitigasi IL
+
+### 1. Stablecoin Pairs
+Pool stablecoin (USDC/USDT) memiliki IL minimal karena harga relatif tetap.
+
+```
+IL stablecoin pair: biasanya < 0,1%
+Fee: 0,01-0,04% per swap
+Risiko: rendah, yield juga rendah
+```
+
+### 2. Correlated Assets
+Pool dengan aset yang harganya bergerak bersama (ETH/stETH) memiliki IL rendah.
+
+```
+Korelasi tinggi → divergensi kecil → IL kecil
+```
+
+### 3. Single-Sided Staking
+Beberapa protocol (Bancor, THORChain) menawarkan IL protection atau single-sided deposit.
+
+### 4. Concentrated Liquidity dengan Strategi
+Di Uniswap V3, LP bisa mengatur range ketat. Fee per unit modal lebih tinggi, tapi IL juga lebih besar jika harga keluar range.
+
+### 5. Fee Mining yang Cukup
+Pastikan reward token cukup menutupi potensi IL sebelum berpartisipasi.
+
+## Matematika Lanjutan: Break-Even Analysis
+
+Berapa fee minimum yang dibutuhkan untuk menutupi IL?
+
+```
+Break-even fee rate = IL% / (waktu × volume/TVL)
+
+Contoh:
+- Pool ETH/USDC, harga ETH 2x
+- IL = 5,7%
+- Volume/TVL ratio = 0,5 per hari
+- Break-even: 5,7% / (0,5 × 365) = 0,031% fee rate per swap
+
+Jika fee pool = 0,3%, maka dalam 38 hari fee sudah menutupi IL.
+(0,3% × 0,5 × 38 ≈ 5,7%)
+```
+
+## Kapan Harus Menjadi LP?
+
+**Cocok:**
+- Kamu percaya harga relatif stabil
+- Pool memiliki volume tinggi (fee besar)
+- Ada reward tambahan (liquidity mining)
+- Kamu hold jangka panjang, tidak sering trading
+
+**Tidak cocok:**
+- Kamu bullish kuat pada salah satu aset
+- Pool volume rendah
+- Tidak ada insentif tambahan
+- Harga sedang sangat volatile
+
+## Ringkasan
+
+Impermanent loss adalah trade-off fundamental dari menyediakan likuiditas di AMM. Memahami matematika di balik IL membantu kamu membuat keputusan yang lebih baik tentang kapan dan di mana menyediakan likuiditas. Fee yang dikumpulkan harus melebihi IL agar posisi LP menguntungkan. Di halaman berikutnya, kita akan membahas bridge dan cross-chain — infrastruktur yang menghubungkan likuiditas antar blockchain.

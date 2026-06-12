@@ -1,0 +1,145 @@
+---
+title: "Retrieval Strategies untuk RAG"
+order: 25
+authors: ["admin"]
+excerpt: "Teknik retrieval lanjutan: query expansion, re-ranking, multi-query, dan contextual compression."
+---
+
+# Retrieval Strategies untuk RAG
+
+Retrieval quality menentukan kualitas jawaban RAG. "Retrieve yang baik, jawaban yang baik. Retrieve yang buruk, hallucination."
+
+## Basic Retrieval
+
+```typescript
+// Simple top-K retrieval
+const retriever = vectorStore.asRetriever({ k: 5 });
+const docs = await retriever.invoke("apa itu gas fee?");
+```
+
+Masalah: Top-K sederhana bisa melewatkan dokumen relevan atau menyertakan noise.
+
+## Strategy 1: Query Expansion
+
+Perluas query untuk meningkatkan recall:
+
+```typescript
+async function expandQuery(originalQuery: string): Promise<string[]> {
+  const response = await llm.call([{
+    role: "user",
+    content: `Buat 3 variasi pertanyaan berikut dengan makna sama tapi kata berbeda:
+    
+    Asli: "${originalQuery}"
+    
+    Variasi (satu per baris):`,
+  }]);
+
+  return [originalQuery, ...response.content.split("\n").filter(Boolean)];
+}
+
+// Search dengan semua variasi
+async function searchWithExpansion(query: string) {
+  const queries = await expandQuery(query);
+  const allResults = await Promise.all(
+    queries.map((q) => vectorStore.similaritySearch(q, 3))
+  );
+
+  // Deduplicate dan merge
+  return deduplicateResults(allResults.flat());
+}
+```
+
+## Strategy 2: Multi-Query Retrieval
+
+Generate queries dari berbagai perspektif:
+
+```typescript
+async function multiQueryRetrieval(question: string) {
+  const perspectives = await llm.call([{
+    role: "user",
+    content: `Dari pertanyaan berikut, buat 3 query pencarian yang berbeda perspektif:
+
+Pertanyaan: "${question}"
+
+Format JSON: {"queries": ["query1", "query2", "query3"]}`,
+  }]);
+
+  const { queries } = JSON.parse(perspectives.content);
+
+  const allDocs = await Promise.all(
+    queries.map((q: string) => vectorStore.similaritySearch(q, 3))
+  );
+
+  return uniqueMerge(allDocs.flat());
+}
+```
+
+## Strategy 3: Re-ranking
+
+Setelah retrieve, re-rank dengan model yang lebih akurat:
+
+```typescript
+import { CohereRerank } from "@langchain/cohere";
+
+// Step 1: Retrieve banyak (20+)
+const initialDocs = await vectorStore.similaritySearch(query, 20);
+
+// Step 2: Re-rank dengan Cohere
+const reranker = new CohereRerank({ model: "rerank-v3.5", topN: 5 });
+const reranked = await reranker.rerank(initialDocs, query);
+
+// Hasil: 5 dokumen paling relevan berdasarkan semantic understanding
+```
+
+## Strategy 4: Contextual Compression
+
+Hapus bagian tidak relevan dari dokumen yang di-retrieve:
+
+```typescript
+import { ContextualCompressionRetriever } from "langchain/retrievers/contextual_compression";
+import { LLMChainExtractor } from "langchain/retrievers/document_compressors/chain_extract";
+
+const compressor = LLMChainExtractor.fromLLM(llm);
+const retriever = new ContextualCompressionRetriever({
+  baseCompressor: compressor,
+  baseRetriever: vectorStore.asRetriever({ k: 10 }),
+});
+
+// Hasil: Hanya kalimat relevan dari setiap dokumen
+const docs = await retriever.invoke("bagaimana cara menghemat gas fee?");
+```
+
+## Strategy 5: Parent Document Retrieval
+
+Retrieve chunk kecil, tapi kembalikan dokumen induk:
+
+```typescript
+// Simpan chunks kecil untuk embedding
+// Simpan full document untuk retrieval result
+
+async function retrieveParentDocs(query: string) {
+  // Search di small chunks (presisi tinggi)
+  const smallChunks = await smallChunkStore.similaritySearch(query, 5);
+
+  // Ambil parent documents
+  const parentIds = [...new Set(smallChunks.map((c) => c.metadata.parentId))];
+  const parentDocs = await getDocumentsByIds(parentIds);
+
+  return parentDocs; // Full context untuk LLM
+}
+```
+
+## Choosing the Right Strategy
+
+| Strategi | Kapan Pakai |
+|----------|------------|
+| Basic top-K | Quick prototype, dataset kecil |
+| Query expansion | Query user bervariasi, bahasa campuran |
+| Multi-query | Topik kompleks, butuh perspektif berbeda |
+| Re-ranking | Accuracy kritis, budget ada untuk Cohere |
+| Contextual compression | Dokumen panjang, banyak noise |
+| Parent document | Butuh full context, chunk terlalu kecil |
+
+## Latihan
+
+Implementasikan multi-query retrieval dan bandingkan hasilnya dengan basic top-K retrieval pada 10 pertanyaan test.

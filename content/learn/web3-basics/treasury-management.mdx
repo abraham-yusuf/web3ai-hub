@@ -1,0 +1,188 @@
+---
+title: "Treasury Management"
+slug: "treasury-management"
+order: 27
+---
+
+# Treasury Management
+
+Treasury adalah jantung operasional setiap DAO. Bagaimana DAO mengelola, mengalokasikan, dan melindungi aset mereka menentukan keberlanjutan jangka panjang organisasi. Halaman ini membahas prinsip dan praktik terbaik dalam treasury management untuk DAO.
+
+## Multisig: Pertahanan Pertama Treasury
+
+Multisig (multi-signature) wallet adalah mekanisme keamanan dasar yang memerlukan beberapa tanda tangan untuk mengeksekusi transaksi.
+
+**Cara kerja:**
+- Wallet memerlukan M dari N tanda tangan untuk otorisasi transaksi
+- Misalnya, 3-of-5 multisig memerlukan 3 dari 5 signer untuk menyetujui
+- Transaksi yang tertunda bisa ditolak atau diabaikan
+
+**Gnosis Safe** adalah standar industri untuk multisig DAO. Digunakan oleh hampir semua DAO besar termasuk MakerDAO, Aave, dan Uniswap.
+
+**Best practices multisig:**
+- Pilih signer yang terdiversifikasi (geografi, afiliasi, keahlian)
+- Threshold yang sesuai (3/5 atau 4/7 untuk keseimbangan keamanan dan efisiensi)
+- Regular rotation signer setiap 6-12 bulan
+- Hardware wallet wajib untuk semua signer
+- Document semua transaksi dan alasan approval
+
+**Tiered multisig:**
+Banyak DAO menggunakan sistem bertingkat:
+- Operational multisig — Untuk pengeluaran rutin (threshold rendah)
+- Treasury multisig — Untuk alokasi besar (threshold tinggi)
+- Emergency multisig — Untuk situasi darurat (threshold sangat tinggi)
+
+## Diversifikasi Aset
+
+DAO yang sehat tidak menyimpan semua aset dalam native token mereka. Diversifikasi adalah kunci untuk stabilitas keuangan jangka panjang.
+
+**Mengapa diversifikasi penting:**
+- Mengurangi risiko volatilitas native token
+- Memastikan operasional bisa berlanjut saat bear market
+- Membayar vendor dan kontributor dalam stablecoin
+- Lindung nilai terhadap penurunan nilai pasar
+
+**Komposisi treasury yang ideal:**
+- 40-60% native token (skin in the game)
+- 20-30% stablecoin (USDC, DAI, USDT)
+- 10-20% blue-chip crypto (ETH, BTC)
+- 5-10% investasi strategis
+
+**Contoh nyata:**
+MakerDAO mengelola treasury bernilai miliaran dollar dengan diversifikasi yang cermat. Mereka memiliki Real World Asset (RWA) allocation dan stablecoin reserve yang signifikan.
+
+**Strategi diversifikasi:**
+- Dollar-cost averaging (DCA) untuk penjualan native token
+- Token swap dengan DAO/protocol lain
+- Revenue farming untuk yield pada stablecoin
+- Gradual conversion berdasarkan market conditions
+
+## Grant Programs
+
+Grant program adalah cara DAO mengalokasikan dana untuk mengembangkan ekosistem mereka.
+
+**Model grant yang umum:**
+
+**1. Retroactive Grants**
+- Memberikan reward SETELAH kontribusi terbukti bernilai
+- Mengurangi risiko investasi yang tidak produktif
+- Contoh: Optimism RetroPGF
+
+**2. Proactive Grants**
+- Memberikan dana SEBELUM pekerjaan dilakukan
+- Cocok untuk proyek dengan proposal yang jelas
+- Contoh: Aave Grants DAO, Uniswap Grants
+
+**3. Quadratic Funding**
+- Matching funds berdasarkan jumlah kontributor unik
+- Mengutamakan proyek yang didukung banyak orang kecil
+- Contoh: Gitcoin Grants
+
+**4. Bounty Programs**
+- Hadiah untuk menyelesaikan task spesifik
+- Cocok untuk development dan bug fixes
+- Contoh: Immunefi (bug bounty)
+
+**Struktur grant yang efektif:**
+- Clear criteria dan evaluasi process
+- Dedicated grants committee atau DAO
+- Regular reporting dan milestone tracking
+- Transparent decision making
+- Post-grant impact assessment
+
+**Contoh: Aave Grants DAO**
+Aave memiliki grants DAO terpisah yang mengelola dana untuk pengembangan ekosistem. Committee terdiri dari anggota komunitas yang dipilih dan memiliki mandat untuk mengalokasikan dana hingga jutaan dollar per quarter.
+
+## Revenue Strategy
+
+DAO memerlukan sumber pendapatan yang berkelanjutan untuk operasional jangka panjang.
+
+**Sumber pendapatan DAO:**
+
+**1. Protocol Fees**
+- Trading fees (Uniswap, SushiSwap)
+- Lending fees (Aave, Compound)
+- Liquidation penalties (MakerDAO)
+- Bridge fees
+
+**2. Service Revenue**
+- Consulting dan advisory
+- Auditing services
+- Tool development dan licensing
+
+**3. Investment Returns**
+- Yield farming
+- Liquidity provision
+- Token investments
+
+**4. NFT dan Digital Assets**
+- NFT sales
+- Membership NFTs
+- Digital merchandise
+
+**Revenue management best practices:**
+- Pisahkan revenue stream dari operational expenses
+- Buat cadangan operasional 6-12 bulan
+- Investasikan surplus secara konservatif
+- Review dan adjust revenue strategy secara berkala
+
+**Contoh: MakerDAO Revenue Model**
+MakerDAO menghasilkan pendapatan dari stability fee (bunga pinjaman) dan liquidation penalties. Pendapatan ini digunakan untuk membayar operational costs, reward MKR stakers, dan membangun reserve fund.
+
+## Financial Reporting
+
+Transparansi keuangan adalah fondasi kepercayaan dalam DAO.
+
+**Komponen financial reporting:**
+- **Balance sheet** — Aset, liabilitas, dan equity
+- **Income statement** — Revenue dan expenses
+- **Cash flow** — Arus masuk dan keluar dana
+- **Budget vs actual** — Perbandingan rencana dan realisasi
+
+**Tools untuk financial reporting:**
+- **Dune Analytics** — On-chain data visualization
+- **Tally/Zodiac** — Treasury monitoring
+- **Parcel** — DAO financial management
+- **Multis** — Treasury operations platform
+- **Llama** — On-chain analytics dan reporting
+
+**Best practices:**
+- Publish financial reports secara regular (quarterly atau monthly)
+- Gunakan format yang konsisten dan mudah dipahami
+- Sertakan narrative yang menjelaskan angka-angka
+- Libatkan auditor independen untuk review
+- Buat dashboard real-time untuk monitoring
+
+**Transparansi on-chain:**
+Keuntungan DAO adalah semua transaksi bisa diverifikasi secara on-chain. Namun, konteks dan narrative tetap penting untuk dipahami oleh komunitas.
+
+## Risk Management
+
+Treasury management yang baik memerlukan manajemen risiko yang proaktif.
+
+**Risiko utama treasury:**
+- **Smart contract risk** — Bug atau exploit dalam kontrak
+- **Market risk** — Penurunan nilai aset
+- **Operational risk** — Human error atau kegagalan proses
+- **Regulatory risk** — Perubahan regulasi
+- **Counterparty risk** — Kegagalan pihak ketiga
+
+**Mitigasi risiko:**
+- Asuransi (Nexus Mutual, InsurAce)
+- Security audits regular
+- Diversifikasi yang memadai
+- Emergency procedures yang terdokumentasi
+- Regular stress testing
+
+## Implementasi Praktis
+
+Untuk DAO yang baru memulai treasury management:
+
+1. **Setup Gnosis Safe** — Buat multisig dengan signer yang terpercaya
+2. **Define budget** — Tentukan alokasi untuk operasional, grants, dan reserve
+3. **Create reporting cadence** — Tentukan kapan dan bagaimana melapor
+4. **Implement controls** — Approval process dan spending limits
+5. **Use dashboards** — Setup monitoring untuk transparansi
+6. **Plan for bear market** — Pastikan cukup stablecoin untuk operasional 12+ bulan
+
+Treasury management adalah proses berkelanjutan yang memerlukan perhatian dan adaptasi. DAO yang mengelola treasury dengan baik memiliki fondasi untuk pertumbuhan jangka panjang.

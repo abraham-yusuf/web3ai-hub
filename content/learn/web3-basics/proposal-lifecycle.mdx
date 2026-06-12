@@ -1,0 +1,166 @@
+---
+title: "Proposal Lifecycle"
+slug: "proposal-lifecycle"
+order: 25
+---
+
+# Proposal Lifecycle
+
+Setiap keputusan besar dalam DAO dimulai dari sebuah proposal. Memahami siklus hidup proposal — dari ide awal hingga eksekusi — adalah keterampilan fundamental bagi setiap partisipan DAO. Di halaman ini, kita akan membahas setiap tahap proposal secara detail beserta contoh dari DAO nyata.
+
+## Tahap 1: Ideation (Ide Awal)
+
+Semua proposal dimulai dari sebuah ide. Tahap ini bersifat informal dan terbuka untuk semua anggota komunitas.
+
+**Aktivitas di tahap ini:**
+- Diskusi di forum komunitas (Discourse, Discord, Commonwealth)
+- Brainstorming solusi untuk masalah yang diidentifikasi
+- Mengumpulkan feedback awal dari anggota
+- Menulis draft kasar proposal
+
+**Tips untuk tahap ideation:**
+- Mulai dengan masalah yang jelas, bukan solusi
+- Libatkan komunitas sejak awal
+- Jangan takut untuk mengkritisi ide sendiri
+- Cari tahu apakah proposal serupa pernah diajukan sebelumnya
+
+**Contoh nyata:** Proposal penambahan kolateral baru di MakerDAO biasanya dimulai dari diskusi di forum Maker tentang aset yang memiliki demand tinggi dan profil risiko yang sesuai.
+
+## Tahap 2: Temperature Check (Pemeriksaan Suhu)
+
+Temperature check adalah polling informal untuk mengukur sentimen komunitas sebelum investasi waktu dan sumber daya yang lebih besar.
+
+**Cara kerja:**
+- Polling sederhana menggunakan Snapshot (off-chain, gasless)
+- Biasanya memerlukan jumlah voter minimum yang rendah
+- Durasi polling pendek (3-7 hari)
+- Tidak ada konsekuensi on-chain
+
+**Tujuan temperature check:**
+- Menghemat waktu dan sumber daya jika komunitas tidak mendukung
+- Memberikan sinyal awal tentang peluang keberhasilan
+- Membantu penulis proposal menyempurnakan argumen mereka
+
+**Contoh:** Komunitas Uniswap sering menggunakan temperature check di forum sebelum proposal formal diajukan. Misalnya, proposal fee switch yang kontroversial melalui beberapa ronde diskusi dan temperature check sebelum voting formal.
+
+## Tahap 3: Formal Proposal
+
+Setelah temperature check menunjukkan dukungan yang cukup, proposal formal ditulis dengan format yang terstruktur dan detail.
+
+**Komponen proposal formal:**
+- **Summary** — Ringkasan singkat proposal
+- **Motivation** — Mengapa proposal ini penting
+- **Specification** — Detail teknis implementasi
+- **Rationale** — Argumen mendukung keputusan ini
+- **Risk Assessment** — Potensi risiko dan mitigasi
+- **Budget/Resources** — Sumber daya yang diperlukan
+- **Timeline** — Jadwal implementasi
+
+**Format yang umum digunakan:**
+Banyak DAO menggunakan template standar. Misalnya, Compound memiliki template proposal yang mencakup semua parameter yang diperlukan untuk perubahan smart contract.
+
+**Snapshot vs. On-chain:**
+
+**Snapshot (Off-chain):**
+- Tidak memerlukan gas fee
+- Lebih cepat dan murah
+- Berbasis tanda tangan kriptografik
+- Cocok untuk sentiment polling dan non-binding votes
+
+**On-chain:**
+- Dieksekusi langsung oleh smart contract
+- Memerlukan gas fee
+- Lebih aman dan trustless
+- Diperlukan untuk keputusan yang mempengaruhi protocol
+
+## Tahap 4: Voting
+
+Tahap voting adalah momen pengambilan keputusan formal. Durasi dan quorum bervariasi antar DAO.
+
+**Parameter umum voting:**
+- **Duration** — Biasanya 3-7 hari
+- **Quorum** — Minimum partisipasi yang diperlukan (misal 4% dari total supply)
+- **Approval threshold** — Persentase "Ya" yang diperlukan (biasanya >50%)
+
+**Jenis voting yang umum:**
+- **Single choice** — Ya/Tidak/Abstain
+- **Multiple choice** — Pilih dari beberapa opsi
+- **Ranked choice** — Urutkan preferensi
+- **Weighted** — Alokasikan bobot ke beberapa opsi
+
+**Contoh eksekusi:** Aave menggunakan mekanisme voting on-chain dengan AAVE token. Proposal memerlukan approval dari Governance Executor dan harus memenuhi quorum minimum sebelum bisa dieksekusi.
+
+**Best practices selama voting:**
+- Pastikan informasi yang cukup tersedia untuk voter
+- Hindari perubahan proposal selama periode voting
+- Monitor partisipasi dan dorong voter untuk berpartisipasi
+- Dokumentasikan semua argumen pro dan kontra
+
+## Tahap 5: Timelock
+
+Setelah voting berhasil, proposal tidak langsung dieksekusi. Ada periode timelock — jeda waktu antara approval dan eksekusi.
+
+**Tujuan timelock:**
+- Memberikan waktu bagi komunitas untuk bereaksi jika ada masalah
+- Memungkinkan exit bagi yang tidak setuju (rage quit)
+- Mencegah eksekusi yang terburu-buru
+- Memberikan waktu untuk review keamanan terakhir
+
+**Durasi timelock:**
+- Biasanya 24-48 jam untuk proposal standar
+- Bisa lebih lama untuk proposal yang sangat penting
+- Beberapa DAO memiliki tiered timelock berdasarkan severity
+
+**Contoh:** Compound memiliki Timelock contract yang menerapkan delay 2 hari antara approval dan eksekusi. Ini memberikan waktu bagi pengguna untuk menyesuaikan posisi mereka jika mereka tidak setuju dengan perubahan yang akan datang.
+
+## Tahap 6: Execution
+
+Tahap terakhir adalah eksekusi — implementasi aktual dari proposal yang telah disetujui.
+
+**Eksekusi on-chain:**
+- Smart contract secara otomatis menjalankan perubahan yang diusulkan
+- Trustless dan transparan
+- Tidak memerlukan intervensi manual
+
+**Eksekusi off-chain:**
+- Tim atau multisig mengeksekusi keputusan
+- Memerlukan trust pada eksekutor
+- Cocok untuk keputusan yang tidak bisa otomatis
+
+**Governance contracts yang umum:**
+- **Governor (OpenZeppelin)** — Standar untuk governance contract
+- **TimelockController** — Mengelola delay eksekusi
+- **GovernorBravo** — Digunakan oleh Compound
+- **Governance V2/V3** — Digunakan oleh Aave
+
+## Proses End-to-End: Contoh MakerDAO
+
+Mari kita lihat contoh lengkap dari proposal di MakerDAO:
+
+1. **Ideation** — Tim risiko mengidentifikasi kolateral baru yang berpotensi
+2. **Forum Discussion** — Diskusi di forum Maker tentang profil risiko
+3. **Formal Proposal** — Penulisan proposal MIP (Maker Improvement Proposal)
+4. **Governance Cycle** — Proposal melewati beberapa governance cycle
+5. **Executive Vote** — Voting on-chain untuk perubahan parameter
+6. **Spell Execution** — Smart contract spell dieksekusi setelah approval
+
+Proses ini bisa memakan waktu berminggu-minggu, tetapi memastikan keputusan yang thoughtful dan well-considered.
+
+## Alat untuk Mengelola Proposal
+
+- **Snapshot** — Off-chain voting platform
+- **Tally** — On-chain governance dashboard
+- **Boardroom** — Multi-DAO governance aggregator
+- **Commonwealth** — Forum dan voting terintegrasi
+- **Discourse** — Forum diskusi (banyak DAO menggunakan ini)
+
+## Tips untuk Menulis Proposal yang Efektif
+
+1. **Mulai dengan masalah** — Jelaskan mengapa perubahan diperlukan
+2. **Gunakan data** — Dukung argumen dengan data dan analisis
+3. **Pertimbangkan alternatif** — Tunjukkan bahwa Anda sudah mempertimbangkan opsi lain
+4. **Risiko yang jujur** — Akui potensi risiko dan rencana mitigasi
+5. **Timeline realistis** — Jangan terlalu ambisius dalam jadwal
+6. **Komunikasi yang baik** — Promosikan proposal melalui saluran yang tepat
+
+Memahami proposal lifecycle membantu kamu berpartisipasi secara efektif dalam tata kelola DAO. Baik sebagai penulis proposal maupun sebagai voter, pengetahuan ini akan membantu kamu mengambil keputusan yang lebih baik dan berkontribusi pada organisasi yang sehat.

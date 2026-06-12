@@ -1,0 +1,153 @@
+---
+title: "Vector Database untuk RAG"
+order: 24
+authors: ["admin"]
+excerpt: "Panduan memilih dan menggunakan vector database: Pinecone, Weaviate, pgvector, dan perbandingannya."
+---
+
+# Vector Database untuk RAG
+
+Vector database menyimpan dan mencari embedding vectors secara efisien. Ini adalah komponen kunci dari sistem RAG.
+
+## Mengapa Vector DB?
+
+Database biasa (PostgreSQL, MongoDB) tidak optimal untuk similarity search pada vector berdimensi tinggi. Vector DB menggunakan index khusus (HNSW, IVF) untuk pencarian cepat.
+
+## Pilihan Vector DB
+
+### Managed (Hosted)
+
+- **Pinecone** — Paling populer, serverless, mudah setup
+- **Weaviate Cloud** — Open-source, bisa self-host
+- **Qdrant Cloud** — Rust-based, cepat
+- **Zilliz** — Managed Milvus, enterprise-grade
+
+### Self-hosted / Embedded
+
+- **pgvector** — Extension PostgreSQL, zero infra tambahan
+- **ChromaDB** — Embedded, cocok untuk prototyping
+- **FAISS** — Facebook AI, cepat tapi butuh Python
+- **SQLite-VSS** — SQLite extension, lightweight
+
+## pgvector (Recommended untuk Mulai)
+
+Karena web3ai-hub sudah pakai PostgreSQL, pgvector paling mudah:
+
+```sql
+-- Install extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Tambah kolom embedding
+ALTER TABLE "Article" ADD COLUMN embedding vector(156);
+
+-- Buat index untuk fast search
+CREATE INDEX ON "Article" USING hnsw (embedding vector_cosine_ops);
+
+-- Similarity search
+SELECT title, content,
+       1 - (embedding <=> $1::vector) as similarity
+FROM "Article"
+ORDER BY embedding <=> $1::vector
+LIMIT 5;
+```
+
+### dengan Prisma + pgvector
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// Store embedding
+await prisma.$executeRaw`
+  UPDATE "Article" 
+  SET embedding = ${vector}::vector 
+  WHERE id = ${articleId}
+`;
+
+// Search
+const results = await prisma.$queryRaw`
+  SELECT id, title, content,
+         1 - (embedding <=> ${queryVector}::vector) as similarity
+  FROM "Article"
+  WHERE embedding IS NOT NULL
+  ORDER BY embedding <=> ${queryVector}::vector
+  LIMIT 5
+`;
+```
+
+## Pinecone (Scalable Production)
+
+```typescript
+import { Pinecone } from "@pinecone-database/pinecone";
+
+const pinecone = new Pinecone();
+const index = pinecone.index("web3ai-hub");
+
+// Upsert vectors
+await index.upsert([
+  {
+    id: "article-123",
+    values: embeddingVector,
+    metadata: { title: "Apa itu DeFi?", category: "web3" },
+  },
+]);
+
+// Query
+const results = await index.query({
+  vector: queryEmbedding,
+  topK: 5,
+  includeMetadata: true,
+});
+```
+
+## Indexing Strategy
+
+### HNSW (Hierarchical Navigable Small World)
+
+- **Kecepatan**: Cepat untuk query
+- **Memory**: Tinggi (index di RAM)
+- **Best for**: Dataset sampai ~10M vectors
+
+### IVF (Inverted File Index)
+
+- **Kecepatan**: Sedang
+- **Memory**: Lebih rendah
+- **Best for**: Dataset sangat besar (100M+)
+
+## Hybrid Search
+
+Gabungkan vector search dengan keyword search:
+
+```typescript
+async function hybridSearch(query: string, keywords: string[]) {
+  // Vector search (semantic)
+  const vectorResults = await vectorSearch(query, 20);
+
+  // Keyword search (exact match)
+  const keywordResults = await keywordSearch(keywords, 20);
+
+  // Reciprocal Rank Fusion
+  const combined = reciprocalRankFusion([vectorResults, keywordResults]);
+  return combined.slice(0, 5);
+}
+
+function reciprocalRankFusion(resultSets: Result[][], k = 60) {
+  const scores: Map<string, number> = new Map();
+
+  for (const results of resultSets) {
+    results.forEach((result, rank) => {
+      const current = scores.get(result.id) ?? 0;
+      scores.set(result.id, current + 1 / (k + rank + 1));
+    });
+  }
+
+  return Array.from(scores.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([id, score]) => ({ id, score }));
+}
+```
+
+## Latihan
+
+Setup pgvector di PostgreSQL lokal, buat tabel dengan kolom vector, dan lakukan similarity search untuk 10 dokumen.

@@ -1,0 +1,194 @@
+---
+title: "Multi-Agent Systems"
+order: 30
+authors: ["admin"]
+excerpt: "Membangun sistem dengan multiple AI agents yang berkolaborasi: orchestrator, specialist, dan communication."
+---
+
+# Multi-Agent Systems
+
+Satu agent terbatas. Multi-agent system memungkinkan beberapa agent dengan spesialisasi berbeda berkolaborasi menyelesaikan tugas kompleks.
+
+## Mengapa Multi-Agent?
+
+- **Specialization** — Tiap agent fokus pada satu domain
+- **Parallelism** — Beberapa tugas berjalan bersamaan
+- **Quality** — Agent bisa review hasil agent lain
+- **Scalability** — Tambah agent baru tanpa rewrite
+
+## Arsitektur Patterns
+
+### 1. Orchestrator Pattern
+
+Satu agent utama mengkoordinasi yang lain:
+
+```typescript
+class OrchestratorAgent {
+  private specialists: Map<string, Agent>;
+
+  async handle(goal: string) {
+    // 1. Break down goal
+    const plan = await this.createPlan(goal);
+
+    // 2. Delegate to specialists
+    const results = [];
+    for (const step of plan.steps) {
+      const specialist = this.specialists.get(step.agent);
+      const result = await specialist.execute(step.task);
+      results.push(result);
+    }
+
+    // 3. Synthesize
+    return await this.synthesize(results);
+  }
+
+  async createPlan(goal: string): Promise<Plan> {
+    const response = await this.llm.call([{
+      role: "system",
+      content: `Kamu adalah orchestrator. Break down goal menjadi steps.
+      Available agents: ${Array.from(this.specialists.keys()).join(", ")}
+      Format: JSON array of {agent, task, dependencies}`,
+    }, {
+      role: "user",
+      content: goal,
+    }]);
+
+    return JSON.parse(response.content);
+  }
+}
+```
+
+### 2. Pipeline Pattern
+
+Agent berurutan, output jadi input berikutnya:
+
+```typescript
+const pipeline = [
+  new ResearchAgent(),    // Step 1: Riset
+  new OutlineAgent(),     // Step 2: Buat outline
+  new WritingAgent(),     // Step 3: Tulis draft
+  new EditingAgent(),     // Step 4: Edit
+  new FormattingAgent(),  // Step 5: Format final
+];
+
+async function executePipeline(topic: string) {
+  let context = { topic };
+
+  for (const agent of pipeline) {
+    context = await agent.execute(context);
+  }
+
+  return context.finalOutput;
+}
+```
+
+### 3. Debate Pattern
+
+Agent berdebat untuk menghasilkan jawaban terbaik:
+
+```typescript
+async function debateAgents(question: string, rounds = 3) {
+  const agentA = new Agent({ name: "Advocate", bias: "supportive" });
+  const agentB = new Agent({ name: "Critic", bias: "skeptical" });
+  const judge = new Agent({ name: "Judge", bias: "neutral" });
+
+  let debateHistory = "";
+
+  for (let round = 0; round < rounds; round++) {
+    const argA = await agentA.argue(question, debateHistory);
+    const argB = await agentB.argue(question, debateHistory);
+    debateHistory += "\nAdvocate: " + argA + "\nCritic: " + argB;
+  }
+
+  return await judge.decide(question, debateHistory);
+}
+```
+
+## Communication Between Agents
+
+### Direct Message
+
+```typescript
+class AgentMessage {
+  constructor(
+    public from: string,
+    public to: string,
+    public content: string,
+    public type: "request" | "response" | "feedback"
+  ) {}
+}
+
+class MessageBus {
+  private handlers = new Map<string, (msg: AgentMessage) => void>();
+
+  register(agentName: string, handler: (msg: AgentMessage) => void) {
+    this.handlers.set(agentName, handler);
+  }
+
+  send(message: AgentMessage) {
+    const handler = this.handlers.get(message.to);
+    if (handler) handler(message);
+  }
+}
+```
+
+### Shared Context
+
+```typescript
+class SharedContext {
+  private store = new Map<string, any>();
+
+  set(key: string, value: any) {
+    this.store.set(key, value);
+  }
+
+  get(key: string) {
+    return this.store.get(key);
+  }
+
+  summarize(): string {
+    return Array.from(this.store.entries())
+      .map(([k, v]) => k + ": " + JSON.stringify(v))
+      .join("\n");
+  }
+}
+```
+
+## CrewAI Framework
+
+```python
+from crewai import Agent, Task, Crew
+
+researcher = Agent(
+    role="Research Analyst",
+    goal="Find comprehensive information about the topic",
+    backstory="Expert analyst with 10 years experience",
+    tools=[search_tool, read_tool],
+)
+
+writer = Agent(
+    role="Content Writer",
+    goal="Write engaging, accurate content",
+    backstory="Professional writer specializing in Web3",
+)
+
+research_task = Task(
+    description="Research about {topic}",
+    agent=researcher,
+    expected_output="Detailed research report",
+)
+
+write_task = Task(
+    description="Write article based on research",
+    agent=writer,
+    expected_output="Published-ready article",
+    context=[research_task],
+)
+
+crew = Crew(agents=[researcher, writer], tasks=[research_task, write_task])
+result = crew.kickoff(inputs={"topic": "AI Agents in 2026"})
+```
+
+## Latihan
+
+Buat multi-agent system dengan 3 agents (researcher, writer, editor) yang berkolaborasi membuat artikel blog.

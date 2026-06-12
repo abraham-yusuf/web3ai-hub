@@ -1,0 +1,81 @@
+---
+title: "Kapan Harus Fine-tuning Model AI?"
+order: 17
+authors: ["admin"]
+excerpt: "Memahami kapan fine-tuning diperlukan versus prompt engineering, RAG, atau few-shot learning."
+---
+
+# Kapan Harus Fine-tuning?
+
+Fine-tuning bukan solusi untuk semua masalah. Seringkali, prompt engineering atau RAG sudah cukup. Fine-tuning mahal dan butuh data berkualitas.
+
+## Decision Framework
+
+### Tidak Perlu Fine-tuning
+
+- **Prompt engineering cukup** — Tweak system prompt sampai output memuaskan
+- **RAG cukup** — Butuh knowledge base, bukan gaya/behavior
+- **Few-shot cukup** — 3-5 contoh sudah menghasilkan output konsisten
+- **Data kurang dari 100 contoh** — Terlalu sedikit untuk training efektif
+
+### Perlu Fine-tuning
+
+- **Custom tone/style** — Brand voice yang konsisten, format output spesifik
+- **Domain-specific** — Terminologi medis, hukum, atau teknis yang langka
+- **Consistent formatting** — Output harus selalu dalam format tertentu
+- **Reduce prompt size** — Instruksi panjang bisa dipangkas setelah fine-tuning
+- **Latency** — Prompt lebih pendek = response lebih cepat
+
+## Alternatif Fine-tuning
+
+### 1. Prompt Engineering
+
+```
+Before fine-tuning, coba:
+- System prompt yang lebih detail
+- Few-shot examples (3-5 contoh)
+- Chain-of-thought prompting
+- Structured output format
+```
+
+### 2. RAG (Retrieval-Augmented Generation)
+
+```
+Jika butuh knowledge domain:
+- Index dokumen domain ke vector DB
+- Retrieve relevant context saat query
+- Lebih mudah update (tambah dokumen vs retrain)
+```
+
+### 3. Distillation
+
+```
+Jika punya model besar yang bagus:
+- Generate dataset dari model besar
+- Fine-tune model kecil dengan dataset tersebut
+- Lebih murah dari fine-tune langsung
+```
+
+## Cost Comparison
+
+| Approach | Biaya | Effort | When |
+|----------|-------|--------|------|
+| Prompt engineering | Gratis | Rendah | Selalu coba dulu |
+| Few-shot | Gratis | Rendah | Butuh contoh konsisten |
+| RAG | ~$50/bln (hosting) | Sedang | Butuh knowledge base |
+| Fine-tuning | $100-1000+ | Tinggi | Butuh behavior change |
+
+## Checklist Sebelum Fine-tuning
+
+- Sudah coba prompt engineering optimal?
+- Sudah coba few-shot (5+ contoh)?
+- Punya minimal 100 contoh training data?
+- Dataset bersih dan konsisten?
+- Siap untuk maintenance (retrain berkala)?
+- Budget tersedia untuk training dan inference?
+
+Jika semua jawaban **Ya**, lanjut ke fine-tuning.
+
+## Latihan
+
+Anda punya chatbot customer service yang sering menjawab di luar konteks. Apakah fine-tuning solusi terbaik? Identifikasi alternatif yang mungkin lebih cocok.

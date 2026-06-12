@@ -1,0 +1,204 @@
+---
+title: "Token Engineering"
+slug: "token-engineering"
+order: 29
+---
+
+# Token Engineering
+
+Token engineering adalah disiplin ilmu yang menerapkan prinsip rekayasa sistem untuk merancang mekanisme ekonomi berbasis token. Ini adalah salah satu aspek paling kritis dalam membangun DAO dan protocol yang sukses. Halaman ini membahas prinsip dasar token engineering beserta contoh dari ekosistem nyata.
+
+## Token Design Fundamentals
+
+Merancang token yang efektif memerlukan pemahaman mendalam tentang insentif, mekanisme, dan perilaku manusia.
+
+**Pertanyaan kunci dalam token design:**
+- Apa tujuan token ini? (Governance, utility, store of value)
+- Siapa yang perlu memiliki token? (User, investor, team, community)
+- Bagaimana token didistribusikan? (Fair launch, presale, airdrop)
+- Apa mekanisme supply? (Fixed, inflationary, deflationary)
+- Bagaimana token menangkap value? (Fee sharing, buyback, staking)
+
+**Token Categories:**
+- **Governance token** — Voting power dalam DAO (MKR, UNI, COMP)
+- **Utility token** — Akses ke layanan atau fitur (FIL, GRT)
+- **Security token** — Representasi aset keuangan
+- **Payment token** — Medium of exchange (DAI, USDC)
+- **Hybrid token** — Kombinasi beberapa fungsi
+
+## Incentive Alignment
+
+Tujuan utama token engineering adalah menciptakan insentif yang sejalan dengan kepentingan semua stakeholder.
+
+**Prinsip insentif alignment:**
+
+**1. Skin in the Game**
+Partisipan harus memiliki exposure terhadap hasil keputusan mereka. Staking, lock-up, dan bonding adalah mekanisme untuk mencapai ini.
+
+**Contoh:** Aave memerlukan AAVE stakers untuk bertindak sebagai backstop dalam Safety Module. Jika terjadi shortfall event, staked AAVE bisa dijual untuk menutupi kerugian.
+
+**2. Reward Contribution**
+Kontribusi yang bernilai harus dihargai secara proporsional. Ini bisa berupa token rewards, reputation, atau akses.
+
+**3. Punish Bad Behavior**
+Mekanisme slashing dan penalty untuk perilaku yang merugikan protocol.
+
+**4. Long-term Alignment**
+Vesting dan lock-up memastikan stakeholder memiliki orientasi jangka panjang.
+
+**Framework untuk menganalisis insentif:**
+- Siapa yang diuntungkan dari setiap tindakan?
+- Apakah insentif sejalan dengan tujuan protocol?
+- Apakah ada celah yang bisa dieksploitasi?
+- Bagaimana perilaku berubah dalam berbagai skenario?
+
+## Vesting dan Lock-up
+
+Vesting adalah mekanisme kunci untuk memastikan alignment jangka panjang dan mencegah dump token.
+
+**Jenis vesting:**
+
+**1. Time-based Vesting**
+Token secara bertahap menjadi available seiring waktu.
+- Contoh: 4 tahun vesting dengan 1 tahun cliff
+- 25% tersedia setelah tahun pertama
+- Sisanya vested secara linear selama 3 tahun berikutnya
+
+**2. Milestone-based Vesting**
+Token tersedia berdasarkan pencapaian milestone tertentu.
+- Cocok untuk contributor dan grant recipient
+- Lebih berorientasi pada hasil
+
+**3. Hybrid Vesting**
+Kombinasi time-based dan milestone-based.
+
+**Best practices vesting:**
+- Cliff minimum 6-12 bulan untuk team dan investor
+- Vesting period 2-4 tahun untuk alignment jangka panjang
+- Gunakan smart contract untuk otomasi (Saber, Magna)
+- Transparansi penuh tentang jadwal vesting
+
+**Contoh: Uniswap Token Distribution**
+- 60% ke community (4-year vesting untuk governance treasury)
+- 21.266% ke team (4-year vesting)
+- 18.044% ke investor (4-year vesting)
+- 0.69% ke advisor (4-year vesting)
+
+## Bonding Curves
+
+Bonding curve adalah mekanisme otomatis yang menentukan harga token berdasarkan supply.
+
+**Cara kerja:**
+- Harga token ditentukan oleh fungsi matematika
+- Saat token dibeli, harga naik (supply meningkat)
+- Saat token dijual, harga turun (supply berkurang)
+- Automated market maker yang menjamin likuiditas
+
+**Jenis bonding curve:**
+- **Linear** — Harga naik secara linear dengan supply
+- **Exponential** — Harga naik secara eksponensial
+- **Sigmoid (S-curve)** — Harga lambat di awal, cepat di tengah, lambat di akhir
+- **Logarithmic** — Harga naik cepat di awal, melambat
+
+**Aplikasi bonding curve:**
+- **Token launching** — Fair price discovery tanpa centralized exchange
+- **Continuous fundraising** — Juicebox dan similar platforms
+- **Reputation systems** — Harga reputation meningkat seiring waktu
+- **Curation markets** — Token untuk kurasi konten atau data
+
+**Kelebihan:**
+- Price discovery otomatis
+- Likuiditas terjamin
+- Tidak memerlukan centralized exchange
+- Mekanisme yang transparan
+
+**Kekurangan:**
+- Bisa dimanipulasi oleh bot
+- Volatilitas tinggi pada supply rendah
+- Kompleksitas untuk dipahami user biasa
+- Tidak cocok untuk semua use case
+
+## Tokenomics Models
+
+**1. Deflationary Model**
+Supply berkurang seiring waktu melalui burn mechanism.
+- Contoh: Ethereum (EIP-1559 burn), BNB (quarterly burn)
+- Kelebihan: Potensi apresiasi harga
+- Kekurangan: Bisa menghambat penggunaan sebagai currency
+
+**2. Inflationary Model**
+Supply meningkat untuk mendanai operasional dan reward.
+- Contoh: Polkadot, Cosmos
+- Kelebihan: Sustainable funding untuk ecosystem
+- Kekurangan: Dilution jika tidak dikelola dengan baik
+
+**3. Dual Token Model**
+Dua token dengan fungsi berbeda.
+- Contoh: Axie Infinity (AXS + SLP), MakerDAO (MKR + DAI)
+- Kelebihan: Pemisahan fungsi yang jelas
+- Kekurangan: Kompleksitas yang lebih tinggi
+
+**4. Vote-escrowed (ve) Model**
+Token yang dikunci untuk voting power yang lebih besar.
+- Contoh: Curve (veCRV), Balancer (veBAL)
+- Kelebihan: Long-term alignment yang kuat
+- Kekurangan: Barrier to entry yang tinggi
+
+## Case Study: MakerDAO Tokenomics
+
+MakerDAO menunjukkan token engineering yang matang:
+
+**MKR Token:**
+- Governance token untuk mengelola Maker Protocol
+- Digunakan untuk voting pada parameter risiko
+- Dibeli dan diburned menggunakan surplus revenue
+- Safety mechanism: bisa di-mint untuk menutupi deficit
+
+**DAI Stablecoin:**
+- Overcollateralized stablecoin
+- Generated melalui vault (pinjaman dengan kolateral)
+- Stability fee (bunga) dibayar dalam DAI
+- Pegged ke USD melalui mekanisme PSM dan oracles
+
+**Insentif alignment:**
+- MKR holders bertanggung jawab atas risiko protocol
+- Revenue dari stability fee meningkatkan value MKR
+- Poor governance decisions mengakibatkan MKR dilution
+- Clear skin in the game mechanism
+
+## Tools untuk Token Engineering
+
+- **CadCAD** — Complex systems simulation framework
+- **TokenSPICE** — Agent-based token economy simulation
+- **Stochastic Design Engineering** — Framework untuk analisis token
+- **Machinations** — Visual game economy modeling
+- **Dune Analytics** — On-chain data untuk validasi model
+
+## Common Pitfalls
+
+**1. Over-engineering**
+Mekanisme yang terlalu kompleks sulit dipahami dan diadopsi.
+
+**2. Neglecting Game Theory**
+Tidak mempertimbangkan bagaimana partisipan akan berperilaku secara rasional.
+
+**3. Short-term Focus**
+Vesting yang pendek atau reward yang terlalu tinggi menciptakan mercenary capital.
+
+**4. Centralization Risk**
+Distribusi token yang tidak merata mengancam desentralisasi.
+
+**5. Ignoring Regulatory Implications**
+Token design yang bisa dianggap sebagai securities.
+
+## Prinsip Token Engineering yang Baik
+
+1. **Sederhana dan jelas** — Mekanisme yang mudah dipahami
+2. **Robust** — Tahan terhadap berbagai skenario
+3. **Aligned** — Insentif sejalan dengan tujuan protocol
+4. **Sustainable** — Funding model jangka panjang
+5. **Adaptive** — Bisa disesuaikan dengan perubahan
+6. **Transparent** — Semua parameter dan mekanisme terbuka
+7. **Simulated** — Diuji melalui simulasi sebelum deployment
+
+Token engineering adalah seni dan sains yang menggabungkan ekonomi, ilmu komputer, dan psikologi. Investasi dalam merancang token yang baik akan menentukan keberhasilan jangka panjang DAO dan protocol.

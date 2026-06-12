@@ -1,0 +1,127 @@
+---
+title: "Arsitektur AI Agent"
+order: 27
+authors: ["admin"]
+excerpt: "Memahami arsitektur AI Agent: komponen, loop, dan perbedaan dengan chatbot biasa."
+---
+
+# Arsitektur AI Agent
+
+AI Agent bukan sekadar chatbot. Agent bisa **mengambil keputusan**, **menggunakan tools**, dan **bekerja secara otonom** untuk menyelesaikan tugas kompleks.
+
+## Agent vs Chatbot
+
+| Aspek | Chatbot | AI Agent |
+|-------|---------|----------|
+| Input → Output | Pertanyaan → Jawaban | Goal → Plan → Execute → Result |
+| Tools | Tidak ada | Bisa panggil API, baca file, dll. |
+| Memory | Conversation saja | Long-term memory + context |
+| Autonomy | Rendah | Tinggi (bisa multi-step) |
+| Loop | Single turn | Multi-step loop |
+
+## Core Components
+
+```
+┌─────────────────────────────────────┐
+│            AI Agent                 │
+│                                     │
+│  ┌──────────┐    ┌──────────────┐  │
+│  │   LLM    │    │   Memory     │  │
+│  │ (Brain)  │    │ (Short/Long) │  │
+│  └────┬─────┘    └──────────────┘  │
+│       │                             │
+│  ┌────▼─────┐    ┌──────────────┐  │
+│  │ Planner  │    │   Tools      │  │
+│  │          │◄──►│ (Actions)    │  │
+│  └────┬─────┘    └──────────────┘  │
+│       │                             │
+│  ┌────▼─────┐    ┌──────────────┐  │
+│  │ Executor │    │  Guardrails  │  │
+│  │          │◄──►│ (Safety)     │  │
+│  └──────────┘    └──────────────┘  │
+└─────────────────────────────────────┘
+```
+
+## Agent Loop
+
+```typescript
+async function agentLoop(goal: string, maxIterations = 10) {
+  const memory = new Memory();
+  let iteration = 0;
+
+  while (iteration < maxIterations) {
+    // 1. THINK — LLM memutuskan langkah berikutnya
+    const thought = await llm.call([{
+      role: "system",
+      content: buildSystemPrompt(goal, memory, tools),
+    }, {
+      role: "user",
+      content: "Apa langkah berikutnya?",
+    }]);
+
+    const action = parseAction(thought.content);
+
+    // 2. ACT — Execute action
+    if (action.type === "tool_call") {
+      const result = await executeTool(action.tool, action.params);
+      memory.add("observation", result);
+    } else if (action.type === "answer") {
+      return action.content; // Selesai!
+    } else if (action.type === "think") {
+      memory.add("thought", action.content);
+    }
+
+    iteration++;
+  }
+
+  return "Mencapai batas iterasi maksimum.";
+}
+```
+
+## ReAct Pattern
+
+Reasoning + Acting — pola agent paling populer:
+
+```
+Thought: User bertanya tentang gas fee. Saya perlu mencari informasi terbaru.
+Action: search("gas fee ethereum 2026")
+Observation: Gas fee rata-rata 15-30 gwei untuk transaksi standar...
+Thought: Saya punya informasi cukup untuk menjawab.
+Answer: Gas fee di Ethereum saat ini...
+```
+
+```typescript
+function buildReActPrompt(goal: string, memory: Memory) {
+  return `Kamu adalah AI agent. Gunakan pola Thought/Action/Observation.
+
+TOOLS yang tersedia:
+${tools.map((t) => "- " + t.name + ": " + t.description).join("\n")}
+
+GOAL: ${goal}
+
+Riwayat:
+${memory.getHistory()}
+
+Langkah berikutnya (Thought → Action atau Answer):`;
+}
+```
+
+## Contoh Agent: Research Agent
+
+```typescript
+const researchAgent = new Agent({
+  name: "Research Assistant",
+  goal: "Riset topik dan buat ringkasan",
+  tools: [webSearch, readArticle, summarize],
+  llm: "gpt-4o",
+  maxIterations: 5,
+});
+
+const result = await researchAgent.run(
+  "Riset tentang tren AI agents di 2026 dan buat ringkasan 500 kata"
+);
+```
+
+## Latihan
+
+Buat agent sederhana yang bisa: (1) menerima topik, (2) mencari informasi, (3) merangkum, dan (4) menyimpan hasil. Gunakan ReAct pattern.

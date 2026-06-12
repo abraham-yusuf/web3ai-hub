@@ -1,0 +1,141 @@
+---
+title: "Menyiapkan Dataset untuk Fine-tuning"
+order: 18
+authors: ["admin"]
+excerpt: "Panduan menyiapkan dataset berkualitas untuk fine-tuning LLM: format, cleaning, dan validasi."
+---
+
+# Menyiapkan Dataset untuk Fine-tuning
+
+Kualitas dataset menentukan kualitas model. "Garbage in, garbage out" berlaku dua kali lipat untuk fine-tuning.
+
+## Format Dataset
+
+### OpenAI Format
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "Kamu adalah asisten Web3."},
+    {"role": "user", "content": "Apa itu gas fee?"},
+    {"role": "assistant", "content": "Gas fee adalah biaya transaksi di blockchain Ethereum..."}
+  ]
+}
+```
+
+### JSONL File (satu JSON per baris)
+
+```jsonl
+{"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
+{"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
+```
+
+## Minimum Dataset Size
+
+- **OpenAI**: 10 contoh minimum, 50-100 recommended
+- **Llama**: 100-1000 contoh untuk hasil bagus
+- **Rule of thumb**: Semakin banyak semakin baik, tapi kualitas > kuantitas
+
+## Data Quality Checklist
+
+### 1. Konsistensi
+
+```
+Baik:
+  Q: "Apa itu DeFi?" → A: "DeFi adalah singkatan dari Decentralized Finance..."
+
+Buruk (inkonsisten):
+  Q: "Apa itu DeFi?" → A: "DeFi itu..." (gaya A)
+  Q: "Jelaskan DeFi" → A: "Decentralized Finance adalah..." (gaya B)
+```
+
+### 2. Panjang Output yang Konsisten
+
+```python
+# Validasi panjang output
+import json
+
+lengths = []
+for line in open("training_data.jsonl"):
+    data = json.loads(line)
+    assistant_msg = [m for m in data["messages"] if m["role"] == "assistant"][0]
+    lengths.append(len(assistant_msg["content"].split()))
+
+# Cek distribusi
+import statistics
+print(f"Mean: {statistics.mean(lengths):.0f} kata")
+print(f"Stdev: {statistics.stdev(lengths):.0f} kata")
+print(f"Min: {min(lengths)}, Max: {max(lengths)}")
+```
+
+### 3. Deduplication
+
+```python
+seen = set()
+unique_data = []
+
+for line in open("training_data.jsonl"):
+    data = json.loads(line)
+    user_msg = [m for m in data["messages"] if m["role"] == "user"][0]
+    key = user_msg["content"].strip().lower()
+    if key not in seen:
+        seen.add(key)
+        unique_data.append(data)
+
+print(f"Removed {len(seen) - len(unique_data)} duplicates")
+```
+
+### 4. Format Validation
+
+```python
+def validate_entry(entry):
+    messages = entry.get("messages", [])
+    roles = [m["role"] for m in messages]
+
+    assert roles[0] == "system", "First message must be system"
+    assert "user" in roles, "Must have user message"
+    assert "assistant" in roles, "Must have assistant message"
+    assert roles[-1] == "assistant", "Last message must be assistant"
+
+    for m in messages:
+        assert "content" in m, "Each message must have content"
+        assert len(m["content"].strip()) > 0, "Content cannot be empty"
+
+    return True
+```
+
+## Data Augmentation
+
+Jika data terbatas, augmentasi bisa membantu:
+
+```python
+# Paraphrase augmentation
+def augment_question(question):
+    templates = [
+        f"Bisa jelaskan tentang {topic}?",
+        f"Apa yang dimaksud dengan {topic}?",
+        f"Ceritakan tentang {topic}",
+        f"Bagaimana cara kerja {topic}?",
+    ]
+    return random.choice(templates)
+```
+
+## Train/Validation Split
+
+```python
+import random
+
+random.seed(42)
+random.shuffle(data)
+
+split_idx = int(len(data) * 0.9)
+train_data = data[:split_idx]
+val_data = data[split_idx:]
+
+# Train: 90%, Validation: 10%
+# Validation penting untuk mencegah overfitting
+```
+
+## Latihan
+
+Buat 20 contoh training data untuk fine-tuning chatbot yang menjawab pertanyaan tentang airdrop. Pastikan format konsisten dan tidak ada duplikat.

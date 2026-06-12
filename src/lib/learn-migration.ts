@@ -32,7 +32,7 @@ export const TRACK_META: Record<string, TrackMeta> = {
   },
   "ai-basics": {
     title: "AI Fundamentals",
-    description: "Memahami AI modern, LLM, prompt engineering, evaluasi model, dan AI tools.",
+    description: "Memahami AI modern, LLM, prompt engineering, evaluasi model, AI tools, fine-tuning, RAG production, dan AI agents.",
     type: "AI",
     order: 1,
   },
@@ -50,6 +50,10 @@ export const SECTION_META: Record<string, SectionMeta[]> = {
     { title: "LLM & Prompt Engineering", order: 1 },
     { title: "AI Tools & Agents", order: 2 },
     { title: "Evaluasi & Etika AI", order: 3 },
+    { title: "LLM Integration", order: 4 },
+    { title: "Fine-tuning", order: 5 },
+    { title: "RAG Production", order: 6 },
+    { title: "AI Agent Development", order: 7 },
   ],
 }
 
@@ -74,6 +78,28 @@ export const PAGE_SECTIONS: Record<string, string> = {
   "ai-agents-dan-autonomous-systems": "AI Tools & Agents",
   "evaluasi-model-ai": "Evaluasi & Etika AI",
   "ai-ethics-dan-responsible": "Evaluasi & Etika AI",
+  "llm-integration-api-basics": "LLM Integration",
+  "llm-integration-prompt-design": "LLM Integration",
+  "llm-integration-streaming": "LLM Integration",
+  "llm-integration-error-handling": "LLM Integration",
+  "llm-integration-cost-optimization": "LLM Integration",
+  "llm-integration-multi-provider": "LLM Integration",
+  "fine-tuning-when-to-finetune": "Fine-tuning",
+  "fine-tuning-data-preparation": "Fine-tuning",
+  "fine-tuning-training-process": "Fine-tuning",
+  "fine-tuning-evaluation": "Fine-tuning",
+  "fine-tuning-deployment": "Fine-tuning",
+  "rag-production-architecture": "RAG Production",
+  "rag-production-embeddings": "RAG Production",
+  "rag-production-vector-database": "RAG Production",
+  "rag-production-retrieval-strategies": "RAG Production",
+  "rag-production-deployment": "RAG Production",
+  "ai-agents-architecture": "AI Agent Development",
+  "ai-agents-tool-use": "AI Agent Development",
+  "ai-agents-memory-systems": "AI Agent Development",
+  "ai-agents-multi-agent": "AI Agent Development",
+  "ai-agents-evaluation": "AI Agent Development",
+  "ai-agents-safety": "AI Agent Development",
 }
 
 function toTitleFromSlug(slug: string) {
