@@ -37,7 +37,9 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 
 // ── i18n helpers ────────────────────────────────────────────────────────────
 
-const PUBLIC_PATHS = ["/blog", "/faq", "/glossary", "/learn", "/airdrop", "/ai-tools", "/search", "/topics"]
+// Only redirect these paths to locale-prefixed routes.
+// These have corresponding [locale]/... page.tsx files.
+const LOCALE_AWARE_PATHS = ["/blog", "/faq", "/glossary"]
 
 function getLocaleFromPath(pathname: string): Locale | null {
   const segments = pathname.split("/").filter(Boolean)
@@ -89,7 +91,7 @@ export async function proxy(request: NextRequest) {
   const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value
   const locale = cookieLocale && (locales as readonly string[]).includes(cookieLocale) ? cookieLocale as Locale : getLocaleFromHeaders(request)
 
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  const isPublicPath = LOCALE_AWARE_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
 
   if (isPublicPath) {
     // Redirect to locale-prefixed path
