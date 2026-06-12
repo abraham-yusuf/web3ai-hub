@@ -98,7 +98,7 @@ export function BlogListingClient({ posts, initialLocale, otherLocale }: BlogLis
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPosts.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`}>
+            <Link key={post.slug} href={`/${initialLocale}/blog/${post.slug}`}>
               <Card className="h-full transition-colors hover:border-primary">
                 <CardHeader>
                   <div className="mb-2 text-xs font-medium text-primary">{post.category ?? "General"}</div>

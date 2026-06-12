@@ -286,7 +286,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               🇮🇩 Indonesia
             </Link>
             <Link
-              href={`/en/blog/${post.slug}`}
+              href={translationLink?.locale === "en" ? translationLink.href : `/en/blog/${post.slug}`}
               className={`px-2 py-1 rounded ${loc === "en" ? "bg-primary/10 font-medium" : "hover:bg-primary/5"}`}
             >
               🇬🇧 English
