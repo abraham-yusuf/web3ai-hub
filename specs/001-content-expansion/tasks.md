@@ -57,12 +57,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Generate + review + publish "Apa Itu Blockchain? Panduan Lengkap untuk Pemula" via AI Writer → save as `content/blog/web3-fundamentals/apa-itu-blockchain-panduan-pemula.mdx`
-- [ ] T017 [US1] Generate + review + publish "DeFi untuk Pemula: Apa Itu dan Cara Kerjanya" via AI Writer → save as `content/blog/web3-fundamentals/defi-untuk-pemula.mdx`
-- [ ] T018 [US1] Generate + review + publish "Panduan NFT: Dari Konsep sampai Koleksi" via AI Writer → save as `content/blog/web3-fundamentals/panduan-nft-konsep-koleksi.mdx`
-- [ ] T019 [US1] Generate + review + publish "Cara Setup Crypto Wallet: Step-by-Step" via AI Writer → save as `content/blog/web3-fundamentals/cara-setup-crypto-wallet.mdx`
-- [ ] T020 [US1] Generate + review + publish "Gas Fees: Mengapa Bayar dan Cara Hemat" via AI Writer → save as `content/blog/web3-fundamentals/gas-fees-panduan.mdx`
-- [ ] T021 [US1] Translate all 5 Web3 fundamentals posts to English, review translations, mark as verified
+- [x] T016 [US1] Generate + review + publish "Apa Itu Blockchain? Panduan Lengkap untuk Pemula" via AI Writer → save as `content/blog/web3-fundamentals/apa-itu-blockchain-panduan-pemula.mdx`
+- [x] T017 [US1] Generate + review + publish "DeFi untuk Pemula: Apa Itu dan Cara Kerjanya" via AI Writer → save as `content/blog/web3-fundamentals/defi-untuk-pemula.mdx`
+- [x] T018 [US1] Generate + review + publish "Panduan NFT: Dari Konsep sampai Koleksi" via AI Writer → save as `content/blog/web3-fundamentals/panduan-nft-konsep-koleksi.mdx`
+- [x] T019 [US1] Generate + review + publish "Cara Setup Crypto Wallet: Step-by-Step" via AI Writer → save as `content/blog/web3-fundamentals/cara-setup-crypto-wallet.mdx`
+- [x] T020 [US1] Generate + review + publish "Gas Fees: Mengapa Bayar dan Cara Hemat" via AI Writer → save as `content/blog/web3-fundamentals/gas-fees-panduan.mdx`
+- [x] T021 [US1] Translate all 5 Web3 fundamentals posts to English, review translations, mark as verified
 
 **Checkpoint**: 5 Web3 fundamentals posts published in ID + EN. Blog listing shows 5 articles in category.
 
@@ -76,12 +76,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Generate + review + publish "Prompt Engineering: Seni Berbicara dengan AI" via AI Writer → save as `content/blog/ai-tutorials/prompt-engineering-seni-berbicara-ai.mdx`
-- [ ] T023 [US2] Generate + review + publish "Perbandingan LLM 2026: GPT vs Claude vs Gemini vs Llama" via AI Writer → save as `content/blog/ai-tutorials/perbandingan-llm-2026.mdx`
-- [ ] T024 [US2] Generate + review + publish "10 AI Tools Wajib Coba untuk Produktivitas" via AI Writer → save as `content/blog/ai-tutorials/10-ai-tools-produktivitas.mdx`
-- [ ] T025 [US2] Generate + review + publish "Tips ChatGPT: Dari Pemula ke Power User" via AI Writer → save as `content/blog/ai-tutorials/tips-chatgpt-power-user.mdx`
-- [ ] T026 [US2] Generate + review + publish "AI Image Generation: Dari Prompt ke Gambar" via AI Writer → save as `content/blog/ai-tutorials/ai-image-generation-panduan.mdx`
-- [ ] T027 [US2] Translate all 5 AI tutorials posts to English, review translations, mark as verified
+- [x] T022 [US2] Generate + review + publish "Prompt Engineering: Seni Berbicara dengan AI" via AI Writer → save as `content/blog/ai-tutorials/prompt-engineering-seni-berbicara-ai.mdx`
+- [x] T023 [US2] Generate + review + publish "Perbandingan LLM 2026: GPT vs Claude vs Gemini vs Llama" via AI Writer → save as `content/blog/ai-tutorials/perbandingan-llm-2026.mdx`
+- [x] T024 [US2] Generate + review + publish "10 AI Tools Wajib Coba untuk Produktivitas" via AI Writer → save as `content/blog/ai-tutorials/10-ai-tools-produktivitas.mdx`
+- [x] T025 [US2] Generate + review + publish "Tips ChatGPT: Dari Pemula ke Power User" via AI Writer → save as `content/blog/ai-tutorials/tips-chatgpt-power-user.mdx`
+- [x] T026 [US2] Generate + review + publish "AI Image Generation: Dari Prompt ke Gambar" via AI Writer → save as `content/blog/ai-tutorials/ai-image-generation-panduan.mdx`
+- [x] T027 [US2] Translate all 5 AI tutorials posts to English, review translations, mark as verified
 
 **Checkpoint**: 5 AI tutorials posts published in ID + EN. Difficulty indicators visible.
 
@@ -95,12 +95,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Generate + review + publish "Airdrop Crypto 2026: Daftar Terbaru yang Masih Aktif" via AI Writer → save as `content/blog/airdrop-guides/airdrop-crypto-2026-daftar-terbaru.mdx`
-- [ ] T029 [US3] Generate + review + publish "Cara Kualifikasi Airdrop: Checklist Lengkap" via AI Writer → save as `content/blog/airdrop-guides/cara-kualifikasi-airdrop-checklist.mdx`
-- [ ] T030 [US3] Generate + review + publish "Menghindari Scam Airdrop: Red Flags dan Tips Aman" via AI Writer → save as `content/blog/airdrop-guides/menghindari-scam-airdrop.mdx`
-- [ ] T031 [US3] Generate + review + publish "Airdrop Farming Strategy: Maksimalkan Reward" via AI Writer → save as `content/blog/airdrop-guides/airdrop-farming-strategy.mdx`
-- [ ] T032 [US3] Generate + review + publish "Testnet Airdrop: Cara Berpartisipasi dan Dapat Token Gratis" via AI Writer → save as `content/blog/airdrop-guides/testnet-airdrop-panduan.mdx`
-- [ ] T033 [US3] Translate all 5 airdrop guides to English, review translations, mark as verified
+- [x] T028 [US3] Generate + review + publish "Airdrop Crypto 2026: Daftar Terbaru yang Masih Aktif" via AI Writer → save as `content/blog/airdrop-guides/airdrop-crypto-2026-daftar-terbaru.mdx`
+- [x] T029 [US3] Generate + review + publish "Cara Kualifikasi Airdrop: Checklist Lengkap" via AI Writer → save as `content/blog/airdrop-guides/cara-kualifikasi-airdrop-checklist.mdx`
+- [x] T030 [US3] Generate + review + publish "Menghindari Scam Airdrop: Red Flags dan Tips Aman" via AI Writer → save as `content/blog/airdrop-guides/menghindari-scam-airdrop.mdx`
+- [x] T031 [US3] Generate + review + publish "Airdrop Farming Strategy: Maksimalkan Reward" via AI Writer → save as `content/blog/airdrop-guides/airdrop-farming-strategy.mdx`
+- [x] T032 [US3] Generate + review + publish "Testnet Airdrop: Cara Berpartisipasi dan Dapat Token Gratis" via AI Writer → save as `content/blog/airdrop-guides/testnet-airdrop-panduan.mdx`
+- [x] T033 [US3] Translate all 5 airdrop guides to English, review translations, mark as verified
 
 **Checkpoint**: 5 airdrop guides published in ID + EN. Links to Airdrop Hub functional.
 
@@ -114,13 +114,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T034 [US4] Generate + review + publish "Tren Web3 2026: Apa yang Perlu Diketahui" via AI Writer → save as `content/blog/opinion-news/tren-web3-2026.mdx`
-- [ ] T035 [US4] Generate + review + publish "Regulasi AI di Indonesia: Dampak untuk Developer" via AI Writer → save as `content/blog/opinion-news/regulasi-ai-indonesia.mdx`
-- [ ] T036 [US4] Generate + review + publish "Analisis Pasar Crypto Q2 2026" via AI Writer → save as `content/blog/opinion-news/analisis-pasar-crypto-q2-2026.mdx`
-- [ ] T037 [US4] Generate + review + publish "AI Agents: Masa Depan atau Hype?" via AI Writer → save as `content/blog/opinion-news/ai-agents-masa-depan-atau-hype.mdx`
-- [ ] T038 [US4] Generate + review + publish "Indonesia dan Web3: Peluang serta Tantangan" via AI Writer → save as `content/blog/opinion-news/indonesia-web3-peluang-tantangan.mdx`
-- [ ] T039 [US4] Translate all 5 opinion/news posts to English, review translations, mark as verified
-- [ ] T040 [US4] Verify auto-archive works — set test article publishedAt to 91 days ago, run auto-archive, confirm hidden from listing but accessible via URL
+- [x] T034 [US4] Generate + review + publish "Tren Web3 2026: Apa yang Perlu Diketahui" via AI Writer → save as `content/blog/opinion-news/tren-web3-2026.mdx`
+- [x] T035 [US4] Generate + review + publish "Regulasi AI di Indonesia: Dampak untuk Developer" via AI Writer → save as `content/blog/opinion-news/regulasi-ai-indonesia.mdx`
+- [x] T036 [US4] Generate + review + publish "Analisis Pasar Crypto Q2 2026" via AI Writer → save as `content/blog/opinion-news/analisis-pasar-crypto-q2-2026.mdx`
+- [x] T037 [US4] Generate + review + publish "AI Agents: Masa Depan atau Hype?" via AI Writer → save as `content/blog/opinion-news/ai-agents-masa-depan-atau-hype.mdx`
+- [x] T038 [US4] Generate + review + publish "Indonesia dan Web3: Peluang serta Tantangan" via AI Writer → save as `content/blog/opinion-news/indonesia-web3-peluang-tantangan.mdx`
+- [x] T039 [US4] Translate all 5 opinion/news posts to English, review translations, mark as verified
+- [x] T040 [US4] Verify auto-archive works — set test article publishedAt to 91 days ago, run auto-archive, confirm hidden from listing but accessible via URL
 
 **Checkpoint**: 5 opinion/news posts published in ID + EN. Auto-archive verified working.
 
