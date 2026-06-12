@@ -1,0 +1,180 @@
+---
+title: "RAG di Produksi: Monitoring dan Optimasi"
+order: 26
+authors: ["admin"]
+excerpt: "Mendeploy dan memonitor RAG di produksi: evaluation metrics, caching, dan continuous improvement."
+---
+
+# RAG di Produksi
+
+Membangun RAG prototype mudah. Membangun RAG produksi yang reliable dan scalable — itu tantangan sebenarnya.
+
+## RAG Evaluation Metrics
+
+### 1. Context Precision
+
+Dari dokumen yang di-retrieve, berapa banyak yang relevan?
+
+```typescript
+function contextPrecision(retrieved: string[], relevant: string[]): number {
+  const retrievedSet = new Set(retrieved);
+  const hits = relevant.filter((r) => retrievedSet.has(r));
+  return hits.length / retrieved.length;
+}
+// Target: > 0.7
+```
+
+### 2. Context Recall
+
+Dari semua dokumen relevan, berapa banyak yang berhasil di-retrieve?
+
+```typescript
+function contextRecall(retrieved: string[], relevant: string[]): number {
+  const retrievedSet = new Set(retrieved);
+  const hits = relevant.filter((r) => retrievedSet.has(r));
+  return hits.length / relevant.length;
+}
+// Target: > 0.8
+```
+
+### 3. Answer Relevance
+
+Apakah jawaban benar-benar menjawab pertanyaan?
+
+```typescript
+async function evaluateAnswerRelevance(question: string, answer: string) {
+  const evalResponse = await llm.call([{
+    role: "user",
+    content: `Rate relevansi jawaban terhadap pertanyaan (1-5):
+    Pertanyaan: ${question}
+    Jawaban: ${answer}
+    Rating (angka saja):`,
+  }]);
+  return parseInt(evalResponse.content) / 5;
+}
+```
+
+### 4. Faithfulness
+
+Apakah jawaban berdasarkan konteks, bukan hallucination?
+
+```typescript
+async function evaluateFaithfulness(context: string, answer: string) {
+  const claims = await extractClaims(answer);
+  const supported = claims.filter((claim) =>
+    isSupportedByContext(claim, context)
+  );
+  return supported.length / claims.length;
+  // Target: > 0.9
+}
+```
+
+## RAGAS Framework
+
+```python
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_relevancy, context_precision
+
+# Prepare dataset
+eval_dataset = {
+    "question": questions,
+    "answer": answers,
+    "contexts": contexts,
+    "ground_truth": ground_truths,
+}
+
+# Run evaluation
+result = evaluate(dataset=eval_dataset, metrics=[
+    faithfulness,
+    answer_relevancy,
+    context_precision,
+])
+
+print(result)
+# {'faithfulness': 0.92, 'answer_relevancy': 0.87, 'context_precision': 0.78}
+```
+
+## Production Architecture
+
+```
+User Query
+    ↓
+[Query Cache] → Hit? Return cached
+    ↓ Miss
+[Query Processing] → Clean, detect language
+    ↓
+[Retrieval] → Vector search + keyword search (hybrid)
+    ↓
+[Re-ranking] → Re-rank top-20 to top-5
+    ↓
+[Context Assembly] → Truncate to fit context window
+    ↓
+[LLM Generation] → With guardrails
+    ↓
+[Response Cache] → Cache for similar queries
+    ↓
+[Monitoring] → Log quality metrics
+    ↓
+Response to User
+```
+
+## Caching Strategy
+
+```typescript
+import { createHash } from "crypto";
+
+class RAGCache {
+  private cache = new Map<string, { result: any; timestamp: number }>();
+  private TTL = 3600_000; // 1 hour
+
+  getCacheKey(query: string): string {
+    return createHash("sha256").update(query.toLowerCase().trim()).digest("hex");
+  }
+
+  get(query: string): any | null {
+    const key = this.getCacheKey(query);
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.TTL) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.result;
+  }
+
+  set(query: string, result: any): void {
+    const key = this.getCacheKey(query);
+    this.cache.set(key, { result, timestamp: Date.now() });
+  }
+}
+```
+
+## Continuous Improvement
+
+```
+Loop:
+1. Collect user feedback (thumbs up/down)
+2. Log queries with low satisfaction scores
+3. Analyze failure patterns:
+   - Retrieval miss → Add missing documents
+   - Bad generation → Improve prompt
+   - Ambiguous query → Add query clarification
+4. Re-index documents with improvements
+5. A/B test changes
+6. Deploy improved version
+```
+
+## Alerting
+
+```typescript
+const ALERTS = {
+  faithfulness: { threshold: 0.85, window: "1h" },
+  latency: { threshold: 5000, window: "5m" },
+  errorRate: { threshold: 0.05, window: "5m" },
+  cacheHitRate: { threshold: 0.3, window: "1h" },
+};
+```
+
+## Latihan
+
+Buat dashboard sederhana yang menampilkan: total queries, average latency, cache hit rate, dan faithfulness score dari RAG system.

@@ -134,12 +134,12 @@
 
 ### Implementation for User Story 5
 
-- [ ] T041 [US5] Create Learn sections in database: "Solidity Fundamentals" (8 pages), "DeFi Deep Dive" (7 pages), "DAO Governance" (7 pages) via admin API or seed script
-- [ ] T042 [US5] [P] Generate + save 8 Solidity pages (800-1500 kata each) via `/api/admin/learn/pages/generate` — topics: Intro to Solidity, Variables & Types, Functions, Smart Contract Structure, Events & Errors, Inheritance, Testing, Deployment
-- [ ] T043 [US5] [P] Generate + save 7 DeFi pages (800-1500 kata each) — topics: DeFi Architecture, AMM & DEX, Lending Protocols, Yield Farming, Liquidity Mining, Impermanent Loss, DeFi Risks
-- [ ] T044 [US5] [P] Generate + save 7 DAO pages (800-1500 kata each) — topics: What is DAO, Governance Tokens, Voting Mechanisms, Proposal Lifecycle, DAO Tools, Treasury Management, DAO Legal
-- [ ] T045 [US5] Verify all 22 Web3 pages have quiz (3+ questions) and flashcards (5+ cards)
-- [ ] T046 [US5] Test progress tracking — complete 5 pages, verify XP earned, progress bar updates, streak tracking works
+- [x] T041 [US5] Create Learn sections in database: "Solidity Fundamentals" (8 pages), "DeFi Deep Dive" (7 pages), "DAO Governance" (7 pages) via admin API or seed script
+- [x] T042 [US5] [P] Generate + save 8 Solidity pages (800-1500 kata each) via `/api/admin/learn/pages/generate` — topics: Intro to Solidity, Variables & Types, Functions, Smart Contract Structure, Events & Errors, Inheritance, Testing, Deployment
+- [x] T043 [US5] [P] Generate + save 7 DeFi pages (800-1500 kata each) — topics: DeFi Architecture, AMM & DEX, Lending Protocols, Yield Farming, Liquidity Mining, Impermanent Loss, DeFi Risks
+- [x] T044 [US5] [P] Generate + save 7 DAO pages (800-1500 kata each) — topics: What is DAO, Governance Tokens, Voting Mechanisms, Proposal Lifecycle, DAO Tools, Treasury Management, DAO Legal
+- [x] T045 [US5] Verify all 22 Web3 pages have quiz (3+ questions) and flashcards (5+ cards)
+- [x] T046 [US5] Test progress tracking — complete 5 pages, verify XP earned, progress bar updates, streak tracking works
 
 **Checkpoint**: 22 Web3 Learn pages live with quizzes, flashcards, progress tracking functional.
 
@@ -153,13 +153,13 @@
 
 ### Implementation for User Story 6
 
-- [ ] T047 [US6] Create Learn sections in database: "LLM Integration" (6 pages), "Fine-tuning" (5 pages), "RAG Systems" (5 pages), "AI Agents" (6 pages) via admin API or seed script
-- [ ] T048 [US6] [P] Generate + save 6 LLM Integration pages (800-1500 kata each) — topics: API Basics, Prompt Design, Streaming Responses, Error Handling, Rate Limiting, Multi-Provider
-- [ ] T049 [US6] [P] Generate + save 5 Fine-tuning pages (800-1500 kata each) — topics: When to Fine-tune, Data Preparation, Training Process, Evaluation, Deployment
-- [ ] T050 [US6] [P] Generate + save 5 RAG pages (800-1500 kata each) — topics: RAG Architecture, Embeddings, Vector DB, Retrieval Strategies, Production RAG
-- [ ] T051 [US6] [P] Generate + save 6 AI Agents pages (800-1500 kata each) — topics: Agent Architecture, Tool Use, Memory Systems, Multi-Agent, Evaluation, Safety
-- [ ] T052 [US6] Verify all 22 AI pages have quiz (3+ questions) and flashcards (5+ cards)
-- [ ] T053 [US6] Test progress tracking — complete 5 pages, verify XP earned, progress bar updates, streak tracking works
+- [x] T047 [US6] Create Learn sections in database: "LLM Integration" (6 pages), "Fine-tuning" (5 pages), "RAG Systems" (5 pages), "AI Agents" (6 pages) via admin API or seed script
+- [x] T048 [US6] [P] Generate + save 6 LLM Integration pages (800-1500 kata each) — topics: API Basics, Prompt Design, Streaming Responses, Error Handling, Rate Limiting, Multi-Provider
+- [x] T049 [US6] [P] Generate + save 5 Fine-tuning pages (800-1500 kata each) — topics: When to Fine-tune, Data Preparation, Training Process, Evaluation, Deployment
+- [x] T050 [US6] [P] Generate + save 5 RAG pages (800-1500 kata each) — topics: RAG Architecture, Embeddings, Vector DB, Retrieval Strategies, Production RAG
+- [x] T051 [US6] [P] Generate + save 6 AI Agents pages (800-1500 kata each) — topics: Agent Architecture, Tool Use, Memory Systems, Multi-Agent, Evaluation, Safety
+- [x] T052 [US6] Verify all 22 AI pages have quiz (3+ questions) and flashcards (5+ cards)
+- [x] T053 [US6] Test progress tracking — complete 5 pages, verify XP earned, progress bar updates, streak tracking works
 
 **Checkpoint**: 22 AI Learn pages live with quizzes, flashcards, progress tracking functional.
 

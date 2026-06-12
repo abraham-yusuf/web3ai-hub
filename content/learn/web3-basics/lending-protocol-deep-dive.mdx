@@ -1,0 +1,157 @@
+---
+title: "Lending Protocol Deep Dive"
+slug: "lending-protocol-deep-dive"
+order: 18
+---
+
+# Lending Protocol Deep Dive
+
+## Apa Itu Protokol Lending DeFi?
+
+Protokol lending DeFi memungkinkan siapa pun meminjam dan meminjamkan aset kripto tanpa perantara. Tidak ada bank, tidak ada proses KYC yang rumit — semuanya dijalankan oleh smart contract di blockchain.
+
+Dua protokol lending terbesar adalah **Aave** dan **Compound**. Keduanya mengelola miliaran dolar dalam Total Value Locked (TVL) dan menjadi fondasi ekosistem DeFi.
+
+## Cara Kerja: Pool Model
+
+Seperti AMM, protokol lending menggunakan **pool** yang mengumpulkan dana dari banyak lender.
+
+```
+Lender → [Supply Pool] → Borrower
+           ↕
+     Smart Contract
+  (menentukan suku bunga)
+```
+
+**Alur:**
+1. **Lender** menyuplai aset (misal ETH) ke pool dan mendapat **aToken** (Aave) atau **cToken** (Compound) sebagai bukti deposit
+2. **Borrower** meminjam dari pool dengan menjaminkan aset lain
+3. **Suku bunga** berubah otomatis berdasarkan utilization ratio
+
+## Utilization Ratio dan Suku Bunga
+
+Utilization ratio menunjukkan berapa persen dana dalam pool yang sedang dipinjam.
+
+```
+Utilization Ratio (U) = Total Borrowed / Total Supplied
+
+Contoh:
+- Total Supplied: 1.000 ETH
+- Total Borrowed: 700 ETH
+- U = 700/1000 = 70%
+```
+
+**Model suku bunga:**
+- U rendah → suku bunga rendah (insentif untuk borrower)
+- U tinggi → suku bunga tinggi (insentif untuk lender menambah supply)
+
+```
+        Suku Bunga
+        ↑
+   100% |              /
+        |             /
+        |            /
+        |    ___----/
+        | __/
+   0%  |/___________________→ Utilization
+       0%    50%    100%
+```
+
+Di Aave, ada **optimal utilization** (misal 80%). Di bawah angka itu, suku bunga naik perlahan. Di atas, suku bunga naik tajam untuk mendorong repayment.
+
+## Collateralization Ratio (Rasio Jaminan)
+
+Karena pinjaman DeFi **overcollateralized**, borrower harus menjaminkan aset bernilai lebih dari pinjaman.
+
+```
+Collateralization Ratio = Nilai Jaminan / Nilai Pinjaman × 100%
+
+Contoh:
+- Jaminan: 10 ETH (senilai $20.000)
+- Pinjaman: 10.000 USDC
+- Collateralization Ratio: 200%
+```
+
+**Mengapa overcollateralized?**
+- Tidak ada credit score di DeFi
+- Tidak ada penagihan hukum
+- Jaminan menjadi satu-satunya jaminan bagi protocol
+
+**Parameter khas:**
+- **Loan-to-Value (LTV)**: persentase maksimum yang bisa dipinjam relatif terhadap jaminan (misal 75% untuk ETH)
+- **Liquidation Threshold**: batas di atas LTV yang memicu liquidation (misal 80%)
+
+## Liquidation
+
+Ketika nilai jaminan turun atau nilai pinjaman naik sehingga rasio jaminan melampaui liquidation threshold, posisi borrower bisa **dilikuidasi**.
+
+```
+Liquidation terjadi ketika:
+Health Factor < 1
+
+Health Factor = (Jaminan × Liquidation Threshold) / Total Borrowed
+
+Contoh:
+- Jaminan: 10 ETH × $2.000 = $20.000
+- Liquidation Threshold: 80%
+- Total Borrowed: $16.500
+- Health Factor = (20.000 × 0,8) / 16.500 = 0,97 → < 1 → LIQUIDASI!
+```
+
+**Proses liquidation:**
+1. **Liquidator** (siapa pun) membayar sebagian pinjaman borrower
+2. Liquidator menerima jaminan borrower dengan **diskon** (misal 5-10%)
+3. Borrower kehilangan sebagian jaminan, tapi sisa pinjaman berkurang
+
+Ini adalah insentif bagi siapa pun untuk memantau posisi dan menjalankan liquidation bot.
+
+## Flash Loans
+
+Flash loan adalah fitur unik DeFi: pinjaman **tanpa jaminan** yang harus dikembalikan dalam **transaksi yang sama**.
+
+```
+Transaksi Flash Loan:
+1. Pinjam 1.000.000 USDC (tanpa jaminan)
+2. Lakukan operasi (arbitrage, collateral swap, dll.)
+3. Kembalikan 1.000.000 USDC + fee (0,09%)
+4. Jika gagal → seluruh transaksi dibatalkan (revert)
+```
+
+**Kegunaan flash loan:**
+- **Arbitrage**: memanfaatkan perbedaan harga antar DEX
+- **Collateral swap**: mengganti jaminan tanpa menutup pinjaman
+- **Self-liquidation**: melikuidasi posisi sendiri
+
+**Risiko:** Flash loan juga digunakan untuk **serangan** — manipulasi harga di satu DEX lalu mengeksploitasi protocol lain dalam satu transaksi.
+
+## Token Lending: aToken dan cToken
+
+Saat kamu menyuplai aset:
+
+**Compound (cToken):**
+- Mendapat cETH, cUSDC, dll.
+- cToken naik nilainya seiring akumulasi bunga
+- Rasio cToken ke underlying meningkat dari waktu ke waktu
+
+**Aave (aToken):**
+- Mendapat aETH, aUSDC, dll.
+- Jumlah aToken bertambah secara otomatis (rebasing)
+- 1 aUSDC selalu = 1 USDC dalam jumlah
+
+## Perbandingan Aave vs Compound
+
+- **Aave**: flash loan, suku bunga tetap sementara, multi-chain
+- **Compound**: model lebih sederhana, governance COMP token, pioneer DeFi lending
+- **Keduanya**: overcollateralized, algorithmic interest rate, liquidation mechanism
+
+## Risiko Protokol Lending
+
+1. **Smart contract risk** — bug dalam kode
+2. **Oracle risk** — harga salah → liquidation tidak tepat
+3. **Bad debt** — jika harga jatuh sangat cepat, jaminan tidak cukup menutup pinjaman
+4. **Governance attack** — manipulasi voting untuk mengubah parameter
+5. **Liquidity risk** — tidak bisa withdraw jika utilization 100%
+
+## Ringkasan
+
+Protokol lending adalah tulang punggung DeFi yang memungkinkan pasar uang terdesentralisasi. Memahami collateralization, liquidation, dan flash loan sangat penting karena konsep ini muncul di hampir semua protocol DeFi lainnya. Di halaman selanjutnya, kita akan membahas bagaimana memanfaatkan protokol ini untuk yield farming.

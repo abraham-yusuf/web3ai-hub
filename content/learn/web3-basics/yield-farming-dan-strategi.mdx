@@ -1,0 +1,160 @@
+---
+title: "Yield Farming dan Strategi"
+slug: "yield-farming-dan-strategi"
+order: 19
+---
+
+# Yield Farming dan Strategi
+
+## Apa Itu Yield Farming?
+
+Yield farming adalah strategi memaksimalkan return dari aset kripto dengan berpindah-pindah antar protocol DeFi. Konsepnya sederhana: tempatkan aset di tempat yang memberikan imbalan terbaik, dan terus optimasi.
+
+Bayangkan kamu punya uang dan ingin mendapat bunga terbaik. Kamu bandingkan deposito di berbagai bank, lalu pilih yang paling menguntungkan. Yield farming adalah versi DeFi dari konsep itu — tapi jauh lebih kompleks dan berisiko.
+
+## LP Token: Kunci Yield Farming
+
+Saat kamu menyediakan likuiditas di AMM (seperti Uniswap), kamu mendapat **LP token**. Token ini bisa "ditanam" (stake) di protocol lain untuk mendapat imbalan tambahan.
+
+```
+Langkah 1: Tambah likuiditas ETH/USDC di Uniswap
+           → Dapat LP token
+
+Langkah 2: Stake LP token di protokol lain (misal Convex)
+           → Dapat imbalan tambahan (token governance)
+
+Hasil: Fee dari swap + imbalan token governance = yield ganda
+```
+
+Ini disebut **yield stacking** — menumpuk imbalan dari beberapa layer.
+
+## Jenis Yield di DeFi
+
+1. **Trading Fee** — dari menyediakan likuiditas di AMM
+2. **Token Incentive** — reward token dari protocol (liquidity mining)
+3. **Lending Interest** — bunga dari meminjamkan aset
+4. **Staking Reward** — imbalan dari mengamankan jaringan
+5. **Points/Airdrop** — imbalan masa depan yang belum pasti
+
+**Total APY** = kombinasi semua sumber di atas.
+
+## Yield Aggregator
+
+Yield aggregator adalah protocol yang **otomatisasi** strategi yield farming. Kamu deposit dana, dan aggregator menjalankan strategi terbaik untukmu.
+
+**Contoh populer:**
+- **Yearn Finance** — pioneer yield aggregator di Ethereum
+- **Beefy Finance** — multi-chain yield optimizer
+- **Convex Finance** — khusus optimize Curve yields
+
+### Cara Kerja Vault
+
+Vault adalah produk utama yield aggregator:
+
+```
+User → [Vault] → Strategi Otomatis
+                    │
+                    ├── Harvest reward
+                    ├── Sell reward → compound
+                    ├── Rebalance posisi
+                    └── Distribute hasil ke user
+```
+
+**Keuntungan vault:**
+- Auto-compounding (reward otomatis di-reinvest)
+- Gas saving (biaya dibagi ke semua depositor)
+- Strategi dikelola oleh tim berpengalaman
+- Diversifikasi strategi
+
+**Kerugian vault:**
+- Fee management (biasanya 2-20% dari profit)
+- Smart contract risk dari vault DAN underlying protocol
+- Strategi bisa salah atau ketinggalan zaman
+
+## Auto-Compounding
+
+Auto-compounding adalah proses otomatis mengambil reward dan menginvestasikannya kembali. Tanpa auto-compound:
+
+```
+Manual (tanpa compound):
+- Deposit $10.000, APY 100%
+- Reward $10.000/tahun (sederhana)
+- Total akhir: $20.000
+
+Dengan compound harian:
+- Deposit $10.000, APY 100%
+- Formula: A = P × (1 + r/n)^(n×t)
+- A = 10.000 × (1 + 1/365)^365
+- A ≈ $27.145
+- Perbedaan: $7.145 lebih banyak!
+```
+
+Semakin sering di-compound, semakin besar hasil. Tapi setiap compound butuh gas fee — vault menyelesaikan masalah ini dengan membagi biaya ke semua depositor.
+
+## Vault Strategy: Contoh Strategi
+
+**Strategi "Stablecoin Maximizer":**
+
+```
+1. Deposit USDC ke vault
+2. Vault supply USDC ke Aave → dapat aUSDC + bunga
+3. Vault stake aUSDC di farming contract → dapat reward token
+4. Reward token dijual ke USDC → di-reinvest
+5. Ulangi setiap beberapa jam
+
+Target APY: 5-15% (relatif aman, stablecoin based)
+```
+
+**Strategi "Leveraged Yield Farming":**
+
+```
+1. Deposit ETH sebagai jaminan di Aave
+2. Pinjam USDC
+3. Tambah ETH + USDC ke Uniswap LP
+4. Stake LP token untuk reward
+5. Ulangi leverage (borrow lagi dari LP)
+
+Target APY: 20-50%+ (leverage = lebih tinggi risiko)
+```
+
+## Risk-Reward Analysis
+
+Setiap strategi yield farming punya trade-off risiko dan reward:
+
+```
+Rendah Risiko:   Stablecoin lending (3-8% APY)
+                 ↕
+Sedang:          LP token farming (10-30% APY)
+                 ↕
+Tinggi:          Leveraged farming (30-100%+ APY)
+                 ↕
+Sangat Tinggi:   New protocol farming (100-1000%+ APY)
+```
+
+**Pertanyaan kritis sebelum farming:**
+1. Dari mana yield berasal? (sustainable vs token printing)
+2. Berapa lama yield bertahan? (biasanya menurun seiring waktu)
+3. Apa risiko smart contract? (sudah audit? berapa lama live?)
+4. Bagaimana cara keluar? (ada lock period? slippage besar?)
+
+## Risiko Yield Farming
+
+1. **Impermanent Loss** — dari posisi LP
+2. **Smart contract risk** — stack risk (vault + underlying protocol)
+3. **Token depreciation** — reward token bisa jatuh harga
+4. **Rug pull** — developer menghilang
+5. **Liquidation risk** — pada leveraged positions
+6. **Regulatory risk** — aturan yang berubah
+
+## Tips untuk Yield Farmer Pemula
+
+1. Mulai dari stablecoin farming (risiko lebih rendah)
+2. Pilih protocol yang sudah teruji (TVL tinggi, audited)
+3. Jangan kejar APY tertinggi — biasanya risiko paling tinggi
+4. Diversifikasi antar protocol dan chain
+5. Selalu hitung risiko termasuk impermanent loss
+6. Monitor posisi secara berkala
+
+## Ringkasan
+
+Yield farming adalah inti dari DeFi yield generation. Dengan memahami LP token, yield aggregator, dan auto-compounding, kamu bisa mengoptimalkan return dari aset kripto. Namun, selalu ingat: high yield = high risk. Di halaman berikutnya, kita akan membahas mekanisme liquidity mining yang sering menjadi sumber yield farming.

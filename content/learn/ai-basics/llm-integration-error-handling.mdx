@@ -1,0 +1,162 @@
+---
+title: "Error Handling untuk LLM Applications"
+order: 14
+authors: ["admin"]
+excerpt: "Menangani error umum saat mengintegrasikan LLM: rate limits, timeouts, content filtering, dan fallback."
+---
+
+# Error Handling untuk LLM Applications
+
+LLM API punya failure modes yang berbeda dari API biasa. Timeout lebih lama, rate limit lebih ketat, dan output tidak selalu predictable.
+
+## Jenis Error Umum
+
+### 1. Rate Limiting (429)
+
+Provider membatasi request per menit dan token per menit:
+
+```typescript
+async function callWithRetry(fn: () => Promise<any>, maxRetries = 3) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error.status === 429 && attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        const retryAfter = error.headers?.["retry-after"];
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : delay;
+        await new Promise((r) => setTimeout(r, waitTime));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+### 2. Context Length Exceeded
+
+Input melebihi token limit model:
+
+```typescript
+function truncateMessages(messages: Message[], maxTokens: number): Message[] {
+  const systemMsg = messages.find((m) => m.role === "system");
+  const otherMsgs = messages.filter((m) => m.role !== "system");
+
+  let totalTokens = estimateTokens(systemMsg?.content ?? "");
+  const truncated: Message[] = [];
+
+  for (const msg of otherMsgs.reverse()) {
+    const msgTokens = estimateTokens(msg.content);
+    if (totalTokens + msgTokens > maxTokens) break;
+    truncated.unshift(msg);
+    totalTokens += msgTokens;
+  }
+
+  if (systemMsg) truncated.unshift(systemMsg);
+  return truncated;
+}
+```
+
+### 3. Content Filter / Safety Refusal
+
+```typescript
+function handleContentFilter(response: any): string | null {
+  if (response.choices[0]?.finish_reason === "content_filter") {
+    return "Maaf, konten ini tidak dapat diproses. Silakan coba dengan pertanyaan lain.";
+  }
+  return null;
+}
+```
+
+### 4. Timeout
+
+```typescript
+async function callWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = 30000
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Request timeout")), timeoutMs)
+  );
+  return Promise.race([promise, timeout]);
+}
+```
+
+## Provider Fallback Strategy
+
+Jika provider utama down, fallback ke alternatif:
+
+```typescript
+const PROVIDERS = [
+  { name: "openai", model: "gpt-4o", client: openaiClient },
+  { name: "anthropic", model: "claude-sonnet-4-20250514", client: anthropicClient },
+  { name: "google", model: "gemini-2.5-pro", client: googleClient },
+];
+
+async function callWithFallback(messages: Message[]) {
+  const errors: Error[] = [];
+
+  for (const provider of PROVIDERS) {
+    try {
+      const result = await provider.client.chat(messages);
+      return { result, provider: provider.name };
+    } catch (error) {
+      errors.push(error as Error);
+      console.warn("[fallback] " + provider.name + " failed, trying next...");
+    }
+  }
+
+  throw new Error("All providers failed: " + errors.map((e) => e.message).join(", "));
+}
+```
+
+## Response Validation
+
+```typescript
+import { z } from "zod";
+
+const AnswerSchema = z.object({
+  answer: z.string().min(1),
+  confidence: z.number().min(0).max(1),
+  sources: z.array(z.string()).optional(),
+});
+
+async function getStructuredAnswer(prompt: string) {
+  const response = await llm.call(prompt);
+
+  try {
+    const parsed = JSON.parse(response);
+    return AnswerSchema.parse(parsed);
+  } catch {
+    return { answer: response, confidence: 0.5, sources: [] };
+  }
+}
+```
+
+## Error Classification
+
+```typescript
+class LLMError extends Error {
+  constructor(
+    message: string,
+    public code: "RATE_LIMIT" | "TIMEOUT" | "CONTENT_FILTER" | "PROVIDER_ERROR" | "INVALID_OUTPUT",
+    public provider?: string,
+    public retryable: boolean = false
+  ) {
+    super(message);
+  }
+}
+```
+
+## Best Practices
+
+1. **Log semua error** dengan konteks (provider, model, input length)
+2. **Monitor error rate** per provider — trigger alert jika lebih dari 5%
+3. **Graceful degradation** — tampilkan cached results atau fallback message
+4. **Jangan expose raw errors** ke user — sanitasi error message
+5. **Test error paths** — mock API failures dalam development
+
+## Latihan
+
+Implementasikan fungsi `callWithFallback` yang mencoba 3 provider berbeda dengan retry logic. Test dengan mematikan salah satu provider.

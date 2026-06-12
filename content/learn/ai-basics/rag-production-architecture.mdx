@@ -1,0 +1,137 @@
+---
+title: "Arsitektur RAG: Retrieval-Augmented Generation"
+order: 22
+authors: ["admin"]
+excerpt: "Memahami arsitektur RAG: menggabungkan retrieval dari knowledge base dengan generative LLM."
+---
+
+# Arsitektur RAG: Retrieval-Augmented Generation
+
+RAG mengatasi keterbatasan LLM: pengetahuan terbatas dan hallucination. Dengan RAG, LLM "membaca" dokumen relevan sebelum menjawab.
+
+## Mengapa RAG?
+
+LLM punya masalah:
+- **Knowledge cutoff** — Tidak tahu fakta setelah training date
+- **Hallucination** — Membuat fakta yang tidak ada
+- **Tidak punya data Anda** — Tidak tahu konten website, dokumen internal, dll.
+
+RAG memecahkan ini dengan **retrieve** dokumen relevan, lalu **generate** jawaban berdasarkan dokumen tersebut.
+
+## Arsitektur Dasar
+
+```
+User Query
+    ↓
+[Query Processing] — Clean, expand, embed query
+    ↓
+[Vector Search] — Cari dokumen mirip di vector DB
+    ↓
+[Context Assembly] — Gabungkan top-K dokumen
+    ↓
+[LLM Generation] — Generate jawaban dengan konteks
+    ↓
+Response + Sources
+```
+
+## Komponen RAG
+
+### 1. Document Loading
+
+```typescript
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
+
+// Load dari PDF
+const pdfDocs = await new PDFLoader("docs/whitepaper.pdf").load();
+
+// Load dari website
+const webDocs = await new CheerioWebBaseLoader("https://docs.example.com").load();
+
+// Load dari database
+const dbDocs = await prisma.article.findMany({
+  where: { published: true },
+  select: { title: true, content: true },
+});
+```
+
+### 2. Text Splitting
+
+```typescript
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+
+const splitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 1000,      // ~250 kata per chunk
+  chunkOverlap: 200,    // Overlap antar chunk untuk kontinuitas
+  separators: ["\n\n", "\n", ". ", " ", ""],
+});
+
+const chunks = await splitter.splitDocuments(docs);
+```
+
+### 3. Embedding
+
+```typescript
+import { OpenAIEmbeddings } from "@langchain/openai";
+
+const embeddings = new OpenAIEmbeddings({
+  model: "text-embedding-3-small", // $0.02/1M tokens
+});
+
+// Embed chunks
+const vectors = await embeddings.embedDocuments(
+  chunks.map((c) => c.pageContent)
+);
+```
+
+### 4. Vector Store
+
+```typescript
+import { PineconeStore } from "@langchain/pinecone";
+
+const vectorStore = await PineconeStore.fromDocuments(chunks, embeddings, {
+  pineconeIndex: pinecone.index("web3ai-hub"),
+  namespace: "learn",
+});
+```
+
+### 5. Retrieval + Generation
+
+```typescript
+const retriever = vectorStore.asRetriever({ k: 5 });
+
+async function ask(question: string) {
+  // Retrieve relevant docs
+  const docs = await retriever.invoke(question);
+
+  // Build context
+  const context = docs.map((d) => d.pageContent).join("\n\n---\n\n");
+
+  // Generate answer
+  const response = await llm.call([
+    {
+      role: "system",
+      content: `Jawab pertanyaan berdasarkan konteks. Jika tidak ada di konteks, katakan "Saya tidak menemukan informasi ini."\n\nKonteks:\n${context}`,
+    },
+    { role: "user", content: question },
+  ]);
+
+  return {
+    answer: response.content,
+    sources: docs.map((d) => d.metadata.source),
+  };
+}
+```
+
+## RAG vs Fine-tuning
+
+| Aspek | RAG | Fine-tuning |
+|-------|-----|-------------|
+| Knowledge update | Real-time (tambah dokumen) | Perlu retrain |
+| Cost | Vector DB + retrieval | Training + inference |
+| Accuracy | Tergantung retrieval quality | Tergantung training data |
+| Best for | Knowledge-intensive tasks | Style/behavior changes |
+
+## Latihan
+
+Buat pipeline RAG sederhana yang mengindeks 5 artikel blog dan bisa menjawab pertanyaan tentang kontennya.

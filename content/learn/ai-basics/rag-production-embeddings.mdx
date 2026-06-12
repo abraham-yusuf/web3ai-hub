@@ -1,0 +1,122 @@
+---
+title: "Embeddings untuk RAG"
+order: 23
+authors: ["admin"]
+excerpt: "Memahami text embeddings: apa itu, bagaimana cara kerjanya, dan cara memilih model embedding."
+---
+
+# Embeddings untuk RAG
+
+Embeddings adalah representasi numerik dari teks yang menangkap makna semantik. Ini adalah fondasi dari setiap sistem RAG.
+
+## Apa itu Embedding?
+
+Embedding mengubah teks menjadi vector (array angka) berdimensi tinggi:
+
+```
+"blockchain" → [0.023, -0.156, 0.892, ..., 0.045] (1536 dimensi)
+"ethereum"   → [0.021, -0.148, 0.887, ..., 0.041] (mirip!)
+"kucing"     → [-0.543, 0.234, -0.123, ..., 0.678] (berbeda)
+```
+
+Teks dengan makna mirip menghasilkan vector yang mirip.
+
+## Model Embedding
+
+### OpenAI text-embedding-3-small
+
+- **Dimensi**: 1536
+- **Cost**: $0.02/1M tokens
+- **Kualitas**: Bagus untuk kebanyakan kasus
+- **Recommended** untuk mulai
+
+### OpenAI text-embedding-3-large
+
+- **Dimensi**: 3072
+- **Cost**: $0.13/1M tokens
+- **Kualitas**: Lebih baik untuk domain spesifik
+
+### Open Source (Self-hosted)
+
+- **BGE-M3** — Multilingual, bagus untuk Bahasa Indonesia
+- **E5-Mistral** — High quality, butuh GPU
+- **Nomic Embed** — Compact, bisa jalan di CPU
+
+## Menghasilkan Embeddings
+
+```typescript
+import OpenAI from "openai";
+
+const openai = new OpenAI();
+
+async function embedText(text: string): Promise<number[]> {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-3-small",
+    input: text,
+  });
+  return response.data[0].embedding;
+}
+
+async function embedBatch(texts: string[]): Promise<number[][]> {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-3-small",
+    input: texts, // Bisa batch sampai 2048 teks
+  });
+  return response.data.map((d) => d.embedding);
+}
+```
+
+## Similarity Search
+
+```typescript
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// Contoh
+const queryEmbedding = await embedText("apa itu DeFi?");
+const docEmbeddings = await embedBatch(allDocuments);
+
+const similarities = docEmbeddings.map((docEmb, i) => ({
+  index: i,
+  score: cosineSimilarity(queryEmbedding, docEmb),
+}));
+
+// Sort by similarity (tertinggi dulu)
+similarities.sort((a, b) => b.score - a.score);
+const topK = similarities.slice(0, 5);
+```
+
+## Best Practices
+
+1. **Chunk sebelum embed** — Jangan embed dokumen panjang sekaligus
+2. **Prefix yang konsisten** — Bedakan query dan document embedding
+3. **Normalisasi** — Normalisasi vector untuk cosine similarity
+4. **Cache embeddings** — Simpan hasil embedding, jangan regenerate
+5. **Batch processing** — Embed banyak teks sekaligus untuk efisiensi
+
+## Embedding untuk Bahasa Indonesia
+
+```typescript
+// Model multilingual seperti BGE-M3 lebih baik untuk Bahasa Indonesia
+// Atau gunakan OpenAI yang juga mendukung multilingual
+const response = await openai.embeddings.create({
+  model: "text-embedding-3-small",
+  input: "Apa itu teknologi blockchain dan bagaimana cara kerjanya?",
+});
+// Hasilnya tetap berkualitas tinggi untuk Bahasa Indonesia
+```
+
+## Latihan
+
+Embed 10 pertanyaan tentang blockchain dan visualisasikan similarity matrix-nya. Pertanyaan mana yang paling mirip?

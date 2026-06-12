@@ -1,0 +1,132 @@
+---
+title: "Prompt Design Patterns untuk Aplikasi"
+order: 12
+authors: ["admin"]
+excerpt: "Teknik merancang prompt yang efektif untuk integrasi LLM dalam aplikasi produksi."
+---
+
+# Prompt Design Patterns
+
+Mendesain prompt untuk aplikasi berbeda dengan prompt interaktif. Dalam aplikasi, prompt harus **konsisten**, **terukur**, dan **produksi-ready**.
+
+## System Prompt Pattern
+
+System prompt menentukan persona dan aturan global AI:
+
+```typescript
+const SYSTEM_PROMPT = `Kamu adalah asisten customer service untuk platform Web3.
+
+Aturan:
+1. Jawab dalam Bahasa Indonesia yang ramah dan profesional
+2. Jangan memberikan nasihat investasi
+3. Jika tidak tahu, katakan "Saya tidak yakin, silakan hubungi support"
+4. Selalu tawarkan bantuan lebih lanjut
+
+Konteks:
+- Platform: Web3AI Hub
+- Fitur: Blog, Learn, Airdrop Hub, AI Tools Directory`;
+```
+
+## Few-Shot Pattern
+
+Berikan contoh input-output untuk memandu AI:
+
+```typescript
+const FEW_SHOT_PROMPT = `Klasifikasikan pertanyaan user ke kategori berikut.
+
+Contoh:
+User: "Bagaimana cara membuat wallet?" → kategori: WEB3_BASICS
+User: "Apa itu fine-tuning?" → kategori: AI_BASICS
+User: "Airdrop apa yang sedang aktif?" → kategori: AIRDROP
+
+Sekarang klasifikasikan:
+User: "${userInput}" → kategori:`;
+```
+
+## Chain-of-Thought Pattern
+
+Paksa AI menunjukkan reasoning sebelum menjawab:
+
+```typescript
+const COT_PROMPT = `Analisis pertanyaan berikut langkah demi langkah:
+
+Pertanyaan: "${userInput}"
+
+Langkah 1: Identifikasi topik utama
+Langkah 2: Tentukan level pengetahuan user (pemula/menengah/lanjut)
+Langkah 3: Struktur jawaban yang sesuai
+Langkah 4: Berikan jawaban lengkap
+
+Jawab dengan format:
+**Analisis**: ...
+**Jawaban**: ...`;
+```
+
+## Structured Output Pattern
+
+Paksa output dalam format tertentu:
+
+```typescript
+const STRUCTURED_PROMPT = `Ekstrak informasi dari teks berikut dan kembalikan dalam JSON.
+
+Teks: "${inputText}"
+
+Format output:
+{
+  "topic": "topik utama",
+  "sentiment": "positive | negative | neutral",
+  "keywords": ["keyword1", "keyword2"],
+  "summary": "ringkasan 1 kalimat"
+}
+
+Kembalikan HANYA JSON, tanpa penjelasan tambahan.`;
+```
+
+## Template Variables Pattern
+
+Pisahkan template dari data:
+
+```typescript
+function buildPrompt(template: string, variables: Record<string, string>) {
+  let prompt = template;
+  for (const [key, value] of Object.entries(variables)) {
+    prompt = prompt.replace("{{" + key + "}}", value);
+  }
+  return prompt;
+}
+
+const template = "Ringkas artikel berikut dalam {{wordCount}} kata:\n\n{{articleContent}}";
+const prompt = buildPrompt(template, {
+  wordCount: "100",
+  articleContent: article.text,
+});
+```
+
+## Guardrails Pattern
+
+Tambahkan batasan eksplisit:
+
+```typescript
+const GUARDRAILED_PROMPT = systemPrompt + `
+
+BATASAN PENTING:
+- JANGAN buat informasi yang tidak ada di konteks
+- JANGAN berikan nasihat finansial
+- JANGAN sebut nama orang/perusahaan tanpa fakta
+- Jika ragu, katakan "Saya tidak memiliki informasi cukup"
+
+Konteks yang tersedia:
+` + context;
+```
+
+## Best Practices
+
+1. **Pisahkan system prompt** dari user input (jangan gabung)
+2. **Gunakan delimiter** yang jelas untuk memisahkan sections
+3. **Test dengan edge cases** — input kosong, input bahasa campuran, input berbahaya
+4. **Version control prompt** — track perubahan seperti kode
+5. **Monitor quality** — buat metrik evaluasi output
+
+## Latihan
+
+Buat system prompt dan few-shot examples untuk chatbot yang menjawab pertanyaan tentang airdrop crypto. Pastikan ada guardrails untuk mencegah nasihat investasi.

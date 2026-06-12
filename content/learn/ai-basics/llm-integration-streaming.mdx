@@ -1,0 +1,143 @@
+---
+title: "Streaming Response dari LLM"
+order: 13
+authors: ["admin"]
+excerpt: "Mengimplementasikan streaming response untuk UX yang lebih baik saat menggunakan LLM API."
+---
+
+# Streaming Response dari LLM
+
+LLM membutuhkan waktu 1-30 detik untuk menghasilkan response. Tanpa streaming, user melihat loading spinner lalu teks muncul sekaligus. Dengan streaming, teks muncul token-by-token seperti mengetik — UX jauh lebih baik.
+
+## Mengapa Streaming?
+
+- **Perceived latency lebih rendah** — user melihat progres
+- **Time to first token** ~1 detik vs 10-30 detik untuk full response
+- **User bisa mulai membaca** sebelum response selesai
+- **Standar industri** — semua chatbot modern menggunakan streaming
+
+## Backend: Server-Sent Events (SSE)
+
+```typescript
+// app/api/chat/route.ts
+import OpenAI from "openai";
+import { StreamingTextResponse } from "ai";
+
+const openai = new OpenAI();
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const stream = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    stream: true,
+  });
+
+  return new StreamingTextResponse(stream.toReadableStream());
+}
+```
+
+## Frontend: Mengkonsumsi Stream
+
+```typescript
+"use client";
+
+import { useChat } from "ai/react";
+
+export function ChatComponent() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({ api: "/api/chat" });
+
+  return (
+    <div>
+      {messages.map((m) => (
+        <div key={m.id}>
+          <strong>{m.role}:</strong> {m.content}
+        </div>
+      ))}
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+        <button type="submit" disabled={isLoading}>Kirim</button>
+      </form>
+    </div>
+  );
+}
+```
+
+## Manual Streaming (Tanpa SDK)
+
+```typescript
+// Backend — manual SSE
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+    },
+    body: JSON.stringify({ model: "gpt-4o", messages, stream: true }),
+  });
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = response.body!.getReader();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          if (line === "data: [DONE]") break;
+
+          const json = JSON.parse(line.slice(6));
+          const token = json.choices[0]?.delta?.content ?? "";
+          if (token) controller.enqueue(encoder.encode(token));
+        }
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
+```
+
+## Streaming dengan Markdown
+
+LLM sering menghasilkan markdown. Perlu rendering yang tepat:
+
+```typescript
+import { MemoizedReactMarkdown } from "@/components/markdown";
+import remarkGfm from "remark-gfm";
+
+// Render streaming markdown
+<MemoizedReactMarkdown remarkPlugins={[remarkGfm]}>
+  {message.content}
+</MemoizedReactMarkdown>
+```
+
+## Tips Streaming
+
+1. **Buffer kecil** — render setiap token, jangan tunggu buffer penuh
+2. **Graceful degradation** — fallback ke non-streaming jika koneksi lambat
+3. **Cancel stream** — berikan tombol stop untuk membatalkan
+4. **Handle error mid-stream** — tampilkan partial content dan pesan error
+5. **Token counting** — hitung token setelah stream selesai untuk billing
+
+## Latihan
+
+Buat endpoint `/api/summarize` yang menerima URL artikel dan streaming hasil ringkasan ke frontend. Gunakan Vercel AI SDK.

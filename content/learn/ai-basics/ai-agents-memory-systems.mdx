@@ -1,0 +1,202 @@
+---
+title: "Memory Systems untuk AI Agent"
+order: 29
+authors: ["admin"]
+excerpt: "Mengimplementasikan memory untuk AI Agent: short-term, long-term, episodic, dan semantic memory."
+---
+
+# Memory Systems untuk AI Agent
+
+Agent tanpa memory seperti ikan emas — lupa semua setelah setiap turn. Memory membuat agent bisa belajar dari interaksi sebelumnya.
+
+## Jenis Memory
+
+### 1. Short-term Memory (Working Memory)
+
+Context window saat ini — conversation history:
+
+```typescript
+class ShortTermMemory {
+  private messages: Message[] = [];
+  private maxTokens: number;
+
+  add(message: Message) {
+    this.messages.push(message);
+    this.trim(); // Jangan exceed context window
+  }
+
+  getContext(): Message[] {
+    return this.messages;
+  }
+
+  private trim() {
+    while (this.estimateTokens() > this.maxTokens) {
+      this.messages.shift(); // Hapus yang tertua
+    }
+  }
+}
+```
+
+### 2. Long-term Memory
+
+Persistensi antar conversation:
+
+```typescript
+class LongTermMemory {
+  constructor(private db: PrismaClient) {}
+
+  async store(userId: string, key: string, value: string) {
+    await this.db.memoryEntry.upsert({
+      where: { userId_key: { userId, key } },
+      update: { value, updatedAt: new Date() },
+      create: { userId, key, value },
+    });
+  }
+
+  async recall(userId: string, query: string): Promise<string[]> {
+    // Semantic search di memory entries
+    const embedding = await embed(query);
+    const results = await this.db.$queryRaw`
+      SELECT value, 1 - (embedding <=> ${embedding}::vector) as similarity
+      FROM "MemoryEntry"
+      WHERE "userId" = ${userId}
+      ORDER BY embedding <=> ${embedding}::vector
+      LIMIT 5
+    `;
+    return results.map((r: any) => r.value);
+  }
+}
+```
+
+### 3. Episodic Memory
+
+Mengingat pengalaman spesifik:
+
+```typescript
+interface Episode {
+  timestamp: Date;
+  goal: string;
+  actions: Action[];
+  outcome: "success" | "failure";
+  reflection: string;
+}
+
+class EpisodicMemory {
+  private episodes: Episode[] = [];
+
+  async record(episode: Episode) {
+    this.episodes.push(episode);
+    await this.db.episode.create({ data: episode });
+  }
+
+  async recallSimilar(goal: string): Promise<Episode[]> {
+    const goalEmbedding = await embed(goal);
+    // Cari episode dengan goal mirip
+    return await this.db.$queryRaw`
+      SELECT * FROM "Episode"
+      ORDER BY embedding <=> ${goalEmbedding}::vector
+      LIMIT 3
+    `;
+  }
+}
+```
+
+### 4. Semantic Memory (Knowledge Base)
+
+Fakta dan pengetahuan terstruktur:
+
+```typescript
+class SemanticMemory {
+  private facts: Map<string, string> = new Map();
+
+  async addFact(key: string, value: string, source: string) {
+    this.facts.set(key, value);
+    await this.db.knowledge.create({
+      data: { key, value, source, embedding: await embed(key + ": " + value) },
+    });
+  }
+
+  async query(question: string): Promise<string[]> {
+    const embedding = await embed(question);
+    const results = await this.db.$queryRaw`
+      SELECT key, value, 1 - (embedding <=> ${embedding}::vector) as similarity
+      FROM "Knowledge"
+      WHERE similarity > 0.7
+      ORDER BY embedding <=> ${embedding}::vector
+      LIMIT 5
+    `;
+    return results.map((r: any) => r.key + ": " + r.value);
+  }
+}
+```
+
+## Memory Architecture
+
+```
+User Message
+    ↓
+[Short-term Memory] ← Current conversation
+    ↓
+[Long-term Memory] ← User preferences, past facts
+    ↓
+[Episodic Memory] ← Similar past experiences
+    ↓
+[Semantic Memory] ← Domain knowledge
+    ↓
+[Context Assembly] → Combine all into prompt
+    ↓
+LLM Response
+```
+
+## Mem0: Production Memory Framework
+
+```typescript
+import { Memory } from "mem0ai";
+
+const memory = new Memory({ apiKey: process.env.MEM0_API_KEY });
+
+// Store memory from conversation
+await memory.add("User prefers concise answers in Bahasa Indonesia", {
+  userId: "user-123",
+});
+
+// Recall relevant memories
+const memories = await memory.search("user communication preferences", {
+  userId: "user-123",
+  limit: 5,
+});
+```
+
+## Memory Management
+
+```typescript
+class MemoryManager {
+  async consolidate(memory: LongTermMemory) {
+    // Compress old memories — merge yang mirip
+    const oldEntries = await memory.getOlderThan(30); // 30 hari
+    const groups = await this.clusterSimilar(oldEntries);
+
+    for (const group of groups) {
+      if (group.length > 1) {
+        const merged = await this.mergeMemories(group);
+        await memory.update(group[0].id, merged);
+        for (const item of group.slice(1)) {
+          await memory.delete(item.id);
+        }
+      }
+    }
+  }
+
+  async prune(memory: LongTermMemory) {
+    // Hapus memory yang tidak pernah di-recall
+    const stale = await memory.getNotRecalledSince(90); // 90 hari
+    for (const entry of stale) {
+      await memory.delete(entry.id);
+    }
+  }
+}
+```
+
+## Latihan
+
+Implementasikan long-term memory yang menyimpan preference user dan menggunakannya dalam response agent.

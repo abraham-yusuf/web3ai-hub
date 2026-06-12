@@ -1,0 +1,141 @@
+---
+title: "Optimasi Biaya LLM API"
+order: 15
+authors: ["admin"]
+excerpt: "Strategi mengurangi biaya LLM API: caching, model selection, token optimization, dan batching."
+---
+
+# Optimasi Biaya LLM API
+
+Biaya LLM API bisa signifikan dalam produksi. GPT-4o: $2.50/1M input tokens, $10/1M output tokens. Tanpa optimasi, sebuah chatbot bisa menghabiskan $100+/hari.
+
+## Strategi 1: Model Selection Tepat
+
+Tidak semua tugas butuh model mahal:
+
+```typescript
+function selectModel(task: string): string {
+  const modelMap: Record<string, string> = {
+    classify: "gpt-4o-mini",     // $0.15/1M
+    summarize: "gpt-4o-mini",
+    translate: "gpt-4o-mini",
+    analyze: "gpt-4o",           // $2.50/1M
+    code: "gpt-4o",
+    reason: "o3",                // Complex reasoning
+  };
+  return modelMap[task] ?? "gpt-4o-mini";
+}
+```
+
+## Strategi 2: Response Caching
+
+Cache response untuk query yang identik:
+
+```typescript
+import { createHash } from "crypto";
+
+function getCacheKey(messages: Message[], model: string): string {
+  const content = JSON.stringify({ messages, model });
+  return createHash("sha256").update(content).digest("hex");
+}
+
+async function cachedLLMCall(messages: Message[], model: string) {
+  const cacheKey = getCacheKey(messages, model);
+
+  const cached = await redis.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  const result = await llm.call(messages, model);
+  await redis.setex(cacheKey, 3600, JSON.stringify(result));
+  return result;
+}
+```
+
+**Savings**: 30-60% untuk aplikasi dengan query berulang.
+
+## Strategi 3: Token Optimization
+
+```typescript
+function optimizeContext(messages: Message[]): Message[] {
+  const oldMessages = messages.slice(0, -5);
+  const recentMessages = messages.slice(-5);
+
+  if (oldMessages.length > 0) {
+    const summary = summarizeConversation(oldMessages);
+    return [
+      { role: "system", content: "Conversation summary: " + summary },
+      ...recentMessages,
+    ];
+  }
+  return recentMessages;
+}
+
+function cleanInput(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+```
+
+## Strategi 4: Batching
+
+Kumpulkan beberapa request dan proses sekaligus:
+
+```typescript
+async function batchClassify(texts: string[]): Promise<string[]> {
+  const batchPrompt = texts
+    .map((text, i) => "[" + i + "] " + text)
+    .join("\n");
+
+  const response = await llm.call([{
+    role: "user",
+    content: "Klasifikasikan setiap teks berikut (web3/ai/airdrop):\n" + batchPrompt,
+  }]);
+
+  return parseBatchResponse(response);
+}
+// 10 request menjadi 1 API call = 90% cost saving
+```
+
+## Strategi 5: Max Tokens yang Realistis
+
+```typescript
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages,
+  max_tokens: 500, // Jangan biarkan AI menulis 4000 token
+  stream: true,
+});
+```
+
+## Monitoring Biaya
+
+```typescript
+async function trackCost(model: string, inputTokens: number, outputTokens: number) {
+  const pricing: Record<string, { input: number; output: number }> = {
+    "gpt-4o": { input: 2.5, output: 10 },
+    "gpt-4o-mini": { input: 0.15, output: 0.6 },
+  };
+
+  const rate = pricing[model];
+  if (!rate) return;
+
+  const cost = (inputTokens * rate.input + outputTokens * rate.output) / 1_000_000;
+
+  await db.usage.create({
+    data: { model, inputTokens, outputTokens, cost, timestamp: new Date() },
+  });
+}
+```
+
+## Checklist Optimasi
+
+- Gunakan model termurah yang memadai untuk tugas
+- Cache response untuk query berulang
+- Optimalkan conversation context (ringkas, potong)
+- Set max_tokens yang realistis
+- Batch request kapan memungkinkan
+- Monitor cost per user/feature
+- Set billing alerts di provider dashboard
+
+## Latihan
+
+Hitung estimasi biaya bulanan untuk chatbot yang melayani 100 user/hari dengan rata-rata 10 pesan per user. Bandingkan cost antara GPT-4o dan GPT-4o-mini.

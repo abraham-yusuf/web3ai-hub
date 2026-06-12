@@ -1,0 +1,143 @@
+---
+title: "Pengenalan Solidity dan Setup"
+slug: "solidity-intro-dan-setup"
+order: 11
+---
+
+## Apa itu Solidity?
+
+Solidity adalah bahasa pemrograman tingkat tinggi yang digunakan untuk menulis **smart contract** di blockchain Ethereum dan blockchain kompatibel EVM lainnya seperti Polygon, BSC, Arbitrum, dan Base. Solidity diciptakan oleh tim Ethereum dan pertama kali dirilis pada tahun 2015.
+
+Solidity memiliki sintaks yang mirip dengan JavaScript dan C++, sehingga cukup familiar bagi developer yang sudah berpengalaman dengan bahasa-bahasa tersebut. Kode Solidity dikompilasi menjadi **bytecode** yang kemudian dijalankan oleh Ethereum Virtual Machine (EVM).
+
+## Kenapa Belajar Solidity?
+
+Solidity adalah skill utama yang dibutuhkan untuk menjadi Web3 developer. Berikut alasan utamanya:
+
+- **Ekosistem terbesar** — Ethereum dan EVM-compatible chains memiliki ekosistem DeFi, NFT, dan dApp terbesar.
+- **Demand tinggi** — Banyak proyek Web3 membutuhkan Solidity developer.
+- **Transferable skill** — Skill Solidity bisa digunakan di semua chain berbasis EVM.
+- **Open source** — Dokumentasi dan tooling sangat lengkap.
+
+## Setup Remix IDE
+
+Cara termudah untuk mulai belajar Solidity adalah menggunakan **Remix IDE**, yaitu IDE berbasis web yang bisa langsung digunakan tanpa installasi apapun.
+
+**Langkah-langkah:**
+
+1. Buka [remix.ethereum.org](https://remix.ethereum.org) di browser
+2. Tunggu hingga Remix terbuka sepenuhnya
+3. Kamu akan melihat sidebar kiri dengan folder `contracts/`
+4. Buat file baru dengan klik kanan pada folder `contracts/` → `New File`
+5. Beri nama `HelloWorld.sol`
+
+## Smart Contract Pertama: Hello World
+
+Mari kita tulis smart contract pertama kita:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract HelloWorld {
+    // State variable
+    string public message;
+
+    // Constructor - dijalankan saat contract di-deploy
+    constructor(string memory _message) {
+        message = _message;
+    }
+
+    // Function untuk mengubah message
+    function setMessage(string memory _message) public {
+        message = _message;
+    }
+
+    // Function untuk membaca message
+    function getMessage() public view returns (string memory) {
+        return message;
+    }
+}
+```
+
+## Penjelasan Struktur Contract
+
+Mari kita bedah setiap bagian dari kode di atas:
+
+**1. Pragma Directive**
+
+```solidity
+pragma solidity ^0.8.20;
+```
+
+Baris ini menentukan versi compiler Solidity yang dibutuhkan. Tanda `^` berarti kompatibel dengan versi 0.8.20 hingga sebelum versi 0.9.0.
+
+**2. License Identifier**
+
+```solidity
+// SPDX-License-Identifier: MIT
+```
+
+Ini adalah komentar yang menentukan lisensi kode. Sangat disarankan untuk selalu menambahkan ini karena compiler akan memberikan warning tanpa adanya lisensi.
+
+**3. Contract Declaration**
+
+```solidity
+contract HelloWorld {
+    // isi contract
+}
+```
+
+Keyword `contract` mendeklarasikan smart contract. Nama contract biasanya menggunakan PascalCase.
+
+**4. State Variables**
+
+```solidity
+string public message;
+```
+
+State variable disimpan secara permanen di blockchain. Keyword `public` secara otomatis membuat getter function.
+
+**5. Constructor**
+
+```solidity
+constructor(string memory _message) {
+    message = _message;
+}
+```
+
+Constructor dijalankan sekali saja saat contract di-deploy ke blockchain. Parameter di-passing saat proses deployment.
+
+**6. Functions**
+
+```solidity
+function setMessage(string memory _message) public {
+    message = _message;
+}
+```
+
+Function adalah blok kode yang bisa dipanggil. Keyword `public` berarti bisa dipanggil dari luar contract.
+
+## Compile dan Deploy di Remix
+
+1. Klik tab **Solidity Compiler** (icon sidebar kiri)
+2. Pastikan compiler version sesuai dengan pragma (0.8.20+)
+3. Klik tombol **Compile HelloWorld.sol**
+4. Klik tab **Deploy & Run Transactions**
+5. Di field `Deploy`, masukkan parameter constructor: `"Hello Web3!"`
+6. Klik tombol **Deploy**
+7. Contract akan muncul di bagian **Deployed Contracts**
+8. Klik tombol `message` untuk membaca nilai
+9. Klik `setMessage` untuk mengubah nilai
+
+## Coba Sendiri
+
+Setelah berhasil deploy, coba:
+
+1. Ubah message menggunakan `setMessage`
+2. Baca kembali dengan `message` atau `getMessage`
+3. Tambahkan function baru yang mengembalikan panjang string
+
+## Selanjutnya
+
+Setelah memahami dasar struktur contract, langkah berikutnya adalah mempelajari **variables dan types** di Solidity. Kita akan membahas semua tipe data yang tersedia dan cara menggunakannya.

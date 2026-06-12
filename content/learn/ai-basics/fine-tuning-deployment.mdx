@@ -1,0 +1,150 @@
+---
+title: "Deploy Model Fine-tuned ke Produksi"
+order: 21
+authors: ["admin"]
+excerpt: "Cara mendeploy model fine-tuned ke produksi: endpoint setup, monitoring, dan maintenance."
+---
+
+# Deploy Model Fine-tuned ke Produksi
+
+Model sudah di-training dan dievaluasi. Saatnya deploy!
+
+## OpenAI Fine-tuned Models
+
+Fine-tuned model di OpenAI langsung bisa dipakai:
+
+```typescript
+// Ganti model name dengan fine-tuned model ID
+const FINE_TUNED_MODEL = "ft:gpt-4o-mini-2024-07-18:org:web3ai:id";
+
+const completion = await openai.chat.completions.create({
+  model: FINE_TUNED_MODEL,
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userQuestion },
+  ],
+});
+```
+
+## Deployment Architecture
+
+```
+User → API Gateway → Model Router → [Fine-tuned | Base | Fallback]
+                                    ↓
+                              Response Cache
+                                    ↓
+                              Response to User
+```
+
+## Model Router
+
+```typescript
+class ModelRouter {
+  async getResponse(question: string, context: string) {
+    // 1. Try fine-tuned model
+    try {
+      const response = await this.callFineTuned(question, context);
+      if (this.isGoodResponse(response)) return response;
+    } catch (error) {
+      console.warn("Fine-tuned model failed:", error);
+    }
+
+    // 2. Fallback to base model
+    try {
+      return await this.callBaseModel(question, context);
+    } catch (error) {
+      console.warn("Base model failed:", error);
+    }
+
+    // 3. Final fallback
+    return {
+      content: "Maaf, saya sedang mengalami gangguan. Silakan coba lagi.",
+      model: "fallback",
+    };
+  }
+
+  private isGoodResponse(response: any): boolean {
+    // Cek apakah response valid dan berkualitas
+    return (
+      response.content.length > 10 &&
+      !response.content.includes("I cannot") &&
+      !response.content.includes("I don't know")
+    );
+  }
+}
+```
+
+## Monitoring Produksi
+
+```typescript
+// Track key metrics setelah deploy
+interface MonitoringMetrics {
+  requestCount: number;
+  avgLatency: number;
+  errorRate: number;
+  avgOutputTokens: number;
+  userSatisfaction: number; // dari thumbs up/down
+}
+
+// Dashboard alerts
+const ALERTS = {
+  errorRateHigh: "> 5% errors in 5 minutes",
+  latencyHigh: "> 5s average latency",
+  satisfactionDrop: "< 70% positive rating",
+};
+```
+
+## Versioning
+
+```typescript
+// Simpan model version dan bisa rollback
+const MODEL_VERSIONS = {
+  "v1": "ft:gpt-4o-mini-2024-07-18:org:web3ai:v1",
+  "v2": "ft:gpt-4o-mini-2024-07-18:org:web3ai:v2",
+};
+
+let activeVersion = "v2";
+
+// Rollback capability
+function rollback(version: string) {
+  if (!MODEL_VERSIONS[version]) throw new Error("Version not found");
+  activeVersion = version;
+  console.log("Rolled back to", version);
+}
+```
+
+## Retraining Schedule
+
+```
+Jadwal retraining:
+- Setiap 3 bulan dengan data baru
+- Jika user satisfaction drop > 10%
+- Jika ada domain knowledge baru yang signifikan
+- Setelah perubahan brand voice atau aturan baru
+```
+
+## Cost Monitoring
+
+```typescript
+async function trackFineTunedCost(model: string, usage: any) {
+  // Fine-tuned models lebih mahal dari base
+  const COST_MULTIPLIER = 1.5; // Contoh: 50% lebih mahal
+
+  const baseCost = calculateBaseCost(usage);
+  const actualCost = baseCost * COST_MULTIPLIER;
+
+  await db.costLog.create({
+    data: { model, tokens: usage.total_tokens, cost: actualCost, date: new Date() },
+  });
+
+  // Alert jika cost berlebihan
+  const dailyTotal = await getDailyCost();
+  if (dailyTotal > DAILY_BUDGET) {
+    await sendAlert("Daily LLM budget exceeded!");
+  }
+}
+```
+
+## Latihan
+
+Desain deployment plan untuk fine-tuned chatbot: model routing, monitoring metrics, retraining schedule, dan rollback strategy.

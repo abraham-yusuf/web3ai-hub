@@ -1,0 +1,298 @@
+---
+title: "Functions dan Modifiers di Solidity"
+slug: "solidity-functions-dan-modifiers"
+order: 13
+---
+
+## Function di Solidity
+
+Function adalah blok kode yang mengeksekusi logika tertentu. Di Solidity, function declaration lebih kompleks dibanding bahasa pemrograman umum karena ada banyak keyword yang menentukan perilaku function.
+
+## Sintaks Function
+
+```solidity
+function functionName(parameters) visibility mutability returns (returnType) {
+    // body
+}
+```
+
+## Visibility Functions
+
+Visibility menentukan siapa yang bisa memanggil function:
+
+```solidity
+contract VisibilityDemo {
+    uint256 public counter;  // auto-generate getter
+
+    // Public: bisa dipanggil dari dalam dan luar contract
+    function increment() public {
+        counter++;
+    }
+
+    // Private: hanya bisa dipanggil dari dalam contract ini
+    function _calculateSquare(uint256 x) private pure returns (uint256) {
+        return x * x;
+    }
+
+    // Internal: bisa dipanggil dari contract ini dan child contract
+    function _protectedFunction() internal pure returns (string memory) {
+        return "internal";
+    }
+
+    // External: hanya bisa dipanggil dari luar contract
+    function externalOnly() external pure returns (string memory) {
+        return "external";
+    }
+
+    function usePrivate(uint256 x) public pure returns (uint256) {
+        return _calculateSquare(x);
+    }
+}
+```
+
+| Visibility | Dalam Contract | Child Contract | Luar Contract |
+|---|---|---|---|
+| `public` | ✅ | ✅ | ✅ |
+| `private` | ✅ | ❌ | ❌ |
+| `internal` | ✅ | ✅ | ❌ |
+| `external` | ❌ | ❌ | ✅ |
+
+## Function Mutability
+
+Keyword mutability menentukan apakah function bisa mengubah state:
+
+```solidity
+contract MutabilityDemo {
+    uint256 public value;
+    uint256 public constant PI = 3;
+
+    // Default: bisa baca dan tulis state
+    function setValue(uint256 _val) public {
+        value = _val;
+    }
+
+    // View: hanya bisa baca state, tidak mengubah
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+
+    // Pure: tidak bisa baca atau tulis state
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}
+```
+
+- **default** — Bisa baca dan tulis state, menghabiskan gas paling banyak
+- **view** — Hanya baca state, gratis jika dipanggil dari luar (call)
+- **pure** — Tidak baca/tulis state, gratis jika dipanggil dari luar (call)
+
+## Payable Functions
+
+Function dengan keyword `payable` bisa menerima ETH:
+
+```solidity
+contract PayableDemo {
+    address public owner;
+    uint256 public totalDonated;
+
+    mapping(address => uint256) public donations;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Bisa menerima ETH
+    function donate() public payable {
+        require(msg.value > 0, "Minimal 0 ETH");
+        donations[msg.sender] += msg.value;
+        totalDonated += msg.value;
+    }
+
+    // Tidak bisa menerima ETH (akan revert jika kirim ETH)
+    function getInfo() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    // Hanya owner yang bisa withdraw
+    function withdraw() public {
+        require(msg.sender == owner, "Bukan owner");
+        payable(owner).transfer(address(this).balance);
+    }
+}
+```
+
+## Return Values
+
+Function bisa mengembalikan satu atau beberapa nilai:
+
+```solidity
+contract ReturnDemo {
+    // Single return
+    function square(uint256 x) public pure returns (uint256) {
+        return x * x;
+    }
+
+    // Multiple return
+    function divide(uint256 a, uint256 b)
+        public pure returns (uint256 quotient, uint256 remainder)
+    {
+        require(b != 0, "Tidak bisa bagi 0");
+        quotient = a / b;
+        remainder = a % b;
+    }
+
+    // Named returns (tidak perlu keyword return)
+    function multiply(uint256 a, uint256 b)
+        public pure returns (uint256 result)
+    {
+        result = a * b;
+    }
+}
+```
+
+## Modifiers
+
+Modifier adalah kode yang dijalankan sebelum (atau setelah) function body. Biasa digunakan untuk validasi dan access control:
+
+```solidity
+contract ModifierDemo {
+    address public owner;
+    bool public paused;
+    uint256 public minDeposit;
+
+    event Deposited(address indexed user, uint256 amount);
+
+    constructor(uint256 _minDeposit) {
+        owner = msg.sender;
+        minDeposit = _minDeposit;
+    }
+
+    // Modifier untuk cek owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Bukan owner");
+        _;
+    }
+
+    // Modifier untuk cek paused
+    modifier whenNotPaused() {
+        require(!paused, "Contract paused");
+        _;
+    }
+
+    // Modifier dengan parameter
+    modifier minimumAmount(uint256 _amount) {
+        require(_amount >= minDeposit, "Kurang dari minimum");
+        _;
+    }
+
+    // Multiple modifiers
+    function setMinDeposit(uint256 _newMin) public onlyOwner {
+        minDeposit = _newMin;
+    }
+
+    function pause() public onlyOwner {
+        paused = true;
+    }
+
+    function unpause() public onlyOwner {
+        paused = false;
+    }
+
+    function deposit() public payable whenNotPaused minimumAmount(msg.value) {
+        emit Deposited(msg.sender, msg.value);
+    }
+}
+```
+
+Symbol `_;` menandakan dimana function body akan dijalankan.
+
+## Advanced Modifier Pattern
+
+```solidity
+contract ReentrancyGuard {
+    uint256 private _status;
+    uint256 private constant NOT_ENTERED = 1;
+    uint256 private constant ENTERED = 2;
+
+    mapping(address => uint256) public balances;
+
+    constructor() {
+        _status = NOT_ENTERED;
+    }
+
+    // Reentrancy guard modifier
+    modifier nonReentrant() {
+        require(_status != ENTERED, "Reentrancy detected");
+        _status = ENTERED;
+        _;
+        _status = NOT_ENTERED;
+    }
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 _amount) public nonReentrant {
+        require(balances[msg.sender] >= _amount, "Saldo kurang");
+        balances[msg.sender] -= _amount;
+        (bool success, ) = payable(msg.sender).call{value: _amount}("");
+        require(success, "Transfer gagal");
+    }
+}
+```
+
+## Internal Naming Convention
+
+Di Solidity, ada konvensi penamaan:
+
+- **Public/external functions** — `camelCase`: `getUserBalance()`
+- **Internal/private functions** — `_camelCase` (underscore prefix): `_calculateInterest()`
+- **Modifiers** — `camelCase`: `onlyOwner()`
+- **Private/internal modifiers** — `_modifierName()`
+
+## Contoh Praktis: Simple Vault
+
+```solidity
+contract SimpleVault {
+    address public owner;
+    mapping(address => uint256) public deposits;
+    uint256 public totalDeposits;
+
+    event Deposit(address indexed user, uint256 amount);
+    event Withdraw(address indexed user, uint256 amount);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Bukan owner");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit harus > 0");
+        deposits[msg.sender] += msg.value;
+        totalDeposits += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 _amount) public {
+        require(deposits[msg.sender] >= _amount, "Saldo kurang");
+        deposits[msg.sender] -= _amount;
+        totalDeposits -= _amount;
+        (bool success, ) = payable(msg.sender).call{value: _amount}("");
+        require(success, "Transfer gagal");
+        emit Withdraw(msg.sender, _amount);
+    }
+
+    function getContractBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+}
+```
+
+## Kesimpulan
+
+Functions dan modifiers adalah building blocks utama smart contract. Pahami visibility, mutability, dan modifier pattern untuk menulis contract yang aman. Selanjutnya kita akan belajar tentang **events dan error handling**.

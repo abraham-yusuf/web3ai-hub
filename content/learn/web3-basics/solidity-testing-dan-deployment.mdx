@@ -1,0 +1,411 @@
+---
+title: "Testing dan Deployment Smart Contract"
+slug: "solidity-testing-dan-deployment"
+order: 16
+---
+
+## Kenapa Testing Penting?
+
+Smart contract bersifat **immutable** — setelah di-deploy ke blockchain, kode tidak bisa diubah. Bug bisa menyebabkan kerugian finansial yang besar. Oleh karena itu, testing adalah tahap paling kritikal dalam development lifecycle.
+
+Kita akan menggunakan **Hardhat**, framework development Ethereum yang paling populer.
+
+## Setup Hardhat Project
+
+```bash
+# Buat project baru
+mkdir my-contract && cd my-contract
+npm init -y
+
+# Install Hardhat dan dependencies
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
+
+# Inisialisasi Hardhat project
+npx hardhat
+# Pilih "Create a JavaScript project"
+```
+
+Struktur project:
+
+```
+my-contract/
+├── contracts/        # Solidity source files
+├── scripts/          # Deployment scripts
+├── test/             # Test files
+├── hardhat.config.js # Konfigurasi Hardhat
+└── package.json
+```
+
+## Smart Contract untuk Testing
+
+Buat file `contracts/Counter.sol`:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Counter {
+    uint256 public count;
+    address public owner;
+
+    event CountChanged(address indexed caller, uint256 newCount);
+    event OwnershipTransferred(address indexed oldOwner, address indexed newOwner);
+
+    error NotOwner();
+    error Overflow();
+
+    constructor() {
+        owner = msg.sender;
+        count = 0;
+    }
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
+
+    function increment() public {
+        if (count + 1 < count) revert Overflow();
+        count++;
+        emit CountChanged(msg.sender, count);
+    }
+
+    function decrement() public {
+        require(count > 0, "Cannot go below zero");
+        count--;
+        emit CountChanged(msg.sender, count);
+    }
+
+    function reset() public onlyOwner {
+        count = 0;
+        emit CountChanged(msg.sender, 0);
+    }
+
+    function transferOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0), "Invalid address");
+        emit OwnershipTransferred(owner, _newOwner);
+        owner = _newOwner;
+    }
+}
+```
+
+## Unit Testing dengan Hardhat
+
+Buat file `test/Counter.test.js`:
+
+```javascript
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+describe("Counter", function () {
+  let counter;
+  let owner;
+  let user1;
+
+  // beforeEach dijalankan sebelum setiap test
+  beforeEach(async function () {
+    [owner, user1] = await ethers.getSigners();
+    const Counter = await ethers.getContractFactory("Counter");
+    counter = await Counter.deploy();
+    await counter.waitForDeployment();
+  });
+
+  describe("Deployment", function () {
+    it("Should set count to 0", async function () {
+      expect(await counter.count()).to.equal(0);
+    });
+
+    it("Should set deployer as owner", async function () {
+      expect(await counter.owner()).to.equal(owner.address);
+    });
+  });
+
+  describe("Increment", function () {
+    it("Should increment count", async function () {
+      await counter.increment();
+      expect(await counter.count()).to.equal(1);
+    });
+
+    it("Should emit CountChanged event", async function () {
+      await expect(counter.increment())
+        .to.emit(counter, "CountChanged")
+        .withArgs(owner.address, 1);
+    });
+
+    it("Should allow any user to increment", async function () {
+      await counter.connect(user1).increment();
+      expect(await counter.count()).to.equal(1);
+    });
+  });
+
+  describe("Decrement", function () {
+    it("Should decrement count", async function () {
+      await counter.increment();
+      await counter.decrement();
+      expect(await counter.count()).to.equal(0);
+    });
+
+    it("Should revert when count is 0", async function () {
+      await expect(counter.decrement())
+        .to.be.revertedWith("Cannot go below zero");
+    });
+  });
+
+  describe("Reset", function () {
+    beforeEach(async function () {
+      await counter.increment();
+      await counter.increment();
+    });
+
+    it("Should reset count to 0 (owner only)", async function () {
+      await counter.reset();
+      expect(await counter.count()).to.equal(0);
+    });
+
+    it("Should revert if not owner", async function () {
+      await expect(counter.connect(user1).reset())
+        .to.be.revertedWithCustomError(counter, "NotOwner");
+    });
+  });
+
+  describe("Transfer Ownership", function () {
+    it("Should transfer ownership", async function () {
+      await counter.transferOwnership(user1.address);
+      expect(await counter.owner()).to.equal(user1.address);
+    });
+
+    it("Should revert if not owner", async function () {
+      await expect(
+        counter.connect(user1).transferOwnership(user1.address)
+      ).to.be.revertedWithCustomError(counter, "NotOwner");
+    });
+  });
+});
+```
+
+## Menjalankan Test
+
+```bash
+# Jalankan semua test
+npx hardhat test
+
+# Jalankan test spesifik
+npx hardhat test test/Counter.test.js
+
+# Jalankan dengan gas reporting
+REPORT_GAS=true npx hardhat test
+
+# Jalankan dengan coverage
+npx hardhat coverage
+```
+
+## Deployment Script
+
+Buat file `scripts/deploy.js`:
+
+```javascript
+const { ethers } = require("hardhat");
+
+async function main() {
+  console.log("Deploying Counter...");
+
+  const Counter = await ethers.getContractFactory("Counter");
+  const counter = await Counter.deploy();
+  await counter.waitForDeployment();
+
+  const address = await counter.getAddress();
+  console.log("Counter deployed to:", address);
+
+  // Verifikasi di block explorer
+  console.log("Waiting for block confirmations...");
+  await counter.deploymentTransaction().wait(5);
+
+  console.log("Verifying contract...");
+  try {
+    await hre.run("verify:verify", {
+      address: address,
+      constructorArguments: [],
+    });
+    console.log("Contract verified!");
+  } catch (e) {
+    console.log("Verification failed:", e.message);
+  }
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+```
+
+## Konfigurasi Hardhat untuk Testnet
+
+Update `hardhat.config.js`:
+
+```javascript
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
+
+module.exports = {
+  solidity: "0.8.20",
+  networks: {
+    // Local development
+    hardhat: {},
+
+    // Sepolia Testnet
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    // Polygon Amoy Testnet
+    amoy: {
+      url: process.env.AMOY_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY || "",
+  },
+};
+```
+
+Buat file `.env`:
+
+```env
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
+AMOY_RPC_URL=https://polygon-amoy.g.alchemy.com/v2/YOUR_KEY
+PRIVATE_KEY=your_private_key_here
+ETHERSCAN_API_KEY=your_etherscan_api_key
+```
+
+**PENTING:** Jangan pernah commit `.env` ke git. Tambahkan ke `.gitignore`.
+
+## Deploy ke Testnet
+
+```bash
+# Install dotenv
+npm install dotenv
+
+# Deploy ke Sepolia
+npx hardhat run scripts/deploy.js --network sepolia
+
+# Output:
+# Deploying Counter...
+# Counter deployed to: 0x1234...
+# Contract verified!
+```
+
+## Mendapatkan Testnet ETH
+
+Untuk deploy ke testnet, kamu butuh testnet ETH:
+
+1. **Sepolia** — [sepoliafaucet.com](https://sepoliafaucet.com) atau [Alchemy Faucet](https://sepoliafaucet.com)
+2. **Polygon Amoy** — [faucet.polygon.technology](https://faucet.polygon.technology)
+
+## Interaction Script
+
+Buat file `scripts/interact.js` untuk berinteraksi dengan deployed contract:
+
+```javascript
+const { ethers } = require("hardhat");
+
+async function main() {
+  const contractAddress = "0x1234..."; // alamat contract yang sudah di-deploy
+
+  const Counter = await ethers.getContractFactory("Counter");
+  const counter = Counter.attach(contractAddress);
+
+  // Baca count
+  const count = await counter.count();
+  console.log("Current count:", count.toString());
+
+  // Increment
+  console.log("Incrementing...");
+  const tx = await counter.increment();
+  await tx.wait();
+  console.log("Tx hash:", tx.hash);
+
+  // Baca count lagi
+  const newCount = await counter.count();
+  console.log("New count:", newCount.toString());
+
+  // Baca events
+  const filter = counter.filters.CountChanged();
+  const events = await counter.queryFilter(filter);
+  events.forEach((e) => {
+    console.log(`Count changed by ${e.args.caller} to ${e.args.newCount}`);
+  });
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+```
+
+Jalankan:
+
+```bash
+npx hardhat run scripts/interact.js --network sepolia
+```
+
+## Verify Contract di Etherscan
+
+Setelah deploy, verify contract agar source code bisa dilihat publik:
+
+```bash
+# Via command line
+npx hardhat verify --network sepolia 0x1234...
+
+# Jika ada constructor arguments
+npx hardhat verify --network sepolia 0x1234... "arg1" "arg2"
+```
+
+Atau via Etherscan:
+1. Buka etherscan.io → cari alamat contract
+2. Klik tab "Contract" → "Verify and Publish"
+3. Pilih compiler type, version, dan paste source code
+
+## Hardhat Main Commands
+
+```bash
+# Compile contracts
+npx hardhat compile
+
+# Run tests
+npx hardhat test
+
+# Run local node
+npx hardhat node
+
+# Deploy ke local node
+npx hardhat run scripts/deploy.js --network localhost
+
+# Deploy ke testnet
+npx hardhat run scripts/deploy.js --network sepolia
+
+# Verify contract
+npx hardhat verify --network sepolia <address>
+
+# Clean artifacts
+npx hardhat clean
+```
+
+## Tips Deployment
+
+1. **Selalu test di local** sebelum ke testnet
+2. **Gunakan environment variables** untuk private key
+3. **Wait for confirmations** sebelum verify
+4. **Simpan alamat contract** yang sudah di-deploy
+5. **Verify source code** untuk transparansi
+
+## Kesimpulan
+
+Dengan Hardhat, workflow development smart contract menjadi sangat efisien: compile → test → deploy → verify → interact. Selalu pastikan testing menyeluruh sebelum deploy ke mainnet.
+
+Selamat! Kamu sekarang sudah memiliki fondasi untuk memulai development smart contract di Solidity. Langkah selanjutnya adalah membangun project nyata dan berkontribusi di ekosistem Web3!

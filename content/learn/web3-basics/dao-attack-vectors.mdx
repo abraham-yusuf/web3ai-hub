@@ -1,0 +1,225 @@
+---
+title: "DAO Attack Vectors"
+slug: "dao-attack-vectors"
+order: 30
+---
+
+# DAO Attack Vectors
+
+Keamanan DAO bukan hanya tentang smart contract — ini juga tentang governance security. Berbagai serangan telah terjadi di dunia DAO, mulai dari manipulasi voting hingga exploitasi ekonomi. Memahami attack vectors adalah langkah pertama untuk membangun pertahanan yang kuat.
+
+## Governance Attacks
+
+Governance attacks menargetkan proses pengambilan keputusan DAO untuk kepentingan attacker.
+
+**Jenis governance attacks:**
+
+**1. Hostile Takeover**
+Attacker mengumpulkan cukup token untuk mengontrol voting dan mengarahkan DAO sesuai keinginan mereka.
+
+**Cara kerja:**
+- Akumulasi token dalam jumlah besar (di pasar atau melalui flash loan)
+- Ajukan proposal yang menguntungkan attacker
+- Gunakan voting power untuk meloloskan proposal
+- Eksekusi proposal yang merugikan DAO
+
+**Contoh nyata:** Pada 2022, ada upaya untuk mengambil alih governance Steemit menggunakan TRX token yang di-stake di Binance. Justin Sun (TRON) menggunakan exchange-staked STEEM untuk memvoting witnesses baru, mengambil alih kendali blockchain.
+
+**Mitigasi:**
+- Minimum holding period sebelum bisa voting
+- Timelock yang panjang untuk proposal penting
+- Quorum yang tinggi untuk perubahan kritis
+- Guardian council atau veto mechanism
+
+## Flash Loan Voting
+
+Flash loan voting adalah serangan yang memanfaatkan pinjaman tanpa jaminan (flash loan) untuk mendapatkan voting power sementara.
+
+**Cara kerja:**
+1. Attacker mengambil flash loan dalam jumlah besar
+2. Token dipinjam digunakan untuk voting pada proposal
+3. Setelah voting selesai, token dikembalikan
+4. Attacker mendapatkan voting power tanpa memiliki token secara nyata
+
+**Contoh nyata:** Pada 2022, Beanstalk DAO kehilangan $182 juta karena flash loan governance attack. Attacker mengambil flash loan, menggunakan dana untuk membeli BEAN token, voting pada proposal malicious yang mereka ajukan, dan mengeksekusi proposal yang mentransfer dana ke wallet mereka.
+
+**Mengapa ini berbahaya:**
+- Attacker tidak perlu modal sendiri
+- Serangan bisa dilakukan dalam satu transaksi
+- Eksploitasi bisa sangat besar dalam waktu singkat
+
+**Mitigasi:**
+- Snapshot-based voting (voting power berdasarkan balance pada blok tertentu)
+- Minimum token holding period sebelum voting
+- Delay antara proposal creation dan voting start
+- Flash loan resistant governance design
+
+## 51% Attack pada DAO
+
+Sama seperti blockchain, DAO juga rentan terhadap 51% attack.
+
+**Cara kerja:**
+- Attacker mengakumulasi >50% voting power
+- Mereka bisa meloloskan proposal apapun yang mereka inginkan
+- Tidak ada mekanisme yang bisa menghentikan mereka secara demokratis
+
+**Faktor yang mempermudah:**
+- Distribusi token yang tidak merata
+- Low voter turnout (partisipasi rendah)
+- Token yang liquid dan bisa dibeli di pasar
+- Delegation yang terlalu terpusat
+
+**Contoh:** Banyak DAO memiliki whale yang memegang persentase besar token. Jika whale tersebut berkolusi, mereka bisa mengontrol governance.
+
+**Mitigasi:**
+- Quadratic voting (mengurangi power whale)
+- Time-weighted voting (semakin lama hold, semakin besar power)
+- Multiple token classes (checks and balances)
+- Constitutional limits (aturan yang tidak bisa diubah oleh voting biasa)
+- Guardian/veto mechanism
+
+## Vote Buying
+
+Vote buying adalah praktik membeli voting power dari token holder untuk mendukung proposal tertentu.
+
+**Jenis vote buying:**
+
+**1. Direct Vote Buying**
+Attacker secara langsung membayar voter untuk memilih opsi tertentu.
+
+**2. Indirect Vote Buying (Governance Extractable Value)**
+Membuat proposal yang menguntungkan kelompok tertentu sebagai imbalan atas dukungan voting.
+
+**3. Hidden Vote Buying**
+Melalui off-chain agreements yang tidak terlihat di blockchain.
+
+**Platform vote buying:**
+- **Hidden Hand** (by Redacted Cartel) — Marketplace untuk vote incentives
+- **Votium** — Incentives untuk vlCVX holders
+- **Llama Airforce** — Delegation marketplace
+
+**Dilema vote buying:**
+Vote buying bukan selalu negatif. Beberapa berpendapat bahwa vote buying adalah efisiensi pasar — pihak yang paling menghargai outcome tertentu membayar untuk mempengaruhi keputusan.
+
+Namun, risiko utamanya adalah:
+- Wealthy actors bisa membeli governance
+- Short-term interests mengalahkan long-term health
+- Erosi kepercayaan dalam sistem governance
+
+**Mitigasi:**
+- Commit-reveal scheme (voter mengunci pilihan sebelum reveal)
+- Privacy-preserving voting
+- Reputation systems
+- Time-locked voting yang panjang
+- Social norms dan community enforcement
+
+## Sybil Attacks
+
+Sybil attack melibatkan pembuatan banyak identitas palsu untuk mempengaruhi sistem.
+
+**Aplikasi dalam DAO:**
+- Airdrop farming — Membuat banyak wallet untuk mengklaim airdrop
+- Quadratic voting exploitation — Mengalahkan mekanisme quadratic voting
+- Forum manipulation — Membuat ilusi dukungan komunitas
+- Grant farming — Mengajukan proposal dari banyak "identitas"
+
+**Contoh nyata:** Banyak DAO yang menggunakan quadratic funding (seperti Gitcoin) menghadapi Sybil attack di mana satu orang membuat ratusan wallet untuk mendapatkan matching funds yang lebih besar.
+
+**Mitigasi:**
+- Proof of personhood (Proof of Humanity, Worldcoin)
+- Social graph analysis
+- Gitcoin Passport dan similar identity systems
+- Minimum activity requirements
+- Community verification
+
+## Smart Contract Exploits
+
+Meskipun bukan strictly governance attack, smart contract exploits bisa menghancurkan DAO.
+
+**Contoh besar:**
+- **The DAO (2016)** — $60 juta dieksploitasi karena reentrancy bug
+- **bZx (2020)** — Flash loan exploit senilai $8 juta
+- **Cream Finance (2021)** — Flash loan exploit senilai $130 juta
+- **Beanstalk (2022)** — Flash loan governance attack senilai $182 juta
+
+**Mitigasi:**
+- Security audits oleh multiple firm
+- Bug bounty programs (Immunefi)
+- Formal verification
+- Timelock untuk perubahan contract
+- Insurance (Nexus Mutual, InsurAce)
+
+## Economic Attacks
+
+**Oracle Manipulation:**
+- Manipulasi harga oracle untuk keuntungan
+- Contoh: Menggunakan flash loan untuk memanipulasi DEX price
+- Mitigasi: Multiple oracle sources, TWAP, delay
+
+**Sandwich Attacks:**
+- Attacker menempatkan transaksi sebelum dan sesudah target
+- Mengambil keuntungan dari slippage
+- Mitigasi: MEV protection, private mempool
+
+**Governance Extractable Value (GEV):**
+- Proposal yang secara khusus menguntungkan pembuat proposal
+- Contoh: Mengubah fee structure untuk menguntungkan kelompok tertentu
+- Mitigasi: Review process, quorum requirements, veto mechanism
+
+## Defense in Depth
+
+Pendekatan terbaik untuk DAO security adalah defense in depth — multiple layers pertahanan.
+
+**Layer 1: Technical Controls**
+- Smart contract security (audits, formal verification)
+- Timelock untuk semua perubahan
+- Multisig untuk operasional kritis
+- Monitoring dan alerting
+
+**Layer 2: Governance Controls**
+- Quorum dan threshold yang tepat
+- Guardian council untuk veto
+- Constitutional limits
+- Review period yang memadai
+
+**Layer 3: Economic Controls**
+- Token distribution yang terdiversifikasi
+- Vesting dan lock-up periods
+- Incentive alignment yang kuat
+- Monitoring aktivitas tidak normal
+
+**Layer 4: Social Controls**
+- Komunitas yang teredukasi dan aktif
+- Norms dan expectations yang jelas
+- Transparency dalam semua keputusan
+- Reputation systems
+
+## Incident Response Plan
+
+Setiap DAO memerlukan plan untuk merespons serangan:
+
+1. **Detection** — Monitoring dan alerting untuk aktivitas tidak normal
+2. **Communication** — Channel untuk koordinasi darurat
+3. **Assessment** — Evaluasi severity dan impact
+4. **Response** — Tindakan mitigasi (pause contract, emergency multisig)
+5. **Recovery** — Memulihkan operasional
+6. **Post-mortem** — Analisis dan pembelajaran
+
+**Emergency mechanisms:**
+- Guardian pause functionality
+- Emergency multisig
+- Circuit breakers (automatic pause jika anomali terdeteksi)
+- Rage quit mechanism (member bisa keluar dengan proporsi dana)
+
+## Best Practices untuk DAO Security
+
+1. **Defense in depth** — Jangan bergantung pada satu mekanisme keamanan
+2. **Regular audits** — Audit smart contract dan governance process
+3. **Bug bounty** — Insentif untuk menemukan kerentanan
+4. **Education** — Edukasi komunitas tentang risiko dan best practices
+5. **Monitoring** — Pantau aktivitas on-chain secara real-time
+6. **Insurance** — Lindungi treasury dengan asuransi DeFi
+7. **Scenario planning** — Simulasikan berbagai skenario serangan
+8. **Gradual decentralization** — Jangan terburu-buru mendesentralisasi sebelum siap
+
+Keamanan DAO adalah proses berkelanjutan, bukan checklist sekali jadi. Ancaman terus berevolusi, dan pertahanan harus ikut berkembang. Investasi dalam keamanan adalah investasi terbaik untuk masa depan DAO.
