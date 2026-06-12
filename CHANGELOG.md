@@ -7,6 +7,51 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.10.2] — 2026-06-12
+
+### 🚀 Content Expansion (Spec-Driven Development)
+
+> Branch: `feat/content-expansion`
+> Spec: `specs/001-content-expansion/` — 60 tasks in 9 phases, 60/60 complete
+
+**Blog Content (40 new bilingual MDX files):**
+
+| Category | ID Posts | EN Posts | Total |
+|----------|----------|----------|-------|
+| Web3 Fundamentals | 5 | 5 | 10 |
+| AI Tutorials | 5 | 5 | 10 |
+| Airdrop Guides | 5 | 5 | 10 |
+| Opinion/News | 5 | 5 | 10 |
+
+**Learn Pages (42 new pages):**
+
+| Track | New Sections | Pages |
+|-------|-------------|-------|
+| Web3 | Solidity Fundamentals, DeFi Deep Dive, DAO Advanced | 20 |
+| AI | LLM Integration, Fine-tuning, RAG Production, AI Agent Development | 22 |
+
+**Infrastructure:**
+- Content similarity engine (Jaccard trigram, 80% threshold)
+- Auto-archive opinion/news posts after 90 days
+- Blog generator admin page with category-specific prompts
+- Provider fallback for AI content generation
+- Publish workflow with similarity block + admin override
+
+**Bug Fixes (pre-existing):**
+- `scheduled-publish/route.ts`: merged duplicate POST handler
+- `blog/[slug]/page.tsx`: null/undefined type guards
+- `faq/page.tsx`: declaration order fix
+- `generate-blog/route.ts`: hardcoded provider fallback
+- `analytics/read/route.ts`: rewrite to use PostView relation
+- `analytics/popular/route.ts`: fix ordering
+- `i18n/config.ts`: ContentLocale type definition
+- `proxy.ts`: strict type for locales.includes
+- `comparison.tsx`: guard undefined items from MDX parser
+
+> Commits: `205ac9e`, `15e4960`, `7a8ed03`, `b480ca3`
+
+---
+
 ## [0.10.1] — 2026-06-07
 
 ### 📝 Blog Content Expansion
