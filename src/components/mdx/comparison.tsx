@@ -9,6 +9,7 @@ interface ComparisonProps {
 }
 
 export function Comparison({ items }: ComparisonProps) {
+  if (!items || !Array.isArray(items)) return null
   return (
     <div className="my-8 grid grid-cols-1 md:grid-cols-2 gap-6">
       {items.map((item, idx) => (

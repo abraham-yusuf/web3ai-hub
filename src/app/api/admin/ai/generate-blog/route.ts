@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
       try {
         const result = await streamWithProviderFallback(
           {
-            provider: settings.defaultProvider || "openai",
-            model: settings.defaultModel,
+            provider: "openai",
+            model: "gpt-4o-mini",
             prompt,
           },
           settings,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         console.info("[blog-generator] generated", {
           category: parsed.data.category,
           topic: parsed.data.topic,
-          providerRequested: settings.defaultProvider,
+          providerRequested: "openai",
           providerUsed: result.providerUsed,
           fallbackUsed: result.fallbackUsed,
           duration,

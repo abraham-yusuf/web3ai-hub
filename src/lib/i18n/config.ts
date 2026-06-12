@@ -1,4 +1,4 @@
-import { ContentLocale } from "@prisma/client"
+export type ContentLocale = "ID" | "EN"
 
 export const locales = ["id", "en"] as const
 export type Locale = (typeof locales)[number]

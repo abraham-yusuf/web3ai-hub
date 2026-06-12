@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function FaqPage({ params }: PageProps) {
   const { locale } = await params
   const loc = parseLocale(locale)
-  const lang = isEn ? "en" : "id"
   const isEn = loc === "en"
+  const lang = isEn ? "en" : "id"
 
   const faqs = await prisma.faq.findMany({
     where: { language: lang, isPublished: true },

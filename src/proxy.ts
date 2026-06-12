@@ -42,7 +42,7 @@ const PUBLIC_PATHS = ["/blog", "/faq", "/glossary", "/learn", "/airdrop", "/ai-t
 function getLocaleFromPath(pathname: string): Locale | null {
   const segments = pathname.split("/").filter(Boolean)
   const first = segments[0]
-  if (first && locales.includes(first)) return first
+  if (first && (locales as readonly string[]).includes(first)) return first as Locale
   return null
 }
 
@@ -53,7 +53,7 @@ function getLocaleFromHeaders(req: NextRequest): Locale {
     .split(",")
     .map((l) => l.split(";")[0].trim().substring(0, 2).toLowerCase())
   for (const lang of langs) {
-    if (locales.includes(lang)) return lang
+    if ((locales as readonly string[]).includes(lang)) return lang as Locale
   }
   return defaultLocale
 }
@@ -87,7 +87,7 @@ export async function proxy(request: NextRequest) {
 
   // Detect locale from cookie or Accept-Language header
   const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value
-  const locale = cookieLocale && locales.includes(cookieLocale) ? cookieLocale : getLocaleFromHeaders(request)
+  const locale = cookieLocale && (locales as readonly string[]).includes(cookieLocale) ? cookieLocale as Locale : getLocaleFromHeaders(request)
 
   const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
 
