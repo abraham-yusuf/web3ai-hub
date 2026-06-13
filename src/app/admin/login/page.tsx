@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const resolveCallbackUrl = () => {
@@ -22,7 +21,6 @@ export default function LoginPage() {
     if (!callbackUrlParam.startsWith("/") || callbackUrlParam.startsWith("//")) {
       return "/admin"
     }
-    // Reject backslashes to avoid browser normalization bypasses.
     if (callbackUrlParam.includes("\\")) {
       return "/admin"
     }
@@ -51,12 +49,18 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError("Invalid email or password")
+        setIsLoading(false)
+      } else if (result?.url) {
+        // Use window.location.href for full-page redirect to ensure
+        // the session cookie is properly established before the page loads.
+        // router.push() can cause issues with NextAuth session timing.
+        window.location.href = result.url
       } else {
-        router.push(result?.url || callbackUrl)
+        // Fallback: navigate to callback URL
+        window.location.href = callbackUrl
       }
     } catch {
       setError("An error occurred. Please try again.")
-    } finally {
       setIsLoading(false)
     }
   }

@@ -1,7 +1,12 @@
 "use client"
 
+import { SessionProvider } from "next-auth/react"
 import { WagmiProviderWrapper } from "@/components/web3/wagmi-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <WagmiProviderWrapper>{children}</WagmiProviderWrapper>
+  return (
+    <SessionProvider>
+      <WagmiProviderWrapper>{children}</WagmiProviderWrapper>
+    </SessionProvider>
+  )
 }
