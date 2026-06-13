@@ -11,8 +11,6 @@ const credentialsSchema = z.object({
   password: z.string().min(8),
 })
 
-const adminAreaRoles: Role[] = ["ADMIN", "EDITOR"]
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
@@ -85,20 +83,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/admin/login",
   },
   callbacks: {
-    authorized({ auth: activeSession, request: { nextUrl } }) {
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin")
-      const isOnLogin = nextUrl.pathname === "/admin/login"
-
-      if (!isOnAdmin || isOnLogin) {
-        return true
-      }
-
-      if (!activeSession?.user?.role) {
-        return false
-      }
-
-      return adminAreaRoles.includes(activeSession.user.role)
-    },
+    // NOTE: Admin route protection is handled by proxy.ts middleware.
+    // The proxy checks the JWT token and redirects unauthenticated users.
+    // This avoids double-redirect conflicts between proxy and authorized callback.
     jwt({ token, user }) {
       if (user?.role) {
         token.role = user.role
