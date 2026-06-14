@@ -1,7 +1,7 @@
 # 🚀 AI3 / Web3AI Hub — Active TODO
 
 > Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
-> Terakhir diupdate: 2026-06-14 | **Sprint 13: Growth System (Steps 11-13)**
+> Terakhir diupdate: 2026-06-14 | **Sprint 14: Infrastructure (Steps 17-19)**
 
 ---
 
@@ -15,7 +15,7 @@
 | Phase 3 — Content Engine | 🔄 ~98% | Missing: plagiarism checker only |
 | Phase 4 — Airdrop Ecosystem | ✅ Complete | 100% (Airdrop Hub + Gamification) |
 | Phase 5 — Tools Ecosystem | ✅ Complete | 100% (AI Tools Directory + Web3 Tools ✅) |
-| Phase 6 — Platform Engineering | ⏳ Not started | Performance, security, infra |
+| Phase 6 — Platform Engineering | 🔄 ~60% | Security done, infra jobs+cache+monitoring added |
 | Phase 7 — Growth & Monetization | 🔄 ~40% | 5 growth features done, monetization pending |
 | Phase 8 — Community & Ecosystem | ⏳ Not started | Community features |
 | Long-Term Vision | ⏳ Future | AI3 platform evolution |
@@ -152,15 +152,15 @@
 
 ### 🏗️ Infrastructure (Phase 6)
 
-- [ ] Queue system (BullMQ / Inngest for async jobs)
-- [ ] Background jobs (scheduled content, airdrop updates)
+- [x] Queue system (BullMQ / Inngest for async jobs) — Inngest client + 3 functions (scheduled-publish, auto-archive, airdrop-reminders) + /api/inngest route
+- [x] Background jobs (scheduled content, airdrop updates) — Inngest functions for publish/archive/reminder
 - [ ] Webhook system (external event handling)
-- [ ] Redis caching (API response caching, session store)
-- [ ] AI response caching (avoid duplicate generations)
+- [x] Redis caching (API response caching, session store) — src/lib/cache/redis.ts cacheGet/cacheSet/cacheDel
+- [x] AI response caching (avoid duplicate generations) — src/lib/cache/redis.ts with Upstash Redis + in-memory fallback
 - [ ] CDN optimization (static assets, edge delivery)
 - [ ] Monitoring dashboard (uptime, performance, errors)
-- [ ] Error tracking (Sentry integration)
-- [ ] Backup system (database backups, content snapshots)
+- [x] Error tracking (Sentry integration) — sentry.*.config.ts files + @sentry/nextjs setup instructions
+- [x] Backup system (database backups, content snapshots) — scripts/backup-db.ts pg_dump script
 - [ ] Secrets encryption (comprehensive key management)
 
 ### 🚀 Long-Term Vision
