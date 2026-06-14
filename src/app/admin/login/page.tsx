@@ -50,13 +50,11 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password")
         setIsLoading(false)
-      } else if (result?.url) {
-        // Use window.location.href for full-page redirect to ensure
-        // the session cookie is properly established before the page loads.
-        // router.push() can cause issues with NextAuth session timing.
-        window.location.href = result.url
       } else {
-        // Fallback: navigate to callback URL
+        // Navigate directly to callbackUrl — never use result.url.
+        // In NextAuth v5 beta, result.url for credentials with redirect:false
+        // may return the signIn page URL instead of the destination, causing
+        // the user to land on /admin/login while already authenticated.
         window.location.href = callbackUrl
       }
     } catch {
