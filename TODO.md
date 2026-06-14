@@ -1,7 +1,7 @@
 # 🚀 AI3 / Web3AI Hub — Active TODO
 
 > Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
-> Terakhir diupdate: 2026-06-14 | **Sprint 12: Admin Fix + Content Audit**
+> Terakhir diupdate: 2026-06-14 | **Sprint 13: Growth System (Steps 11-13)**
 
 ---
 
@@ -16,7 +16,7 @@
 | Phase 4 — Airdrop Ecosystem | ✅ Complete | 100% (Airdrop Hub + Gamification) |
 | Phase 5 — Tools Ecosystem | ✅ Complete | 100% (AI Tools Directory + Web3 Tools ✅) |
 | Phase 6 — Platform Engineering | ⏳ Not started | Performance, security, infra |
-| Phase 7 — Growth & Monetization | ⏳ Not started | Growth + revenue |
+| Phase 7 — Growth & Monetization | 🔄 ~40% | 5 growth features done, monetization pending |
 | Phase 8 — Community & Ecosystem | ⏳ Not started | Community features |
 | Long-Term Vision | ⏳ Future | AI3 platform evolution |
 
@@ -114,12 +114,12 @@
 
 ### 📈 Growth System (Phase 7)
 
-- [ ] Email newsletter (Resend integration, subscribe form, digest)
-- [ ] Push notifications (browser push for new content)
-- [ ] User onboarding flow (welcome tour, preference selection)
-- [ ] Referral program (shareable links, incentive tracking)
+- [x] Email newsletter (Resend integration, subscribe form, digest) — /api/newsletter/subscribe + NewsletterForm component + /api/newsletter/send (admin)
+- [x] Push notifications (browser push for new content) — service worker (public/sw.js) + PushNotificationButton component + /api/notifications/push-subscribe
+- [x] User onboarding flow (welcome tour, preference selection) — /onboarding 3-step wizard with localStorage progress
+- [x] Referral program (shareable links, incentive tracking) — /referral page, CopyLinkButton component, uses existing /api/gamification/referral
 - [ ] Discord integration (bot, community sync)
-- [ ] Twitter/X auto-posting (new blog post announcements)
+- [x] Twitter/X auto-posting (new blog post announcements) — /api/webhooks/post-published stub (Twitter API v2 TODO)
 - [ ] Telegram integration (notifications, airdrop alerts)
 
 ### 💰 Monetization (Phase 7)
