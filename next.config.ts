@@ -1,4 +1,9 @@
 import type { NextConfig } from "next"
+import bundleAnalyzer from "@next/bundle-analyzer"
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: "placeholder" === "true",
+})
 
 const securityHeaders = [
   {
@@ -34,6 +39,24 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Add compiler optimizations
+  compiler: {
+    removeConsole: "placeholder" === "production" ? { exclude: ["error", "warn"] } : false,
+  },
+  // Add image optimization defaults
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 7, // 7 days
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    dangerouslyAllowSVG: false,
+    remotePatterns: [
+      { protocol: "https", hostname: "og-images.pearlanalytics.ai" },
+      { protocol: "https", hostname: "**.vercel.app" },
+      { protocol: "https", hostname: "**.amazonaws.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
   async headers() {
     return [
       {
@@ -44,4 +67,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withBundleAnalyzer(nextConfig)
