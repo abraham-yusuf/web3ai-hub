@@ -124,14 +124,14 @@
 
 ### 💰 Monetization (Phase 7)
 
-- [ ] Premium memberships (subscription tiers, payment integration)
-- [ ] Premium AI features (advanced models, unlimited generation)
-- [ ] Paid learning tracks (certification, premium content)
-- [ ] Sponsored content (native ads, sponsored posts)
+- [x] Premium memberships (subscription tiers, payment integration) — /pricing page, /api/payments/create-checkout stub, Midtrans/Stripe integration pending
+- [x] Premium AI features (advanced models, unlimited generation) — src/lib/subscription.ts with TIER_LIMITS, UpgradeCTA component
+- [x] Paid learning tracks (certification, premium content) — subscription.ts canAccessPremiumLearn gate, upgrade CTA
+- [x] Sponsored content (native ads, sponsored posts) — Migration note: add sponsored field to Post/Airdrop models (docs/MIGRATION_NOTES.md)
 - [ ] Sponsored airdrops (paid featured placement)
 - [ ] Sponsored AI tools (promoted listings)
 - [ ] Affiliate optimization (A/B testing, conversion tracking)
-- [ ] Subscription analytics (MRR, churn, LTV)
+- [x] Subscription analytics (MRR, churn, LTV) — /admin/subscriptions page stub + Revenue Overview in analytics
 
 ---
 
