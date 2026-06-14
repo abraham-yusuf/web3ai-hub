@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { BookOpen, Gift, Home, PenLine, Search, Sparkles, FlaskConical, Tag } from "lucide-react"
+import { BookOpen, Gift, Home, PenLine, Search, Sparkles, FlaskConical, Tag, Wrench } from "lucide-react"
 
 export type NavItem = {
   title: string
@@ -13,6 +13,7 @@ export const navItems: NavItem[] = [
   { title: "Research", href: "/research", icon: FlaskConical },
   { title: "Airdrops", href: "/airdrop", icon: Gift },
   { title: "AI Tools", href: "/ai-tools", icon: Sparkles },
+  { title: "Web3 Tools", href: "/web3-tools", icon: Wrench },
   { title: "Topics", href: "/topics", icon: Tag },
   { title: "Search", href: "/search", icon: Search },
 ]
@@ -25,4 +26,5 @@ export const mobileNavItems: NavItem[] = [
   { title: "Topics", href: "/topics", icon: Tag },
   { title: "Airdrops", href: "/airdrop", icon: Gift },
   { title: "AI Tools", href: "/ai-tools", icon: Sparkles },
+  { title: "Web3 Tools", href: "/web3-tools", icon: Wrench },
 ]
