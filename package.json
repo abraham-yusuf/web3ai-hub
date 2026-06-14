@@ -17,7 +17,8 @@
     "db:create-admin": "tsx scripts/create-admin.ts",
     "type-check": "npm run typecheck",
     "prepare": "npm run setup-hooks",
-    "setup-hooks": "git config core.hooksPath .githooks 2>/dev/null || true"
+    "setup-hooks": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "test:watch": "node --import tsx --watch --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
