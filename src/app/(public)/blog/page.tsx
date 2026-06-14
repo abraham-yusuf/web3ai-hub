@@ -7,6 +7,8 @@ import { getPublicBlogPosts, getBlogTaxonomies } from "@/lib/posts"
 import type { Metadata } from "next"
 import Link from "next/link"
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: "Blog",
   description: "Artikel terbaru seputar Web3, AI, dan teknologi masa depan.",
