@@ -1,7 +1,7 @@
 # 🚀 AI3 / Web3AI Hub — Active TODO
 
 > Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
-> Terakhir diupdate: 2026-06-05 | **Sprint 11: Gamification**
+> Terakhir diupdate: 2026-06-14 | **Sprint 12: Admin Fix + Content Audit**
 
 ---
 
@@ -12,7 +12,7 @@
 | Phase 0 — Foundation | ✅ Complete | 100% |
 | Phase 1 — Branding & Visual | ✅ Complete | 100% |
 | Phase 2 — AI-First Experience | ✅ Complete | 100% |
-| Phase 3 — Content Engine | 🔄 ~95% | Missing: plagiarism checker |
+| Phase 3 — Content Engine | 🔄 ~98% | Missing: plagiarism checker only |
 | Phase 4 — Airdrop Ecosystem | ✅ Complete | 100% (Airdrop Hub + Gamification) |
 | Phase 5 — Tools Ecosystem | ✅ Complete | 100% (AI Tools Directory + Web3 Tools pending) |
 | Phase 6 — Platform Engineering | ⏳ Not started | Performance, security, infra |
@@ -65,13 +65,13 @@
 
 > Blog cuma 3 post, learn content minimal. Traffic = konten.
 
-- [ ] Blog: generate 20+ posts minimal (bisa via AI Writer)
+- [x] Blog: generate 20+ posts minimal — 60+ MDX posts exist across 4 categories (web3-fundamentals, ai-tutorials, airdrop-guides, opinion-news) × ID+EN
   - 5x Web3 fundamentals (blockchain basics, DeFi intro, NFT guide, wallet setup, gas fees)
   - 5x AI tutorials (prompt engineering, LLM comparison, AI tools review, ChatGPT tips, AI image generation)
   - 5x Airdrop guides (current active airdrops, how to qualify, scam avoidance)
   - 5x Opinion/News (Web3 trends, AI regulation, market analysis)
-- [ ] Learn: expand Web3 track ke 20+ halaman (Solidity, DeFi deep-dive, DAO)
-- [ ] Learn: expand AI track ke 20+ halaman (LLM integration, fine-tuning, RAG)
+- [x] Learn: expand Web3 track ke 20+ halaman — 30 pages in content/learn/web3-basics/ (Solidity, DeFi, DAO, NFT, AMM, etc.)
+- [x] Learn: expand AI track ke 20+ halaman — 32 pages in content/learn/ai-basics/ (LLM integration, fine-tuning, RAG Production, AI Agents, etc.)
 
 ### 📄 Content Workflow Gap (Phase 3)
 
