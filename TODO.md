@@ -75,7 +75,7 @@
 
 ### 📄 Content Workflow Gap (Phase 3)
 
-- [ ] AI plagiarism checker
+- [x] AI plagiarism checker — /api/admin/posts/plagiarism-check, Jaccard trigram similarity against all published posts, threshold 30%, returns top 5 matches
 
 ---
 
