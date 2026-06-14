@@ -353,5 +353,27 @@ export default async function AdminAnalyticsPage({
         </div>
       </div>
     </div>
+
+      {/* Revenue Overview (stub — wired when payment provider is connected) */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Revenue Overview</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Monthly Recurring Revenue", value: "Rp 0", sub: "Midtrans/Stripe pending" },
+            { label: "Active Subscribers", value: "0", sub: "Pro + Enterprise" },
+            { label: "Lifetime Value (avg)", value: "—", sub: "Requires payment data" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-lg border bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 dark:from-emerald-950/30 dark:to-emerald-900/20">
+              <p className="text-sm text-muted-foreground">{kpi.label}</p>
+              <p className="text-3xl font-bold tabular-nums">{kpi.value}</p>
+              <p className="text-xs text-muted-foreground">{kpi.sub}</p>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-xl border p-6 text-center text-muted-foreground text-sm">
+          Connect Midtrans or Stripe to unlock MRR, churn, and LTV metrics.{" "}
+          <a href="/admin/subscriptions" className="text-primary underline underline-offset-2">Manage subscriptions →</a>
+        </div>
+      </div>
   )
 }
