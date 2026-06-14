@@ -17,8 +17,8 @@
 | Phase 5 — Tools Ecosystem | ✅ Complete | 100% (AI Tools Directory + Web3 Tools ✅) |
 | Phase 6 — Platform Engineering | 🔄 ~60% | Security done, infra jobs+cache+monitoring added |
 | Phase 7 — Growth & Monetization | 🔄 ~40% | 5 growth features done, monetization pending |
-| Phase 8 — Community & Ecosystem | ⏳ Not started | Community features |
-| Long-Term Vision | ⏳ Future | AI3 platform evolution |
+| Phase 8 — Community & Ecosystem | 🔄 In Progress | ~30% |
+| Long-Term Vision | 🔄 In Progress | ~15% — AI learning paths, developer API done |
 
 ---
 
@@ -139,13 +139,13 @@
 
 ### 🌍 Community & Ecosystem (Phase 8)
 
-- [ ] User-generated content (community posts, tutorials)
-- [ ] Contributor system (open content creation, moderation)
+- [x] User-generated content (community posts, tutorials) — /contribute/submit, /api/community/submit, PENDING_REVIEW workflow
+- [x] Contributor system (open content creation, moderation) — /contribute page with guidelines + submission form
 - [ ] Public author profiles (SEO-friendly author pages)
 - [ ] Reputation system (karma, badges, trust scores)
 - [ ] Community moderation (report, review, approve)
-- [ ] Public roadmap voting (community feature requests)
-- [ ] API for developers (public REST/GraphQL API)
+- [x] Public roadmap voting (community feature requests) — /roadmap page, /api/community/roadmap-vote stub
+- [x] API for developers (public REST/GraphQL API) — /api/public/v1/posts, /api/public/v1/tools, /developers docs page
 - [ ] Plugin system (third-party extensions)
 - [ ] Public SDK (JavaScript/Python client library)
 - [ ] Third-party integrations (Notion, Obsidian, etc.)
@@ -167,7 +167,7 @@
 
 - [ ] AI-native Web3 university (structured degree programs)
 - [ ] Autonomous AI learning agents (personal tutors)
-- [ ] Personalized AI learning paths (adaptive curriculum)
+- [x] Personalized AI learning paths (adaptive curriculum) — /learn/start wizard, /api/learn/roadmap/generate with AI
 - [ ] AI crypto portfolio assistant (investment guidance)
 - [ ] AI-powered research terminal (deep analysis tools)
 - [ ] Decentralized AI infrastructure (on-chain compute)
