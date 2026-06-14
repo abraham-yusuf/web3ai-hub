@@ -10,6 +10,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
+    "analyze": "ANALYZE=true next build",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "db:seed": "prisma generate && prisma db seed",
@@ -62,6 +63,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.41",
     "@types/pg": "^8.20.0",
