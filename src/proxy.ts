@@ -74,6 +74,13 @@ function hasAdminAccess(role: unknown): role is (typeof ADMIN_ALLOWED_ROLES)[num
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  // NextAuth v5 beta changed the session cookie name from "next-auth.session-token"
+  // to "authjs.session-token" (dev) / "__Secure-authjs.session-token" (prod).
+  // getToken() from next-auth/jwt still defaults to the old v4 name, so we must
+  // pass the correct cookieName explicitly — otherwise getToken() always returns
+  // null and every admin page redirects back to login even when authenticated.
+  const isSecure = request.nextUrl.protocol === "https:"
+  const sessionCookieName = isSecure ? "__Secure-authjs.session-token" : "authjs.session-token"
 
   // ── i18n routing ─────────────────────────────────────────────────────────
 
@@ -109,10 +116,10 @@ export async function proxy(request: NextRequest) {
   const isAdminPage = ADMIN_ROUTES.some((route) => pathname.startsWith(route))
 
   if (isAdminPage && !pathname.startsWith(ADMIN_LOGIN)) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET, cookieName: sessionCookieName })
     if (!token?.id || !hasAdminAccess(token.role)) {
       const loginUrl = new URL(ADMIN_LOGIN, request.url)
-      loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`)
+      loginUrl.searchParams.set("callbackUrl", pathname)
       return applySecurityHeaders(NextResponse.redirect(loginUrl))
     }
   }
@@ -120,7 +127,7 @@ export async function proxy(request: NextRequest) {
   // ── Admin API routes — auth check ───────────────────────────────────────
   const isAdminApi = API_ADMIN_ROUTES.some((route) => pathname.startsWith(route))
   if (isAdminApi) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET, cookieName: sessionCookieName })
     if (!token?.id) return applySecurityHeaders(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
     if (!hasAdminAccess(token.role)) return applySecurityHeaders(NextResponse.json({ error: "Forbidden" }, { status: 403 }))
   }
