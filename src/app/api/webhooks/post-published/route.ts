@@ -25,13 +25,7 @@ export async function POST(request: NextRequest) {
     console.log(`[webhook] Post published: ${postTitle} — ${postUrl}`)
 
     // TODO: Integrate Twitter API v2 for auto-posting
-    // const tweetText = `🚀 New post on AI3 Hub:
-
-${postTitle}
-
-${postUrl}
-
-#AI #Web3 #Crypto`
+    // const tweetText = `🚀 New post on AI3 Hub:\n\n${postTitle}\n\n${postUrl}\n\n#AI #Web3 #Crypto`
     // await fetch("https://api.twitter.com/2/tweets", {
     //   method: "POST",
     //   headers: {

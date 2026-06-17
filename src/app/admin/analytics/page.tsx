@@ -375,5 +375,6 @@ export default async function AdminAnalyticsPage({
           <a href="/admin/subscriptions" className="text-primary underline underline-offset-2">Manage subscriptions →</a>
         </div>
       </div>
+    </div>
   )
 }
