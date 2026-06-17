@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -65,12 +66,12 @@ export default function ContributePage() {
           Earn XP, build your reputation, and help grow the community.
         </p>
         <div className="flex gap-4 justify-center mt-6">
-          <Button size="lg" onClick={() => window.location.href = "/contribute/submit"}>
+          <Link href="/contribute/submit" className={cn(buttonVariants({ size: "lg" }))}>
             Submit a Tutorial
-          </Button>
-          <Button variant="outline" size="lg" onClick={() => window.open("https://github.com/abraham-yusuf/web3ai-hub", "_blank", "noopener,noreferrer")}>
+          </Link>
+          <a href="https://github.com/abraham-yusuf/web3ai-hub" target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
             View on GitHub
-          </Button>
+          </a>
         </div>
       </div>
 
@@ -144,9 +145,9 @@ export default function ContributePage() {
       <div className="text-center p-8 rounded-xl bg-gradient-to-br from-blue-50 to-violet-50 dark:from-blue-950/30 dark:to-violet-950/30 border">
         <h2 className="text-2xl font-bold mb-3">Ready to Share Your Knowledge?</h2>
         <p className="text-muted-foreground mb-6">Join hundreds of contributors building the go-to Web3 &amp; AI resource.</p>
-        <Button size="lg" onClick={() => window.location.href = "/contribute/submit"}>
+        <Link href="/contribute/submit" className={cn(buttonVariants({ size: "lg" }))}>
           Submit a Tutorial →
-        </Button>
+        </Link>
       </div>
     </main>
   )
