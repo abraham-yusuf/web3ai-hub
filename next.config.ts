@@ -39,8 +39,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  // Transpile packages that have complex exports for Turbopack
-  transpilePackages: ["inngest"],
+  // Inngest has complex ESM exports — let Node resolve it natively
   serverExternalPackages: ["inngest"],
   // Add compiler optimizations
   compiler: {
