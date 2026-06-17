@@ -39,6 +39,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Inngest uses Node.js-specific exports that Turbopack can't resolve
+  serverExternalPackages: ["inngest"],
   // Add compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
