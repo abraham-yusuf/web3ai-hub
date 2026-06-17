@@ -1,8 +1,9 @@
-import * as Sentry from "@sentry/nextjs"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Sentry = require("@sentry/nextjs")
 
 Sentry.init({
-  dsn: "placeholder",
-  tracesSampleRate: "placeholder" === "production" ? 0.1 : 1.0,
+  dsn: process.env.SENTRY_DSN || undefined,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
   debug: false,
   integrations: [
     Sentry.replayIntegration({
@@ -12,5 +13,5 @@ Sentry.init({
   ],
   replaysSessionSampleRate: 0.05,
   replaysOnErrorSampleRate: 1.0,
-  environment: "placeholder",
+  environment: process.env.NODE_ENV || "development",
 })
