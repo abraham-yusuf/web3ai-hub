@@ -41,6 +41,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Inngest uses Node.js-specific exports that Turbopack can't resolve
   serverExternalPackages: ["inngest"],
+  turbopack: {
+    resolveAlias: {
+      inngest: "./node_modules/inngest/index.js",
+      "inngest/next": "./node_modules/inngest/next.js",
+    },
+  },
   // Add compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
