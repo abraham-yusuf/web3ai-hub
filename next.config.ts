@@ -2,7 +2,7 @@ import type { NextConfig } from "next"
 import bundleAnalyzer from "@next/bundle-analyzer"
 
 const withBundleAnalyzer = bundleAnalyzer({
-  enabled: "placeholder" === "true",
+  enabled: process.env.ANALYZE === "true",
 })
 
 const securityHeaders = [
@@ -39,9 +39,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Transpile packages that have complex exports for Turbopack
+  transpilePackages: ["inngest"],
   // Add compiler optimizations
   compiler: {
-    removeConsole: "placeholder" === "production" ? { exclude: ["error", "warn"] } : false,
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
   // Add image optimization defaults
   images: {
