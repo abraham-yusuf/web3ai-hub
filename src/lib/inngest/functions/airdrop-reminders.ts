@@ -1,7 +1,6 @@
 import { inngest } from "../client"
 export const airdropReminders = inngest.createFunction(
-  { id: "airdrop-reminders", name: "Airdrop Deadline Reminders" },
-  { cron: "0 9 * * *" }, // daily at 9am
+  { id: "airdrop-reminders", name: "Airdrop Deadline Reminders", triggers: [{ cron: "0 9 * * *" }] },
   async ({ step }) => {
     const result = await step.run("send-deadline-reminders", async () => {
       const { prisma } = await import("@/lib/prisma")

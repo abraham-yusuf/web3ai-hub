@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -100,11 +101,9 @@ export default function RoadmapPage() {
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Track our progress and see what&#39;s coming next. Vote counts reflect community interest from GitHub Issues and user surveys.
         </p>
-        <Button asChild className="mt-6" variant="outline">
-          <a href="https://github.com/abraham-yusuf/web3ai-hub/issues" target="_blank" rel="noopener noreferrer">
-            💡 Suggest a Feature on GitHub
-          </a>
-        </Button>
+        <a href="https://github.com/abraham-yusuf/web3ai-hub/issues" target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: "outline" }), "mt-6")}>
+          💡 Suggest a Feature on GitHub
+        </a>
       </div>
 
       {/* Phase Columns */}
@@ -149,14 +148,12 @@ export default function RoadmapPage() {
           Open an issue on GitHub or join our community to suggest features and vote.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">
-          <Button asChild>
-            <a href="https://github.com/abraham-yusuf/web3ai-hub/issues/new" target="_blank" rel="noopener noreferrer">
-              Open GitHub Issue
-            </a>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/contribute">Contribute Content</Link>
-          </Button>
+          <a href="https://github.com/abraham-yusuf/web3ai-hub/issues/new" target="_blank" rel="noopener noreferrer" className={cn(buttonVariants())}>
+            Open GitHub Issue
+          </a>
+          <Link href="/contribute" className={cn(buttonVariants({ variant: "outline" }))}>
+            Contribute Content
+          </Link>
         </div>
       </div>
     </main>

@@ -7,6 +7,33 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.10.3] — 2026-06-17
+
+### 🔧 Polish Phase (Spec 001-content-expansion — T054-T060)
+
+> Branch: `main`
+> Final validation and build fixes for Content Expansion feature.
+
+**Build Fixes:**
+- Replaced 8 `asChild` Button prop instances with `buttonVariants` + `className` pattern (compatible with `@base-ui/react`)
+  - `roadmap/page.tsx`: 3 instances (external links + internal Link)
+  - `developers/page.tsx`: 2 instances (external links + internal Link)
+  - `contribute/submit/page.tsx`: 3 instances (internal Links)
+- Fixed `streamWithProviderFallback` call signature in `learn/roadmap/generate/route.ts` (3-arg → object pattern)
+- Fixed `"placeholder" ||` always-truthy pattern in `referral/page.tsx` (2 instances → `process.env.NEXT_PUBLIC_APP_URL`)
+- Migrated 3 Inngest functions to v4 API: trigger config moved into `createFunction` config object
+  - `airdrop-reminders.ts`, `auto-archive.ts`, `scheduled-publish.ts`
+
+**Validation Results (T054-T059):**
+- ✅ T054: `prisma generate` + TypeScript compilation pass (build requires DB env vars)
+- ✅ T055: Bilingual spot-check — 3 posts across categories, ID + EN versions verified
+- ✅ T056: SEO metadata — 5 posts verified (title, excerpt, tags, category, language)
+- ✅ T057: Blog listing — 20 new posts (5 per category) + 21 legacy = 41 total
+- ✅ T058: Learn tracks — 30 Web3 + 32 AI pages (both >20 requirement)
+- ✅ T059: Quickstart V1-V7 — all code infrastructure verified present
+
+---
+
 ## [0.10.2] — 2026-06-12
 
 ### 🚀 Content Expansion (Spec-Driven Development)

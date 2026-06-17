@@ -5,7 +5,7 @@ import Link from "next/link"
 
 async function getReferralData(userId: string) {
   try {
-    const baseUrl = "placeholder" || "https://ai3.web.id"
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ai3.web.id"
     const res = await fetch(`${baseUrl}/api/gamification/referral`, {
       headers: { Cookie: `` }, // session propagated via auth()
       cache: "no-store",
@@ -40,7 +40,7 @@ export default async function ReferralPage() {
     )
   }
 
-  const appUrl = "placeholder" || "https://ai3.web.id"
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ai3.web.id"
   const userId = session.user.id
 
   // Construct referral code from userId (first 8 chars)

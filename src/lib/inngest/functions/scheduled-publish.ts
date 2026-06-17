@@ -1,8 +1,7 @@
 import { inngest } from "../client"
 // Migrate from HTTP cron to Inngest function
 export const scheduledPublish = inngest.createFunction(
-  { id: "scheduled-publish", name: "Scheduled Post Publisher" },
-  { cron: "*/5 * * * *" }, // every 5 minutes
+  { id: "scheduled-publish", name: "Scheduled Post Publisher", triggers: [{ cron: "*/5 * * * *" }] },
   async ({ step }) => {
     const result = await step.run("publish-scheduled-posts", async () => {
       // Calls the existing API route logic inline

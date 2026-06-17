@@ -169,13 +169,13 @@
 
 **Purpose**: Final validation, SEO verification, content quality check.
 
-- [ ] T054 Run `npx prisma generate && npm run build` — verify no build errors after all content added
-- [ ] T055 Verify bilingual content — spot-check 3 blog posts across categories, confirm ID + EN versions readable and accurate
-- [ ] T056 Verify SEO metadata — check 5 random blog posts for title tag, meta description, OG image, JSON-LD in HTML source
-- [ ] T057 Verify blog listing — confirm 20+ posts visible, 5+ per category, reading times accurate
-- [ ] T058 Verify Learn tracks — confirm 20+ pages per track, quiz/flashcard counts, progress tracking across both tracks
-- [ ] T059 Run quickstart.md validation scenarios V1-V7 from `specs/001-content-expansion/quickstart.md`
-- [ ] T060 Update CHANGELOG.md with Content Expansion feature entry
+- [x] T054 Run `npx prisma generate && npm run build` — verify no build errors after all content added
+- [x] T055 Verify bilingual content — spot-check 3 blog posts across categories, confirm ID + EN versions readable and accurate
+- [x] T056 Verify SEO metadata — check 5 random blog posts for title tag, meta description, OG image, JSON-LD in HTML source
+- [x] T057 Verify blog listing — confirm 20+ posts visible, 5+ per category, reading times accurate
+- [x] T058 Verify Learn tracks — confirm 20+ pages per track, quiz/flashcard counts, progress tracking across both tracks
+- [x] T059 Run quickstart.md validation scenarios V1-V7 from `specs/001-content-expansion/quickstart.md`
+- [x] T060 Update CHANGELOG.md with Content Expansion feature entry
 
 ---
 

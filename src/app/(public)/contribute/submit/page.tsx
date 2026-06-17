@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
@@ -73,12 +74,12 @@ export default function SubmitPage() {
           Our team will review your submission within 48 hours. You&apos;ll be notified once it&apos;s approved.
         </p>
         <div className="flex gap-3 justify-center">
-          <Button asChild variant="outline">
-            <Link href="/contribute">Submit Another</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/blog">Browse Articles</Link>
-          </Button>
+          <Link href="/contribute" className={cn(buttonVariants({ variant: "outline" }))}>
+            Submit Another
+          </Link>
+          <Link href="/blog" className={cn(buttonVariants())}>
+            Browse Articles
+          </Link>
         </div>
       </main>
     );
@@ -93,9 +94,9 @@ export default function SubmitPage() {
           You need to be logged in to submit content. Create an account to earn XP and get your author badge.
         </p>
         <div className="flex gap-3 justify-center">
-          <Button asChild>
-            <Link href="/admin/login">Sign In</Link>
-          </Button>
+          <Link href="/admin/login" className={cn(buttonVariants())}>
+            Sign In
+          </Link>
           <Button variant="outline" onClick={() => setShowAuthCTA(false)}>
             Back to Form
           </Button>

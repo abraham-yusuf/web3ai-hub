@@ -1,7 +1,6 @@
 import { inngest } from "../client"
 export const autoArchive = inngest.createFunction(
-  { id: "auto-archive", name: "Auto Archive Old Opinion Posts" },
-  { cron: "0 2 * * *" }, // daily at 2am
+  { id: "auto-archive", name: "Auto Archive Old Opinion Posts", triggers: [{ cron: "0 2 * * *" }] },
   async ({ step }) => {
     const result = await step.run("archive-old-posts", async () => {
       const { prisma } = await import("@/lib/prisma")

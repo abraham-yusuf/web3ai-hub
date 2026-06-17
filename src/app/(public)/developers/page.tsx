@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export const metadata = {
   title: "Developer API | AI3 Web3AI Hub",
@@ -234,14 +235,12 @@ curl "https://web3ai-hub.vercel.app/api/public/v1/tools?category=writing&pricing
           Share what you build with the community or open an issue for new endpoints.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">
-          <Button asChild>
-            <a href="https://github.com/abraham-yusuf/web3ai-hub/issues" target="_blank" rel="noopener noreferrer">
-              Request an Endpoint
-            </a>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/contribute">Contribute Content</Link>
-          </Button>
+          <a href="https://github.com/abraham-yusuf/web3ai-hub/issues" target="_blank" rel="noopener noreferrer" className={cn(buttonVariants())}>
+            Request an Endpoint
+          </a>
+          <Link href="/contribute" className={cn(buttonVariants({ variant: "outline" }))}>
+            Contribute Content
+          </Link>
         </div>
       </div>
     </main>

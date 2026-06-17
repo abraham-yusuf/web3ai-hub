@@ -90,9 +90,13 @@ Limit to 8-12 steps. Order from foundational to advanced.`
     const settings = await getAISettings()
     let fullText = ""
 
-    await streamWithProviderFallback(settings, prompt, 0.3, (chunk: string) => {
-      fullText += chunk
-    })
+    await streamWithProviderFallback(
+      { provider: "openai", prompt, temperature: 0.3 },
+      settings,
+      (chunk: string) => {
+        fullText += chunk
+      }
+    )
 
     // Extract JSON from response
     const jsonMatch = fullText.match(/\{[\s\S]*\}/)
