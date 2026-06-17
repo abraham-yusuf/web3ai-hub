@@ -352,7 +352,6 @@ export default async function AdminAnalyticsPage({
           </table>
         </div>
       </div>
-    </div>
 
       {/* Revenue Overview (stub — wired when payment provider is connected) */}
       <div className="space-y-3">

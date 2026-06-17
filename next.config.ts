@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Transpile packages that have complex exports for Turbopack
   transpilePackages: ["inngest"],
+  serverExternalPackages: ["inngest"],
   // Add compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
