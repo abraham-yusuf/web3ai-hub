@@ -39,8 +39,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  // Inngest has complex ESM exports — let Node resolve it natively
-  serverExternalPackages: ["inngest"],
   // Add compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
