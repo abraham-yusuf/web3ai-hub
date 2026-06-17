@@ -37,8 +37,6 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules",
-    "src/lib/inngest/**",
-    "src/app/api/inngest/**"
+    "node_modules"
   ]
 }
