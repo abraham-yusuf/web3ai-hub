@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { extractToc, getReadingStats, slugifyHeading } from "@/lib/blog"
 import { getAuthorProfilesByUsernames } from "@/lib/authors"
 import { getPublicBlogPostBySlug, getPublicBlogPosts, getPostTranslationByLocale } from "@/lib/posts"
-import { parseLocale, otherLocale, type Locale } from "@/lib/i18n/config"
 import type { Metadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import Link from "next/link"
@@ -15,7 +14,7 @@ import { notFound } from "next/navigation"
 import { Fragment, type ReactNode } from "react"
 
 interface BlogPostPageProps {
-  params: Promise<{ locale: string; slug: string }>
+  params: Promise<{ slug: string[] }>
 }
 
 function headingWithId(Tag: "h2" | "h3") {
@@ -27,34 +26,39 @@ function headingWithId(Tag: "h2" | "h3") {
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const { locale, slug } = await params
+  const { slug: slugParts } = await params
+  const slug = slugParts.join("/")
   const post = await getPublicBlogPostBySlug(slug)
-
-
 
   if (!post) {
     return { title: "Post Not Found" }
   }
 
-  const canonicalUrl = `/${locale}/blog/${post.slug}`
-  const loc = parseLocale(locale)
-  const otherLoc = otherLocale(loc)
+  const canonicalUrl = `/blog/${post.slug}`
 
-  // Get translation link if exists
-  let otherLocaleSlug: string | null = null
+  // Build alternate languages for hreflang using getPostTranslationByLocale
+  let enSlug = post.slug
+  let idSlug = post.slug
+
   if (post.id) {
-    const translation = await getPostTranslationByLocale(post.id, loc === "en" ? "ID" : "EN")
-    otherLocaleSlug = translation?.slug ?? null
+    // Get English translation
+    const enTranslation = await getPostTranslationByLocale(post.id, "EN")
+    if (enTranslation) {
+      enSlug = enTranslation.slug
+    }
+    // Get Indonesian translation
+    const idTranslation = await getPostTranslationByLocale(post.id, "ID")
+    if (idTranslation) {
+      idSlug = idTranslation.slug
+    }
   }
 
   const alternates: Metadata["alternates"] = {
     canonical: canonicalUrl,
     languages: {
-      [loc === "en" ? "en-US" : "id-ID"]: `/${loc}/blog/${post.slug}`,
-      [otherLoc === "en" ? "en-US" : "id-ID"]: otherLocaleSlug
-        ? `/${otherLoc}/blog/${otherLocaleSlug}`
-        : `/${otherLoc}/blog/${post.slug}`,
-      "x-default": `/id/blog/${post.slug}`,
+      en: `/en/blog/${enSlug}`,
+      id: `/id/blog/${idSlug}`,
+      "x-default": `/id/blog/${idSlug}`,
     },
   }
 
@@ -76,33 +80,10 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 }
 
-export async function generateStaticParams() {
-  const locales: Locale[] = ["id", "en"]
-  const params: { locale: string; slug: string }[] = []
-
-  for (const loc of locales) {
-    const posts = await getPublicBlogPosts(loc === "en" ? "EN" : "ID")
-    for (const post of posts) {
-      params.push({ locale: loc, slug: post.slug })
-    }
-  }
-
-  return params
-}
-
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { locale, slug } = await params
-  const loc = parseLocale(locale)
-  const isEn = loc === "en"
-
-  const posts = await getPublicBlogPosts(isEn ? "EN" : "ID")
-  let post = posts.find((p) => p.slug === slug)
-
-  // If not found, try searching in DB directly
-  if (!post) {
-    const dbPost = await getPublicBlogPostBySlug(slug)
-    if (dbPost) post = dbPost
-  }
+  const { slug: slugParts } = await params
+  const slug = slugParts.join("/")
+  const post = await getPublicBlogPostBySlug(slug)
 
   if (!post) {
     notFound()
@@ -111,41 +92,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const authorUsernames = post.authors ?? []
   const authorProfiles = await getAuthorProfilesByUsernames(authorUsernames)
 
-  const allPosts = posts
-  const currentIndex = allPosts.findIndex((entry) => entry.slug === post!.slug)
+  const allPosts = await getPublicBlogPosts()
+  const currentIndex = allPosts.findIndex((entry) => entry.slug === post.slug)
   const prevPost = currentIndex >= 0 ? allPosts[currentIndex + 1] ?? null : null
   const nextPost = currentIndex >= 0 ? allPosts[currentIndex - 1] ?? null : null
   const relatedPosts = allPosts
-    .filter((entry) => entry.slug !== post!.slug)
-    .filter((entry) => entry.category === post!.category || (entry.tags ?? []).some((tag) => (post!.tags ?? []).includes(tag)))
+    .filter((entry) => entry.slug !== post.slug)
+    .filter((entry) => entry.category === post.category || entry.tags.some((tag) => post.tags.includes(tag)))
     .slice(0, 3)
 
   const readingStats = getReadingStats(post.content)
   const toc = extractToc(post.content)
-
-  // Get translation info
-  let translationLink: { href: string; label: string; locale: Locale } | null = null
-  if (post.id) {
-    const targetLocale = isEn ? "ID" : "EN"
-    const translation = await getPostTranslationByLocale(post.id, targetLocale)
-    if (translation) {
-      translationLink = {
-        href: `/${otherLocale(loc)}/blog/${translation.slug}`,
-        label: loc === "en" ? "Baca dalam Bahasa Indonesia" : "Read in English",
-        locale: otherLocale(loc),
-      }
-    } else {
-      // Check if this post has an englishVersion field
-      const englishVersion = (post as { englishVersion?: string }).englishVersion
-      if (englishVersion && !isEn) {
-        translationLink = {
-          href: `/en/blog/${englishVersion}`,
-          label: "Read in English",
-          locale: "en",
-        }
-      }
-    }
-  }
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -173,26 +130,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {post.id && <PostViewTracker postId={post.id} />}
 
-        {/* Translation banner */}
-        {translationLink && (
-          <Link
-            href={translationLink.href}
-            className="mb-6 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm transition-colors hover:bg-primary/10"
-          >
-            <span className="font-medium">{translationLink.label}</span>
-            <span className="text-muted-foreground">→</span>
-          </Link>
-        )}
-
         <div className="mb-8 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             {post.category && (
-              <Link href={`/${locale}/blog/category/${slugifyHeading(post.category)}`}>
+              <Link href={`/blog/category/${slugifyHeading(post.category)}`}>
                 <Badge variant="outline">{post.category}</Badge>
               </Link>
             )}
-            {(post.tags ?? []).map((tag) => (
-              <Link key={tag} href={`/${locale}/blog/tag/${slugifyHeading(tag)}`}>
+            {post.tags.map((tag) => (
+              <Link key={tag} href={`/blog/tag/${slugifyHeading(tag)}`}>
                 <Badge variant="secondary">#{tag}</Badge>
               </Link>
             ))}
@@ -211,7 +157,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   return (
                     <Fragment key={username}>
                       {index > 0 ? ", " : null}
-                      <Link href={`/profile/${username}`} className="font-medium text-foreground underline-offset-4 hover:underline">
+                      <Link href={`/authors/${username}`} className="font-medium text-foreground underline-offset-4 hover:underline">
                         {profile?.name ?? `@${username}`}
                       </Link>
                       {profile?.socials && (
@@ -275,23 +221,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           <ShareButtons title={post.title} />
-
-          {/* Locale switcher */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Language:</span>
-            <Link
-              href={`/${loc}/blog/${post.slug}`}
-              className={`px-2 py-1 rounded ${loc === "id" ? "bg-primary/10 font-medium" : "hover:bg-primary/5"}`}
-            >
-              🇮🇩 Indonesia
-            </Link>
-            <Link
-              href={translationLink?.locale === "en" ? translationLink.href : `/en/blog/${post.slug}`}
-              className={`px-2 py-1 rounded ${loc === "en" ? "bg-primary/10 font-medium" : "hover:bg-primary/5"}`}
-            >
-              🇬🇧 English
-            </Link>
-          </div>
         </div>
 
         <div className="prose prose-zinc max-w-none dark:prose-invert">
@@ -304,7 +233,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <h2 className="text-2xl font-bold">Lanjutkan membaca</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {prevPost ? (
-              <Link href={`/${locale}/blog/${prevPost.slug}`} className="rounded-lg border p-4 transition-colors hover:border-primary">
+              <Link href={`/blog/${prevPost.slug}`} className="rounded-lg border p-4 transition-colors hover:border-primary">
                 <p className="text-xs text-muted-foreground">← Previous</p>
                 <p className="mt-1 font-medium">{prevPost.title}</p>
               </Link>
@@ -313,7 +242,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             )}
 
             {nextPost ? (
-              <Link href={`/${locale}/blog/${nextPost.slug}`} className="rounded-lg border p-4 text-right transition-colors hover:border-primary">
+              <Link href={`/blog/${nextPost.slug}`} className="rounded-lg border p-4 text-right transition-colors hover:border-primary">
                 <p className="text-xs text-muted-foreground">Next →</p>
                 <p className="mt-1 font-medium">{nextPost.title}</p>
               </Link>
@@ -327,8 +256,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mt-12 space-y-4 border-t pt-8">
             <h2 className="text-2xl font-bold">Related posts</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {(relatedPosts ?? []).map((relatedPost) => (
-                <Link key={relatedPost.slug} href={`/${locale}/blog/${relatedPost.slug}`} className="rounded-lg border p-4 transition-colors hover:border-primary">
+              {relatedPosts.map((relatedPost) => (
+                <Link key={relatedPost.slug} href={`/blog/${relatedPost.slug}`} className="rounded-lg border p-4 transition-colors hover:border-primary">
                   <p className="text-sm text-muted-foreground">{relatedPost.category ?? "General"}</p>
                   <p className="mt-1 font-semibold">{relatedPost.title}</p>
                   <p className="mt-2 text-sm text-muted-foreground">{relatedPost.excerpt ?? "Tanpa deskripsi."}</p>
@@ -347,7 +276,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <p className="mb-3 text-sm font-semibold">Table of contents</p>
           {toc.length > 0 ? (
             <ul className="space-y-2 text-sm">
-              {(toc ?? []).map((item) => (
+              {toc.map((item) => (
                 <li key={item.id} className={item.level === 3 ? "ml-4" : ""}>
                   <a href={`#${item.id}`} className="text-muted-foreground transition-colors hover:text-primary">
                     {item.text}
