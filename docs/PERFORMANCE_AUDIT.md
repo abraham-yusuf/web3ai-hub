@@ -65,14 +65,23 @@ and server-renders on **every** request — no ISR/edge cache — which inflates
 **Root cause #2 — CLS.** Layout shifts come from late-injected `AdSlot` ad blocks
 and tool-card content reflowing after hydration (`view-tracker`, `bookmark-button`).
 
-### 2. ⚠️ Homepage LCP 3.0s desktop / 4.0s mobile
-LCP element renders late. Likely a hero image/heading blocked by the initial JS
-chunk parse. Candidate fixes: `priority` on the LCP image, preconnect to API
-origins, reduce above-the-fold client JS.
+### 2. ⚠️→✅ Homepage LCP 3.0s desktop / 4.0s mobile — FIXED in this PR
+**Root cause:** the hero `<section>` (which contains the LCP `<h1>`) used
+`animate-fade-in-up`, whose keyframe starts at `opacity: 0` with `both` fill mode.
+The browser does not count an `opacity: 0` element as "contentful", so LCP was only
+recorded once the 0.45s entrance animation completed — artificially inflating LCP.
+**Fix:** removed the entrance animation from the hero section only (below-the-fold
+cards keep theirs). The LCP heading now paints immediately. Re-measure to confirm.
 
-### 3. ⚠️ CLS on Airdrop (0.095 desktop) & AI Tools — ad slots + un-sized images
-Found raw `<img>` tags without dimensions (now fixed in this PR). Ad slots without
-reserved height are the remaining contributor.
+### 3. CLS attribution (measured via layout-shift sources)
+Ruled OUT: ad slots (disabled by default + `ClientAdSlot` already reserves
+`min-h-[90px]`), web fonts (site uses the system font stack, no `@font-face`/
+`next/font`), and tool-card images (cards are text-only). **Homepage & Airdrop now
+show 0 shift sources.** AI Tools mobile still shows a single 0.18 shift attributed
+to the `<footer>` — i.e. content **above** it reflows/grows after first paint
+(client-component hydration / late content expansion). Needs in-browser
+layout-shift debugging on the live grid; tracked as a P0 follow-up. The 2 raw
+`<img>` fixes (this PR earlier) remove a latent CLS source on web3-tools/admin.
 
 ### 4. ✅ Already in good shape
 - Image optimization config solid (`next.config.ts`: AVIF/WebP, deviceSizes,
@@ -110,10 +119,14 @@ reserved height are the remaining contributor.
 9. Enable Prisma query logging in staging and check list pages for N+1 (`include`
    vs batched). Add `select` projections to trim over-fetching on list routes.
 
-### Done in this PR ✅
+### Done across the perf PRs ✅
+- Measured baseline (this doc) for desktop + mobile.
 - Added explicit `width`/`height` + `loading="lazy"` + `decoding="async"` to the
   two remaining raw `<img>` tags (`defi-analytics`, `tools/import`) to cut CLS.
-- Documented the measured baseline so future work is comparable.
+- **Homepage LCP fix:** removed the `opacity:0` entrance animation from the LCP
+  hero section so the heading paints immediately.
+- Layout-shift attribution: ruled out ads/fonts/images; isolated the remaining
+  AI Tools CLS to above-footer content reflow (P0 follow-up).
 
 ---
 

@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-20 py-10 md:py-16">
       {/* Hero */}
-      <section className="flex flex-col items-center gap-8 text-center animate-fade-in-up">
+      <section className="flex flex-col items-center gap-8 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">
           ✦ Platform Web3 & AI #1 di Indonesia
         </div>
