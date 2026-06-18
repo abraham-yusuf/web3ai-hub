@@ -5,7 +5,7 @@ import nextDynamic from "next/dynamic"
 
 const CalendarView = nextDynamic(
   () => import("@/components/airdrop/calendar-view").then((m) => ({ default: m.CalendarView })),
-  { ssr: false, loading: () => <div className="animate-pulse h-64 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-64 rounded-lg bg-muted/50" /> },
 )
 import { Bell, Clock, TrendingUp } from "lucide-react"
 import Link from "next/link"
