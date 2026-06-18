@@ -8,10 +8,26 @@ import { prisma } from "@/lib/prisma"
 import { generateSeo } from "@/lib/seo"
 import { Search, Star, X, GitCompare, SlidersHorizontal, TrendingUp, Crown, Zap } from "lucide-react"
 import type { Metadata } from "next"
+import { unstable_cache } from "next/cache"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
-export const revalidate = 3600
+
+// Filter-independent facet data (category counts + total) is identical on every
+// request, so it is served from the Next Data Cache via unstable_cache instead of
+// hitting the DB on each render. Revalidates every 5 min; call
+// revalidateTag("ai-tools") after admin create/update/delete for instant refresh.
+const getAiToolFacets = unstable_cache(
+  async () => {
+    const [categories, total] = await Promise.all([
+      prisma.aITool.groupBy({ by: ["category"], _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
+      prisma.aITool.count(),
+    ])
+    return { categories, total }
+  },
+  ["ai-tools-facets"],
+  { revalidate: 300, tags: ["ai-tools"] },
+)
 
 export const metadata: Metadata = generateSeo({
   title: "AI Tools Directory",
@@ -104,7 +120,7 @@ export default async function AiToolsPage({
       orderBy = { rating: "desc" }
   }
 
-  const [tools, categories, categoryCounts] = await Promise.all([
+  const [tools, facets] = await Promise.all([
     prisma.aITool.findMany({
       where,
       orderBy,
@@ -112,9 +128,10 @@ export default async function AiToolsPage({
         _count: { select: { reviews: { where: { status: "APPROVED" } } } },
       },
     }),
-    prisma.aITool.groupBy({ by: ["category"], _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
-    prisma.aITool.count(),
+    getAiToolFacets(),
   ])
+  const categories = facets.categories
+  const categoryCounts = facets.total
 
   // Sponsored tools float to top when filter is active (or always show first)
   const sponsoredTools = tools.filter((t) => t.sponsored)
