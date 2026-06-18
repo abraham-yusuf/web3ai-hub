@@ -54,7 +54,7 @@
 - [x] Unit tests: `lib/ai/providers.ts` (fallback logic, model selection) — `tests/providers.test.ts` (AI_PROVIDERS, AI_WRITER_ACTIONS, model selection)
 - [x] Unit tests: utility functions (`lib/utils/`, `lib/mdx/`) — `tests/utils.test.ts` (cn, rate-limiter) + `tests/auth-utils.test.ts`
 - [x] Integration tests: API routes (`/api/ai/generate`, `/api/ai/chat`, `/api/airdrop/*`) — `tests/api-routes.test.ts` + `tests/api-response.test.ts`
-- [ ] Integration tests: Prisma CRUD operations
+- [x] Integration tests: Prisma CRUD operations — `tests/prisma-crud.test.ts` (3 tests: full CRUD round-trip, facet aggregation, unique constraint; all use transaction rollback for safety)
 - [x] E2E tests: critical user journeys (Playwright) — `e2e/{blog,admin,airdrop,ai-tools}.spec.ts` + `playwright.config.ts`
   - Blog listing → detail → share
   - Airdrop listing → detail → step tracker
