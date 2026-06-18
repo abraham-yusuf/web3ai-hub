@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { AirdropStatus, Difficulty } from "@prisma/client"
+import { Crown } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
@@ -42,6 +43,11 @@ export default async function AirdropPage({
     orderBy: sort === "reward" ? { estimatedReward: "desc" } : { createdAt: "desc" },
   })
 
+  // Sponsored airdrops float to top (same pattern as AI Tools)
+  const sponsoredAirdrops = airdrops.filter((a) => a.sponsored)
+  const regularAirdrops = airdrops.filter((a) => !a.sponsored)
+  const sortedAirdrops = [...sponsoredAirdrops, ...regularAirdrops]
+
   return (
     <div className="space-y-8">
       <div>
@@ -80,16 +86,23 @@ export default async function AirdropPage({
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {airdrops.length > 0 ? (
-          airdrops.map((airdrop) => {
+        {sortedAirdrops.length > 0 ? (
+          sortedAirdrops.map((airdrop) => {
             const statusVariant = airdrop.status === "ACTIVE" ? "default" : "secondary"
 
             return (
               <Link key={airdrop.id} href={`/airdrop/${airdrop.slug}`}>
-                <Card className="h-full transition-colors hover:border-primary">
+                <Card className={cn("h-full transition-colors hover:border-primary", airdrop.sponsored && "border-amber-500/40 bg-amber-500/[0.03]")}>
                   <CardHeader>
                     <div className="mb-2 flex items-start justify-between">
-                      <Badge variant={statusVariant}>{airdrop.status}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant={statusVariant}>{airdrop.status}</Badge>
+                        {airdrop.sponsored && (
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-500">
+                            <Crown className="mr-1 h-3 w-3" /> Sponsored
+                          </Badge>
+                        )}
+                      </div>
                       <span className="text-xs text-muted-foreground">{airdrop.network}</span>
                     </div>
                     <CardTitle>{airdrop.name}</CardTitle>
