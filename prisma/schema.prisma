@@ -571,15 +571,30 @@ model AirdropTask {
 }
 
 model UserXP {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  totalXp   Int      @default(0)
-  level     Int      @default(1)
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  totalXp     Int        @default(0)
+  level       Int        @default(1)
+  reputation  Int        @default(0)
+  trustLevel  TrustLevel @default(NEWCOMER)
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([totalXp])
+  @@index([reputation])
+}
+
+model ReputationEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  delta     Int      // positive or negative change
+  reason    String   // e.g. "review.helpful", "post.quality", "report.spam"
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model UserAirdropProgress {
@@ -630,6 +645,14 @@ enum AchievementTier {
   GOLD
   PLATINUM
   DIAMOND
+}
+
+enum TrustLevel {
+  NEWCOMER     // 0–99 reputation
+  CONTRIBUTOR  // 100–499
+  TRUSTED      // 500–1999
+  EXPERT       // 2000–4999
+  GUARDIAN     // 5000+
 }
 
 model Achievement {
