@@ -3,7 +3,13 @@
 import { useState } from "react"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
 import { MobileNavProvider } from "@/components/layout/mobile-nav-context"
-import { ResearchSidebar, type ResearchMode } from "@/components/research/research-sidebar"
+import dynamic from "next/dynamic"
+import type { ResearchMode } from "@/components/research/research-sidebar"
+
+const ResearchSidebar = dynamic(
+  () => import("@/components/research/research-sidebar").then((m) => ({ default: m.ResearchSidebar })),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 rounded-lg bg-muted/50" /> },
+)
 import { emitResearchEvent } from "@/components/research/research-events"
 
 type ToolMeta = {

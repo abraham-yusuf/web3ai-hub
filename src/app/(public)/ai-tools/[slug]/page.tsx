@@ -8,9 +8,14 @@ import { ExternalLink, Star } from "lucide-react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { auth } from "@/auth"
-import { ReviewsSection } from "@/components/tools/reviews-section"
+import nextDynamic from "next/dynamic"
 import { BookmarkButton } from "@/components/tools/bookmark-button"
 import { ViewTracker } from "@/components/tools/view-tracker"
+
+const ReviewsSection = nextDynamic(
+  () => import("@/components/tools/reviews-section").then((m) => ({ default: m.ReviewsSection })),
+  { ssr: false, loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
+)
 
 export const dynamic = "force-dynamic"
 

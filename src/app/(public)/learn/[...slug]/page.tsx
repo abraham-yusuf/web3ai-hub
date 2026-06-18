@@ -1,6 +1,11 @@
 import { AdSlot } from "@/components/ads/ad-slot"
-import { LearnChatSidebar } from "@/components/learn/learn-chat-sidebar"
+import nextDynamic from "next/dynamic"
 import { LessonActions } from "@/components/learn/lesson-actions"
+
+const LearnChatSidebar = nextDynamic(
+  () => import("@/components/learn/learn-chat-sidebar").then((m) => ({ default: m.LearnChatSidebar })),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 rounded-lg bg-muted/50" /> },
+)
 import { ProgressTracker } from "@/components/learn/progress-tracker"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { components } from "@/components/mdx"

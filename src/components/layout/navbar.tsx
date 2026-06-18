@@ -20,7 +20,12 @@ import { Moon, Sun, Menu, X, Search } from "lucide-react"
 import { useTheme } from "next-themes"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { getLocaleFromPath } from "@/lib/i18n"
-import { NotificationBell } from "@/components/airdrop/notification-bell"
+import dynamic from "next/dynamic"
+
+const NotificationBell = dynamic(
+  () => import("@/components/airdrop/notification-bell").then((m) => ({ default: m.NotificationBell })),
+  { ssr: false },
+)
 
 // Demo user ID - in production, this would come from auth session
 const DEMO_USER_ID = "demo-user-123"
