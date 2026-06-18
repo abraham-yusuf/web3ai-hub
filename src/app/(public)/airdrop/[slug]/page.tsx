@@ -6,12 +6,23 @@ import { Disc as Discord, Globe, X } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { StepTracker } from "./step-tracker"
+import nextDynamic from "next/dynamic"
 import { RequirementsChecklist } from "@/components/airdrop/requirements-checklist"
 import { ReportIssueForm } from "@/components/airdrop/report-issue-form"
 import { PriceDisplay } from "@/components/airdrop/price-display"
-import { RiskAnalysisPanel } from "@/components/airdrop/risk-analysis-panel"
-import { ReviewsSection } from "@/components/airdrop/reviews-section"
+
+const StepTracker = nextDynamic(
+  () => import("./step-tracker").then((m) => ({ default: m.StepTracker })),
+  { ssr: false, loading: () => <div className="animate-pulse h-24 rounded-lg bg-muted/50" /> },
+)
+const RiskAnalysisPanel = nextDynamic(
+  () => import("@/components/airdrop/risk-analysis-panel").then((m) => ({ default: m.RiskAnalysisPanel })),
+  { ssr: false, loading: () => <div className="animate-pulse h-32 rounded-lg bg-muted/50" /> },
+)
+const ReviewsSection = nextDynamic(
+  () => import("@/components/airdrop/reviews-section").then((m) => ({ default: m.ReviewsSection })),
+  { ssr: false, loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
+)
 
 export const dynamic = "force-dynamic"
 

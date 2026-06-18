@@ -8,7 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, BookOpen, CheckCircle2, Save, Eye, FileText } from "lucide-react";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+
+const ReactMarkdown = dynamic(() => import("react-markdown"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse h-32 rounded-lg bg-muted/50" />,
+});
 
 type GeneratedLesson = {
   title: string;
