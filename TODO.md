@@ -1,7 +1,7 @@
 # 🚀 AI3 / Web3AI Hub — Active TODO
 
 > Hanya item yang **belum selesai**. Untuk riwayat sprint 1–10, lihat [CHANGELOG.md](./CHANGELOG.md).
-> Terakhir diupdate: 2026-06-14 | **Sprint 14: Infrastructure (Steps 17-19)**
+> Terakhir diupdate: 2026-06-18 | **Audit: tandai 5 item yang sudah selesai (author profiles + testing)**
 
 ---
 
@@ -12,12 +12,12 @@
 | Phase 0 — Foundation | ✅ Complete | 100% |
 | Phase 1 — Branding & Visual | ✅ Complete | 100% |
 | Phase 2 — AI-First Experience | ✅ Complete | 100% |
-| Phase 3 — Content Engine | 🔄 ~98% | Missing: plagiarism checker only |
+| Phase 3 — Content Engine | ✅ Complete | 100% (plagiarism checker done) |
 | Phase 4 — Airdrop Ecosystem | ✅ Complete | 100% (Airdrop Hub + Gamification) |
 | Phase 5 — Tools Ecosystem | ✅ Complete | 100% (AI Tools Directory + Web3 Tools ✅) |
-| Phase 6 — Platform Engineering | 🔄 ~60% | Security done, infra jobs+cache+monitoring added |
+| Phase 6 — Platform Engineering | 🔄 ~75% | Security + infra + testing done; remaining: Performance Audit |
 | Phase 7 — Growth & Monetization | 🔄 ~40% | 5 growth features done, monetization pending |
-| Phase 8 — Community & Ecosystem | 🔄 In Progress | ~30% |
+| Phase 8 — Community & Ecosystem | 🔄 In Progress | ~40% (author profiles done) |
 | Long-Term Vision | 🔄 In Progress | ~15% — AI learning paths, developer API done |
 
 ---
@@ -51,11 +51,11 @@
 
 > Roadmap target unit + integration + E2E, saat ini hanya test dasar.
 
-- [ ] Unit tests: `lib/ai/providers.ts` (fallback logic, model selection)
-- [ ] Unit tests: utility functions (`lib/utils/`, `lib/mdx/`)
-- [ ] Integration tests: API routes (`/api/ai/generate`, `/api/ai/chat`, `/api/airdrop/*`)
+- [x] Unit tests: `lib/ai/providers.ts` (fallback logic, model selection) — `tests/providers.test.ts` (AI_PROVIDERS, AI_WRITER_ACTIONS, model selection)
+- [x] Unit tests: utility functions (`lib/utils/`, `lib/mdx/`) — `tests/utils.test.ts` (cn, rate-limiter) + `tests/auth-utils.test.ts`
+- [x] Integration tests: API routes (`/api/ai/generate`, `/api/ai/chat`, `/api/airdrop/*`) — `tests/api-routes.test.ts` + `tests/api-response.test.ts`
 - [ ] Integration tests: Prisma CRUD operations
-- [ ] E2E tests: critical user journeys (Playwright)
+- [x] E2E tests: critical user journeys (Playwright) — `e2e/{blog,admin,airdrop,ai-tools}.spec.ts` + `playwright.config.ts`
   - Blog listing → detail → share
   - Airdrop listing → detail → step tracker
   - AI Tools search → compare
@@ -141,7 +141,7 @@
 
 - [x] User-generated content (community posts, tutorials) — /contribute/submit, /api/community/submit, PENDING_REVIEW workflow
 - [x] Contributor system (open content creation, moderation) — /contribute page with guidelines + submission form
-- [ ] Public author profiles (SEO-friendly author pages)
+- [x] Public author profiles (SEO-friendly author pages) — PR #20: `/authors/[username]` page, bio + social links (X/GitHub/LinkedIn/Telegram), JSON-LD author arrays, `authors` MDX frontmatter; `src/app/(public)/authors/[username]/page.tsx` + `src/lib/authors.ts`
 - [ ] Reputation system (karma, badges, trust scores)
 - [ ] Community moderation (report, review, approve)
 - [x] Public roadmap voting (community feature requests) — /roadmap page, /api/community/roadmap-vote stub
