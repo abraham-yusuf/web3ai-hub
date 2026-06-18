@@ -130,20 +130,22 @@ export async function getUserStreak(userId: string) {
 export async function checkAchievements(userId: string, trigger: string): Promise<string[]> {
   const earned: string[] = []
 
-  const eligible = await prisma.achievement.findMany({
-    where: { active: true, trigger },
-  })
+  // Batch: fetch eligible achievements + already-earned IDs + trigger count in parallel
+  const [eligible, alreadyEarned, triggerCount] = await Promise.all([
+    prisma.achievement.findMany({ where: { active: true, trigger } }),
+    prisma.userAchievement.findMany({
+      where: { userId },
+      select: { achievementId: true },
+    }),
+    countTriggerEvents(userId, trigger),
+  ])
+
+  const earnedSet = new Set(alreadyEarned.map((a) => a.achievementId))
 
   for (const achievement of eligible) {
-    const already = await prisma.userAchievement.findUnique({
-      where: { userId_achievementId: { userId, achievementId: achievement.id } },
-    })
-    if (already) continue
+    if (earnedSet.has(achievement.id)) continue
 
-    // Count how many times this user has triggered this event
-    const count = await countTriggerEvents(userId, trigger)
-
-    if (count >= achievement.threshold) {
+    if (triggerCount >= achievement.threshold) {
       await prisma.userAchievement.create({
         data: {
           userId,

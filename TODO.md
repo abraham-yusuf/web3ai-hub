@@ -43,7 +43,7 @@
 - [x] JS bundle size audit & optimization — `next/dynamic` lazy-load for 10 heavy client components across 8 files (ReviewsSection×2, RiskAnalysisPanel, StepTracker, CalendarView, LearnChatSidebar, LearnRetentionDashboard, NotificationBell, ResearchSidebar, ReactMarkdown). All `ssr: false` with skeleton loaders.
 - [x] Image optimization audit (next/image, WebP/AVIF) — config diverifikasi (AVIF/WebP, deviceSizes, cacheTTL 7d); 2 raw `<img>` diberi width/height+lazy
 - [ ] Core Web Vitals measurement & fix — measured; CLS img fix shipped; sisa fix (ai-tools LCP/CLS, homepage LCP) terdokumentasi sbg P0-P1
-- [ ] Database query optimization — cek N+1 queries (Prisma `tracing`) — butuh profiling runtime
+- [x] Database query optimization — N+1 fixes: achievement counts → `groupBy` (was N+1 loop), gamification `checkAchievements` → batch pre-fetch + memoized trigger count (3 queries instead of 2N+1), airdrop task completion → `Promise.all` for independent writes
 - [x] Edge caching strategy (ISR revalidation times review) — reviewed; ketemu konflik `force-dynamic` + `revalidate` di ai-tools (revalidate dead code)
 - [x] Lazy loading improvements — implemented via `next/dynamic` (see JS bundle audit above)
 

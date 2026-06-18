@@ -28,15 +28,14 @@ const TRIGGER_LABELS: Record<string, string> = {
 }
 
 async function getAchievementCounts() {
-  const achievements = await prisma.achievement.findMany({ select: { id: true } })
+  const grouped = await prisma.userAchievement.groupBy({
+    by: ["achievementId"],
+    _count: { achievementId: true },
+  })
   const counts: Record<string, number> = {}
-  
-  for (const achievement of achievements) {
-    counts[achievement.id] = await prisma.userAchievement.count({
-      where: { achievementId: achievement.id },
-    })
+  for (const g of grouped) {
+    counts[g.achievementId] = g._count.achievementId
   }
-  
   return counts
 }
 

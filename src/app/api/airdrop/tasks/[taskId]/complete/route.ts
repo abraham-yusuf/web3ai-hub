@@ -81,32 +81,32 @@ export async function POST(
       data: { level: newLevel },
     })
 
-    // Update UserAirdropProgress
-    await prisma.userAirdropProgress.upsert({
-      where: { userId_airdropId: { userId, airdropId: task.airdropId } },
-      create: {
-        userId,
-        airdropId: task.airdropId,
-        xpEarned: task.xpReward,
-        tasksDone: 1,
-      },
-      update: {
-        xpEarned: { increment: task.xpReward },
-        tasksDone: { increment: 1 },
-        lastActive: new Date(),
-      },
-    })
-
-    // Create XP earned notification
-    await prisma.notification.create({
-      data: {
-        userId,
-        airdropId: task.airdropId,
-        title: "+XP Earned!",
-        message: `You earned ${task.xpReward} XP for completing "${task.title}"`,
-        type: "xp_earned",
-      },
-    })
+    // Update progress + create notification in parallel (independent writes)
+    await Promise.all([
+      prisma.userAirdropProgress.upsert({
+        where: { userId_airdropId: { userId, airdropId: task.airdropId } },
+        create: {
+          userId,
+          airdropId: task.airdropId,
+          xpEarned: task.xpReward,
+          tasksDone: 1,
+        },
+        update: {
+          xpEarned: { increment: task.xpReward },
+          tasksDone: { increment: 1 },
+          lastActive: new Date(),
+        },
+      }),
+      prisma.notification.create({
+        data: {
+          userId,
+          airdropId: task.airdropId,
+          title: "+XP Earned!",
+          message: `You earned ${task.xpReward} XP for completing "${task.title}"`,
+          type: "xp_earned",
+        },
+      }),
+    ])
 
     return NextResponse.json({
       success: true,
