@@ -105,7 +105,7 @@ export default async function DeFiAnalyticsPage() {
                       <div className="flex items-center gap-2">
                         {p.logo && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.logo} alt={p.name} className="h-6 w-6 rounded-full object-cover" />
+                          <img src={p.logo} alt={p.name} width={24} height={24} loading="lazy" decoding="async" className="h-6 w-6 rounded-full object-cover" />
                         )}
                         <span className="font-medium text-sm">{p.name}</span>
                       </div>

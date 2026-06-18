@@ -37,15 +37,15 @@
 
 ### ⚡ Performance Audit (Phase 6)
 
-> Target Lighthouse 90+ semua metrik.
+> Target Lighthouse 90+ semua metrik. Baseline terukur → `docs/PERFORMANCE_AUDIT.md`.
 
-- [ ] Lighthouse baseline audit (desktop + mobile)
-- [ ] JS bundle size audit & optimization
-- [ ] Image optimization audit (next/image, WebP/AVIF)
-- [ ] Core Web Vitals measurement & fix
-- [ ] Database query optimization — cek N+1 queries (Prisma `tracing`)
-- [ ] Edge caching strategy (ISR revalidation times review)
-- [ ] Lazy loading improvements
+- [x] Lighthouse baseline audit (desktop + mobile) — baseline CWV terukur via CDP di production, `docs/PERFORMANCE_AUDIT.md`
+- [ ] JS bundle size audit & optimization — audit done (first-load JS ~332KB, largest chunk 72KB); optimization/code-split pending
+- [x] Image optimization audit (next/image, WebP/AVIF) — config diverifikasi (AVIF/WebP, deviceSizes, cacheTTL 7d); 2 raw `<img>` diberi width/height+lazy
+- [ ] Core Web Vitals measurement & fix — measured; CLS img fix shipped; sisa fix (ai-tools LCP/CLS, homepage LCP) terdokumentasi sbg P0-P1
+- [ ] Database query optimization — cek N+1 queries (Prisma `tracing`) — butuh profiling runtime
+- [x] Edge caching strategy (ISR revalidation times review) — reviewed; ketemu konflik `force-dynamic` + `revalidate` di ai-tools (revalidate dead code)
+- [ ] Lazy loading improvements — 0 `next/dynamic` saat ini; kandidat lazy-load terdokumentasi (P1-P2)
 
 ### 🧪 Testing (Phase 6)
 
