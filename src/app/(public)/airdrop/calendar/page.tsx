@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
+import { NavSelect } from "@/components/ui/nav-select"
 import nextDynamic from "next/dynamic"
 
 const CalendarView = nextDynamic(
@@ -216,11 +217,9 @@ export default async function AirdropCalendarPage({ searchParams }: PageProps) {
         </div>
 
         <div className="relative">
-          <select
+          <NavSelect
             value={networkFilter}
-            onChange={(e) => {
-              window.location.href = `/airdrop/calendar?network=${e.target.value}&filter=${timeFilter}`
-            }}
+            buildHref={(v) => `/airdrop/calendar?network=${v}&filter=${timeFilter}`}
             className="h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none pr-10 cursor-pointer"
           >
             <option value="all">All Networks</option>
@@ -229,7 +228,7 @@ export default async function AirdropCalendarPage({ searchParams }: PageProps) {
                 {n.network}
               </option>
             ))}
-          </select>
+          </NavSelect>
           <svg
             className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
             fill="none"

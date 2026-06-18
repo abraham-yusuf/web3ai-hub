@@ -1,4 +1,5 @@
 import { AdSlot } from "@/components/ads/ad-slot"
+import { SortSelect } from "@/components/ai-tools/sort-select"
 import { InternalLinksBlock } from "@/components/layout/internal-links"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -168,28 +169,12 @@ export default async function AiToolsPage({
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Cari tools AI..." className="pl-10" name="q" defaultValue={q} />
         </div>
-        {/* Sort dropdown */}
-        <select
-          name="sort"
+        {/* Sort dropdown — client component to support onChange */}
+        <SortSelect
           defaultValue={sort ?? "rating"}
-          className="h-10 rounded-md border bg-background px-3 text-sm"
-          onChange={(e) => {
-            const form = e.target.closest("form")!
-            const url = new URL(form.action)
-            url.searchParams.set("sort", e.target.value)
-            if (q) url.searchParams.set("q", q)
-            if (category) url.searchParams.set("category", category)
-            if (pricingType) url.searchParams.set("pricingType", pricingType)
-            if (platform) url.searchParams.set("platform", platform)
-            if (hasFreeTrial) url.searchParams.set("hasFreeTrial", hasFreeTrial)
-            if (hasApiAccess) url.searchParams.set("hasApiAccess", hasApiAccess)
-            window.location.href = url.toString()
-          }}
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+          options={SORT_OPTIONS}
+          currentParams={{ q, category, pricingType, platform, hasFreeTrial, hasApiAccess, compare: compareSlugs.join(",") }}
+        />
         <input type="hidden" name="compare" value={compareSlugs.join(",")} />
         <Button type="submit" variant="default">Search</Button>
       </form>
