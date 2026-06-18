@@ -6,7 +6,7 @@ import nextDynamic from "next/dynamic"
 
 const LearnRetentionDashboard = nextDynamic(
   () => import("@/components/learn/learn-retention-dashboard").then((m) => ({ default: m.LearnRetentionDashboard })),
-  { ssr: false, loading: () => <div className="animate-pulse h-48 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-48 rounded-lg bg-muted/50" /> },
 )
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getLearnNavigation } from "@/lib/learn"

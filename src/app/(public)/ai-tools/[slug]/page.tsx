@@ -14,7 +14,7 @@ import { ViewTracker } from "@/components/tools/view-tracker"
 
 const ReviewsSection = nextDynamic(
   () => import("@/components/tools/reviews-section").then((m) => ({ default: m.ReviewsSection })),
-  { ssr: false, loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
 )
 
 export const dynamic = "force-dynamic"

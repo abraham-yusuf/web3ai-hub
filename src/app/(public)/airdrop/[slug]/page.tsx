@@ -13,15 +13,15 @@ import { PriceDisplay } from "@/components/airdrop/price-display"
 
 const StepTracker = nextDynamic(
   () => import("./step-tracker").then((m) => ({ default: m.StepTracker })),
-  { ssr: false, loading: () => <div className="animate-pulse h-24 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-24 rounded-lg bg-muted/50" /> },
 )
 const RiskAnalysisPanel = nextDynamic(
   () => import("@/components/airdrop/risk-analysis-panel").then((m) => ({ default: m.RiskAnalysisPanel })),
-  { ssr: false, loading: () => <div className="animate-pulse h-32 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-32 rounded-lg bg-muted/50" /> },
 )
 const ReviewsSection = nextDynamic(
   () => import("@/components/airdrop/reviews-section").then((m) => ({ default: m.ReviewsSection })),
-  { ssr: false, loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
+  { loading: () => <div className="animate-pulse h-40 rounded-lg bg-muted/50" /> },
 )
 
 export const dynamic = "force-dynamic"
