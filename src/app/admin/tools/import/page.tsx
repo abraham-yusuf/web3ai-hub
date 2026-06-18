@@ -294,7 +294,7 @@ export default function ImportToolsPage() {
                       </div>
                       <span className="font-mono text-xs text-muted-foreground">{p.slug}</span>
                       {p.tagline && <p className="text-muted-foreground">{p.tagline}</p>}
-                      {p.logo && <img src={p.logo} alt="" className="h-8 w-8 rounded object-contain" />}
+                      {p.logo && <img src={p.logo} alt="" width={32} height={32} loading="lazy" decoding="async" className="h-8 w-8 rounded object-contain" />}
                       <span className="text-xs text-muted-foreground">{p.url}</span>
                     </div>
                   )}
