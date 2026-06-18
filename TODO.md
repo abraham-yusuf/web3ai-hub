@@ -143,7 +143,7 @@
 - [x] Contributor system (open content creation, moderation) — /contribute page with guidelines + submission form
 - [x] Public author profiles (SEO-friendly author pages) — PR #20: `/authors/[username]` page, bio + social links (X/GitHub/LinkedIn/Telegram), JSON-LD author arrays, `authors` MDX frontmatter; `src/app/(public)/authors/[username]/page.tsx` + `src/lib/authors.ts`
 - [x] Reputation system (karma, badges, trust scores) — schema (`TrustLevel` enum, `reputation`/`trustLevel` on UserXP, `ReputationEvent` model), `src/lib/reputation.ts` (composite scoring + trust tiers), `ReputationBadge` component
-- [ ] Community moderation (report, review, approve)
+- [x] Community moderation (report, review, approve) — `ContentReport` model + migration, `/api/airdrop/report` persists to DB, `/api/moderation` API (list + resolve/dismiss), `/admin/moderation` queue page with stats + action buttons
 - [x] Public roadmap voting (community feature requests) — /roadmap page, /api/community/roadmap-vote stub
 - [x] API for developers (public REST/GraphQL API) — /api/public/v1/posts, /api/public/v1/tools, /developers docs page
 - [ ] Plugin system (third-party extensions)
