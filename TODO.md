@@ -158,7 +158,7 @@
 - [x] Redis caching (API response caching, session store) — src/lib/cache/redis.ts cacheGet/cacheSet/cacheDel
 - [x] AI response caching (avoid duplicate generations) — src/lib/cache/redis.ts with Upstash Redis + in-memory fallback
 - [ ] CDN optimization (static assets, edge delivery)
-- [ ] Monitoring dashboard (uptime, performance, errors)
+- [x] Monitoring dashboard (uptime, performance, errors) — `/admin/monitoring` with DB health check, content stats, activity metrics, Sentry status; `/api/health` endpoint for uptime monitors (200/503)
 - [x] Error tracking (Sentry integration) — sentry.*.config.ts files + @sentry/nextjs setup instructions
 - [x] Backup system (database backups, content snapshots) — scripts/backup-db.ts pg_dump script
 - [ ] Secrets encryption (comprehensive key management)
