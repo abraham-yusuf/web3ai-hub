@@ -181,6 +181,8 @@ model Airdrop {
   websiteUrl      String?
   whitepaperUrl   String?
   riskLevel       String?
+  featured        Boolean       @default(false)
+  sponsored       Boolean       @default(false) // paid featured placement
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   alerts          AirdropAlert[]
