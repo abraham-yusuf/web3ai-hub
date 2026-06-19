@@ -255,8 +255,11 @@ model AITool {
   rating        Float            @default(0)
   ratingCount   Int              @default(0)
   featured      Boolean          @default(false)
-  sponsored     Boolean          @default(false) // paid placement
-  affiliateLink String?
+  sponsored        Boolean          @default(false) // paid placement
+  sponsoredUntil   DateTime?        // auto-expire date
+  sponsoredPackage String?          // "basic", "premium", "enterprise"
+  sponsoredNote    String?          // internal note (advertiser name, deal info)
+  affiliateLink    String?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   clicks        AffiliateClick[]
