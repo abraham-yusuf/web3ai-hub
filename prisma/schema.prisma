@@ -260,6 +260,7 @@ model AITool {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   clicks        AffiliateClick[]
+  conversions   AffiliateConversion[]
   reviews       ToolReview[]
   bookmarks     ToolBookmark[]
   collectionItems ToolCollectionItem[]
@@ -342,14 +343,55 @@ model ToolCollectionItem {
 }
 
 model AffiliateClick {
-  id        String   @id @default(cuid())
-  toolId    String
-  referrer  String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  tool      AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  toolId       String
+  referrer     String?
+  userAgent    String?
+  sessionId    String?  // anonymous session for conversion matching
+  experimentId String?  // A/B test experiment id
+  variant      String?  // "control" | "treatment_a" | "treatment_b" ...
+  page         String?  // which page the click came from (detail, compare, grid)
+  createdAt    DateTime @default(now())
+  tool         AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  experiment   AffiliateExperiment? @relation(fields: [experimentId], references: [id])
 
   @@index([toolId, createdAt])
+  @@index([experimentId])
+  @@index([sessionId])
+}
+
+model AffiliateConversion {
+  id           String   @id @default(cuid())
+  toolId       String
+  sessionId    String?  // match back to click
+  type         String   @default("signup") // signup, trial, purchase
+  revenue      Float?   // revenue amount if purchase
+  currency     String   @default("USD")
+  externalId   String?  // external transaction id
+  metadata     Json?    // any extra data from postback
+  createdAt    DateTime @default(now())
+  tool         AITool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId, createdAt])
+  @@index([sessionId])
+}
+
+model AffiliateExperiment {
+  id          String   @id @default(cuid())
+  name        String   // "cta-color-test", "pricing-badge-test"
+  description String?
+  status      String   @default("draft") // draft, running, paused, completed
+  targetPage  String?  // "detail", "grid", "compare" — where experiment runs
+  variants    Json     // [{ id: "control", label: "Blue CTA", weight: 50, config: {...} }, ...]
+  metric      String   @default("ctr") // ctr, conversion_rate, revenue_per_click
+  startedAt   DateTime?
+  endedAt     DateTime?
+  winnerId    String?  // variant id that won
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  clicks      AffiliateClick[]
+
+  @@index([status])
 }
 
 model LearnTrack {
