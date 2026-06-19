@@ -128,6 +128,20 @@ layout-shift debugging on the live grid; tracked as a P0 follow-up. The 2 raw
 - Layout-shift attribution: ruled out ads/fonts/images; isolated the remaining
   AI Tools CLS to above-footer content reflow (P0 follow-up).
 
+### Done in `perf/core-web-vitals-fix` ✅
+- **AI Tools LCP fix:** Removed redundant `force-dynamic` export. Added
+  `unstable_cache` to the main tools DB query (60s TTL, `ai-tools` tag).
+  Extracted tool grid into separate async server component wrapped in
+  `<Suspense>` with skeleton fallback, so the static shell (h1, search,
+  filters) paints instantly while the grid streams in.
+- **AI Tools CLS fix:** Added `min-h-[400px]` to grid container. Created
+  `ToolGridSkeleton` component that mirrors exact card layout to prevent
+  layout shifts during streaming/hydration. Added `loading.tsx` page-level
+  skeleton.
+- **Preconnect hints:** Added `<link rel="preconnect">` and `dns-prefetch`
+  for GoogleAds, GTM, OG images, and Unsplash in root layout to reduce
+  connection latency for third-party resources.
+
 ---
 
 ## 🔁 How to re-measure
