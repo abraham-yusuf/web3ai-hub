@@ -1,3 +1,4 @@
+import { ConfirmDeleteButtonPlain } from "@/components/admin/confirm-delete-button"
 import { prisma } from "@/lib/prisma"
 import type { Metadata } from "next"
 import { generateSeo } from "@/lib/seo"
@@ -178,15 +179,12 @@ export default async function TopicClustersPage({ searchParams }: Props) {
                           Edit
                         </a>
                         <form action={`/api/admin/seo/topics/${topic.id}?/delete`} method="POST">
-                          <button
-                            type="submit"
+                          <ConfirmDeleteButtonPlain
+                            message={`Hapus topic "${topic.topic}"?`}
                             className="rounded-lg border border-red-500/30 px-3 py-1 text-xs font-medium text-red-500 hover:bg-red-500/10"
-                            onClick={(e) => {
-                              if (!confirm(`Hapus topic "${topic.topic}"?`)) e.preventDefault()
-                            }}
                           >
                             Delete
-                          </button>
+                          </ConfirmDeleteButtonPlain>
                         </form>
                       </div>
                     </td>

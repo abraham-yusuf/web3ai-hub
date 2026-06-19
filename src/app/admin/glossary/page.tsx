@@ -1,10 +1,11 @@
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { deleteGlossaryEntryAction } from "./actions"
 import { ImportGlossaryDialog } from "@/components/admin/import-glossary-dialog"
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button"
 
 export const dynamic = "force-dynamic"
 
@@ -160,19 +161,12 @@ export default async function AdminGlossaryPage({
                     </div>
                     <form action={deleteGlossaryEntryAction}>
                       <input type="hidden" name="id" value={entry.id} />
-                      <Button
-                        type="submit"
-                        variant="destructive"
-                        size="sm"
+                      <ConfirmDeleteButton
+                        message="Delete this glossary entry?"
                         className="h-7 text-xs w-full"
-                        onClick={(e) => {
-                          if (!confirm("Delete this glossary entry?")) {
-                            e.preventDefault()
-                          }
-                        }}
                       >
                         Delete
-                      </Button>
+                      </ConfirmDeleteButton>
                     </form>
                   </div>
                 </td>

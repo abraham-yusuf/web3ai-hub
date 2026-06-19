@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { deleteFaqEntryAction } from "./actions"
 import { ImportFaqDialog } from "@/components/admin/import-faq-dialog"
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button"
 
 export const dynamic = "force-dynamic"
 
@@ -163,19 +163,12 @@ export default async function AdminFaqPage({
                     </div>
                     <form action={deleteFaqEntryAction}>
                       <input type="hidden" name="id" value={entry.id} />
-                      <Button
-                        type="submit"
-                        variant="destructive"
-                        size="sm"
+                      <ConfirmDeleteButton
+                        message="Delete this FAQ entry?"
                         className="h-7 text-xs w-full"
-                        onClick={(e) => {
-                          if (!confirm("Delete this FAQ entry?")) {
-                            e.preventDefault()
-                          }
-                        }}
                       >
                         Delete
-                      </Button>
+                      </ConfirmDeleteButton>
                     </form>
                   </div>
                 </td>

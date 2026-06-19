@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { updateFaqEntryAction, deleteFaqEntryAction } from "../../actions"
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button"
 
 const CATEGORIES = ["general", "billing", "technical", "web3", "ai-tools", "account"]
 
@@ -142,17 +143,12 @@ export default async function EditFaqPage({ params }: EditFaqPageProps) {
         </div>
         <form action={deleteFaqEntryAction}>
           <input type="hidden" name="id" value={entry.id} />
-          <Button
-            type="submit"
-            variant="destructive"
-            onClick={(e) => {
-              if (!confirm("Yakin ingin menghapus FAQ ini? Tindakan ini tidak dapat dibatalkan.")) {
-                e.preventDefault()
-              }
-            }}
+          <ConfirmDeleteButton
+            message="Yakin ingin menghapus FAQ ini? Tindakan ini tidak dapat dibatalkan."
+            size="default"
           >
             Delete FAQ
-          </Button>
+          </ConfirmDeleteButton>
         </form>
       </div>
     </div>
