@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { updateGlossaryEntryAction, deleteGlossaryEntryAction } from "../../actions"
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button"
 
 interface EditGlossaryPageProps {
   params: Promise<{ id: string }>
@@ -126,17 +127,12 @@ export default async function EditGlossaryPage({ params }: EditGlossaryPageProps
         </div>
         <form action={deleteGlossaryEntryAction}>
           <input type="hidden" name="id" value={entry.id} />
-          <Button
-            type="submit"
-            variant="destructive"
-            onClick={(e) => {
-              if (!confirm("Yakin ingin menghapus glossary entry ini? Tindakan ini tidak dapat dibatalkan.")) {
-                e.preventDefault()
-              }
-            }}
+          <ConfirmDeleteButton
+            message="Yakin ingin menghapus glossary entry ini? Tindakan ini tidak dapat dibatalkan."
+            size="default"
           >
             Delete Entry
-          </Button>
+          </ConfirmDeleteButton>
         </form>
       </div>
     </div>
