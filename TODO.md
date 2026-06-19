@@ -129,8 +129,8 @@
 - [x] Paid learning tracks (certification, premium content) — subscription.ts canAccessPremiumLearn gate, upgrade CTA
 - [x] Sponsored content (native ads, sponsored posts) — Migration note: add sponsored field to Post/Airdrop models (docs/MIGRATION_NOTES.md)
 - [x] Sponsored airdrops (paid featured placement) — schema migration (`sponsored` + `featured` fields), float-to-top sorting, amber badge/card highlight
-- [ ] Sponsored AI tools (promoted listings)
-- [ ] Affiliate optimization (A/B testing, conversion tracking)
+- [x] Sponsored AI tools (promoted listings) — /admin/tools/sponsored management UI, package tiers (basic/premium/enterprise), auto-expiration scheduling, quick-add from top tools, audit trail
+- [x] Affiliate optimization (A/B testing, conversion tracking) — /admin/affiliate dashboard, A/B experiments, conversion postback API, session-based tracking
 - [x] Subscription analytics (MRR, churn, LTV) — /admin/subscriptions page stub + Revenue Overview in analytics
 
 ---

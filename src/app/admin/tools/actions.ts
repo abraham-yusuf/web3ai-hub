@@ -38,6 +38,10 @@ export async function createToolAction(formData: FormData) {
       rating: Number(getString(formData, "rating") || 0),
       affiliateLink: getString(formData, "affiliateLink") || null,
       featured: formData.get("featured") === "on",
+      sponsored: formData.get("sponsored") === "on",
+      sponsoredUntil: getString(formData, "sponsoredUntil") ? new Date(getString(formData, "sponsoredUntil")) : null,
+      sponsoredPackage: getString(formData, "sponsoredPackage") || null,
+      sponsoredNote: getString(formData, "sponsoredNote") || null,
     },
   })
 
@@ -72,6 +76,10 @@ export async function updateToolAction(formData: FormData) {
       rating: Number(getString(formData, "rating") || 0),
       affiliateLink: getString(formData, "affiliateLink") || null,
       featured: formData.get("featured") === "on",
+      sponsored: formData.get("sponsored") === "on",
+      sponsoredUntil: getString(formData, "sponsoredUntil") ? new Date(getString(formData, "sponsoredUntil")) : null,
+      sponsoredPackage: getString(formData, "sponsoredPackage") || null,
+      sponsoredNote: getString(formData, "sponsoredNote") || null,
     },
   })
 
@@ -265,4 +273,79 @@ export async function bulkImportToolsAction(
   revalidatePath("/admin/tools")
 
   return result
+}
+
+// === Sponsored Tools Management Actions ===
+
+export async function toggleSponsoredAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const id = getString(formData, "id")
+  const tool = await prisma.aITool.findUnique({ where: { id }, select: { sponsored: true, name: true, slug: true } })
+  if (!tool) throw new Error("Tool not found")
+
+  await prisma.aITool.update({
+    where: { id },
+    data: { sponsored: !tool.sponsored },
+  })
+
+  await auditLog(
+    tool.sponsored ? "tool.unsponsored" : "tool.sponsored",
+    session.user.email ?? session.user.name ?? "unknown",
+    "Tool",
+    { actorId: session.user.id, resourceId: id, details: { name: tool.name, slug: tool.slug } },
+  )
+
+  revalidatePath("/ai-tools")
+  revalidatePath("/admin/tools")
+  revalidatePath("/admin/tools/sponsored")
+}
+
+export async function updateSponsoredDetailsAction(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const id = getString(formData, "id")
+  const sponsoredPackage = getString(formData, "sponsoredPackage") || null
+  const sponsoredNote = getString(formData, "sponsoredNote") || null
+  const sponsoredUntilStr = getString(formData, "sponsoredUntil")
+  const sponsoredUntil = sponsoredUntilStr ? new Date(sponsoredUntilStr) : null
+
+  await prisma.aITool.update({
+    where: { id },
+    data: {
+      sponsored: true,
+      sponsoredPackage,
+      sponsoredNote,
+      sponsoredUntil,
+    },
+  })
+
+  await auditLog("tool.sponsored.update", session.user.email ?? session.user.name ?? "unknown", "Tool", {
+    actorId: session.user.id,
+    resourceId: id,
+    details: { sponsoredPackage, sponsoredUntil: sponsoredUntil?.toISOString() },
+  })
+
+  revalidatePath("/ai-tools")
+  revalidatePath("/admin/tools/sponsored")
+}
+
+export async function expireSponsoredToolsAction() {
+  const now = new Date()
+  const expired = await prisma.aITool.updateMany({
+    where: {
+      sponsored: true,
+      sponsoredUntil: { lte: now },
+    },
+    data: { sponsored: false },
+  })
+
+  if (expired.count > 0) {
+    revalidatePath("/ai-tools")
+    revalidatePath("/admin/tools/sponsored")
+  }
+
+  return { expired: expired.count }
 }
