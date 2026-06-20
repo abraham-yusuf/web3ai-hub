@@ -118,9 +118,9 @@
 - [x] Push notifications (browser push for new content) — service worker (public/sw.js) + PushNotificationButton component + /api/notifications/push-subscribe
 - [x] User onboarding flow (welcome tour, preference selection) — /onboarding 3-step wizard with localStorage progress
 - [x] Referral program (shareable links, incentive tracking) — /referral page, CopyLinkButton component, uses existing /api/gamification/referral
-- [ ] Discord integration (bot, community sync)
+- [x] Discord integration (bot, community sync) — Discord webhook for announcements + /api/discord/webhook + Inngest background jobs
 - [x] Twitter/X auto-posting (new blog post announcements) — /api/webhooks/post-published stub (Twitter API v2 TODO)
-- [ ] Telegram integration (notifications, airdrop alerts)
+- [x] Telegram integration (notifications, airdrop alerts) — Telegram Bot API + /api/telegram/webhook + /api/telegram/send + user subscriptions
 
 ### 💰 Monetization (Phase 7)
 

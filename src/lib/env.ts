@@ -49,6 +49,15 @@ const serverEnvSchema = z
     // Resend (email)
     RESEND_API_KEY: z.string().optional(),
 
+    // Discord
+    DISCORD_WEBHOOK_URL: z.string().url().optional(),
+    DISCORD_BOT_TOKEN: z.string().optional(),
+
+    // Telegram
+    TELEGRAM_BOT_TOKEN: z.string().optional(),
+    TELEGRAM_ADMIN_CHAT_ID: z.string().optional(),
+    TELEGRAM_ANNOUNCEMENTS_CHANNEL_ID: z.string().optional(),
+
     // App URL (for sitemap, OG, canonical)
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   })
